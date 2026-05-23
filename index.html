@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulNav 心靈導航 — AI 情緒與心理健康學習系統</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="soulsav-demo.css">
+<style>
+  /* 完美融入原有排版：新增標準化行為描述與呼吸計時的視覺補強 */
+  .mood-behavior-standard-box {
+    background: var(--panel-soft);
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--text);
+    border-left: 4px solid var(--brand);
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="top-bar">
+    <div class="logo"><i class="ti ti-brain"></i> Soul<em>Nav</em></div>
+    <div class="flow-indicator">
+      <span class="flow-step done" data-page="0">情緒評估</span>
+      <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
+      <span class="flow-step" data-page="1">課程學習</span>
+      <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
+      <span class="flow-step" data-page="2">情境練習</span>
+      <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
+      <span class="flow-step" data-page="3">現實挑戰</span>
+      <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
+      <span class="flow-step" data-page="4">追蹤</span>
+      <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
+      <span class="flow-step" data-page="5">AI 回饋</span>
+    </div>
+  </div>
+
+  <div class="body-wrap">
+    <div class="sidebar">
+      <div class="nav-section">主要功能</div>
+      <div class="nav-item active" id="side-nav-0" onclick="goPage(0)"><i class="ti ti-mood-smile"></i>情緒評估</div>
+      <div class="nav-item" id="side-nav-1" onclick="goPage(1)"><i class="ti ti-book"></i>課程學習</div>
+      <div class="nav-item" id="side-nav-2" onclick="goPage(2)"><i class="ti ti-player-play"></i>情境練習<span class="nav-badge">核心</span></div>
+      <div class="nav-item" id="side-nav-3" onclick="goPage(3)"><i class="ti ti-sword"></i>現實挑戰</div>
+      <div class="nav-item" id="side-nav-4" onclick="goPage(4)"><i class="ti ti-chart-line"></i>情緒追蹤</div>
+      <div class="nav-item" id="side-nav-5" onclick="goPage(5)"><i class="ti ti-robot"></i>AI 回饋反思</div>
+      <div class="nav-divider"></div>
+      <div class="nav-item"><i class="ti ti-trophy"></i>勳章收藏</div>
+      <div class="nav-item"><i class="ti ti-settings"></i>設定</div>
+      <div class="nav-user">
+        <div class="user-ava">阿</div>
+        <div>
+          <div class="user-name">阿明同學</div>
+          <div class="user-lv" id="energy-display">⚡ 心理能量: 100</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main">
+
+      <div class="page active" id="page0">
+        <div id="p0-input">
+          <span class="chip chip-info"><i class="ti ti-sun"></i> 今日情緒評估</span>
+          <div class="page-title">今天感覺怎樣，阿明？</div>
+          <div class="page-sub">每日打卡，AI 即時分析你的情緒狀態，推薦最適合今天的練習。</div>
+          <div class="card mb-10">
+            <div class="section-label"><i class="ti ti-mood-smile"></i> 選擇你現在的心情</div>
+            <div class="mood-emojis">
+              <button class="mood-btn" data-score="5" onclick="selectMoodNode(this)">😰<span>超焦慮</span></button>
+              <button class="mood-btn" data-score="4" onclick="selectMoodNode(this)">😟<span>有點怕</span></button>
+              <button class="mood-btn sel" data-score="3" onclick="selectMoodNode(this)">😐<span>普普</span></button>
+              <button class="mood-btn" data-score="2" onclick="selectMoodNode(this)">🙂<span>還不錯</span></button>
+              <button class="mood-btn" data-score="1" onclick="selectMoodNode(this)">😄<span>很開心</span></button>
+            </div>
+            
+            <div class="mood-behavior-standard-box" id="moodStandardDescText">
+              中度干擾：心有點靜不下來，手一直想去拿手機滑社群、看通知。
+            </div>
+
+            <div class="section-label mt-10"><i class="ti ti-writing"></i> 說說發生了什麼</div>
+            <textarea class="mood-textarea" id="moodText">明天模考，書還沒讀完，一直想滑手機逃避...</textarea>
+          </div>
+          <div class="card mb-10">
+            <div class="section-label"><i class="ti ti-list-check"></i> 壓力來源快速評估</div>
+            <div class="two-col">
+              <div><div class="bar-lbl"><span>學業壓力</span><span>85%</span></div><div class="bar-track"><div class="bar-fill" style="width:85%;background:var(--danger)"></div></div></div>
+              <div><div class="bar-lbl"><span>社交壓力</span><span>40%</span></div><div class="bar-track"><div class="bar-fill" style="width:40%;background:var(--warning)"></div></div></div>
+              <div><div class="bar-lbl"><span>睡眠品質</span><span>55%</span></div><div class="bar-track"><div class="bar-fill" style="width:55%;background:var(--info)"></div></div></div>
+              <div><div class="bar-lbl"><span>身體狀況</span><span>70%</span></div><div class="bar-track"><div class="bar-fill" style="width:70%;background:var(--success)"></div></div></div>
+            </div>
+          </div>
+          <button class="btn-primary" onclick="runAICloud()"><i class="ti ti-robot"></i> 送出，AI 開始分析</button>
+          <div class="streak-row">
+            <div class="streak-card"><div class="streak-num">7</div><div class="streak-lbl">連續打卡</div></div>
+            <div class="streak-card"><div class="streak-num">320</div><div class="streak-lbl">心理能量</div></div>
+            <div class="streak-card"><div class="streak-num">5</div><div class="streak-lbl">勳章數</div></div>
+          </div>
+        </div>
+        
+        <div id="p0-loading" style="display:none">
+          <div class="card"><div class="ai-loading"><div class="spinner"></div><span>AI 正在連線雲端資料庫，進行語意建模分析...</span></div></div>
+        </div>
+        
+        <div id="p0-result" style="display:none" class="fade-in">
+          <div class="ai-result-header">
+            <div class="ai-ava"><i class="ti ti-robot"></i></div>
+            <div><div class="result-title">AI 情緒分析完成</div><div class="result-sub">資料已成功存入 SQLite 雲端資料庫</div></div>
+            <button class="link-btn" onclick="resetAI()">重新填寫</button>
+          </div>
+          <div class="card mb-10">
+            <div class="chip-row mb-10" id="aiDynamicChips">
+              </div>
+            <div id="aiDynamicBars">
+              </div>
+            <div class="divider"></div>
+            <div class="ai-insight" id="aiCloudInsightText">AI 洞察載入中...</div>
+          </div>
+          <div class="section-label"><i class="ti ti-sparkles"></i> 今日推薦路徑</div>
+          <div class="rec-row" onclick="goPage(2)">
+            <div class="rec-icon"><i class="ti ti-player-play"></i></div>
+            <div class="rec-info"><div class="rec-title">情境練習：情緒調節 + 拖延症重塑</div><div class="rec-meta">呼吸練習 → 情境決策 → 任務拆解 → 現實任務</div></div>
+            <i class="ti ti-chevron-right rec-arrow"></i>
+          </div>
+          <button class="btn-primary mt-10" onclick="goPage(1)"><i class="ti ti-book"></i> 先看相關課程</button>
+        </div>
+      </div>
+
+      <div class="page" id="page1">
+        <span class="chip chip-info"><i class="ti ti-book"></i> 課程學習</span>
+        <div class="page-title">克服逃避心理</div>
+        <div class="page-sub">漫畫故事 + 翻牌知識 + 小測驗，學完即可進入情境練習。</div>
+        <div id="p1-overview">
+          <div class="lesson-card done">
+            <div class="lesson-num done"><i class="ti ti-check"></i></div>
+            <div class="lesson-info"><div class="lesson-title">什麼是逃避心理？</div><div class="lesson-sub">已完成 · 1 分鐘</div></div>
+            <span class="chip chip-success">完成</span>
+          </div>
+          <div class="lesson-card cur" onclick="openLesson()">
+            <div class="lesson-num cur">2</div>
+            <div class="lesson-info"><div class="lesson-title">多巴胺陷阱與番茄鐘策略</div><div class="lesson-sub">進行中 · 1 分鐘</div></div>
+            <span class="chip chip-info">進行中 ›</span>
+          </div>
+          <div class="lesson-card">
+            <div class="lesson-num"><i class="ti ti-lock"></i></div>
+            <div class="lesson-info"><div class="lesson-title">建立你的微計畫習慣</div><div class="lesson-sub">尚未解鎖 · 1 分鐘</div></div>
+            <span class="chip">鎖定</span>
+          </div>
+          <button class="btn-primary mt-10" onclick="openLesson()">繼續學習 <i class="ti ti-arrow-right"></i></button>
+        </div>
+        <div id="p1-lesson" style="display:none" class="fade-in">
+          <div class="lesson-nav">
+            <button class="ghost-sm" onclick="closeLesson()"><i class="ti ti-arrow-left"></i> 返回</button>
+            <span class="chip chip-info">單元 2 / 3</span>
+          </div>
+          <div class="manga-row">
+            <div class="char-wrap"><div class="char-icon"><i class="ti ti-robot"></i></div><span class="char-name">Navi</span></div>
+            <div class="bubble navi">滑完手機，反而<strong>更焦慮</strong>——你有這種感覺嗎？</div>
+          </div>
+          <div class="manga-row r">
+            <div class="char-wrap"><div class="char-icon"><i class="ti ti-mood-nervous"></i></div><span class="char-name">阿明</span></div>
+            <div class="bubble stu">超準！滑完罪惡感更重，書根本讀不下去...</div>
+          </div>
+          <div class="manga-row">
+            <div class="char-wrap"><div class="char-icon"><i class="ti ti-robot"></i></div><span class="char-name">Navi</span></div>
+            <div class="bubble navi">這是<strong>「多巴胺陷阱」</strong>！破解方法是番茄鐘：只承諾 25 分鐘，大腦就不怕了！</div>
+          </div>
+          <div class="section-label mt-12"><i class="ti ti-cards"></i> 點擊翻牌看重點</div>
+          <div class="flip-grid">
+            <div class="flip-wrap" onclick="this.classList.toggle('flipped')" tabindex="0">
+              <div class="flip-inner">
+                <div class="flip-face flip-front"><span class="flip-hint"><i class="ti ti-refresh"></i> 點我</span><div class="flip-q">滑手機後多巴胺怎麼變化？</div></div>
+                <div class="flip-face flip-back danger-back"><div class="flip-a">飆高 → 快速崩落<br>焦慮 ×2 反彈</div></div>
+              </div>
+            </div>
+            <div class="flip-wrap" onclick="this.classList.toggle('flipped')" tabindex="0">
+              <div class="flip-inner">
+                <div class="flip-face flip-front"><span class="flip-hint"><i class="ti ti-refresh"></i> 點我</span><div class="flip-q">番茄鐘完成後感覺如何？</div></div>
+                <div class="flip-face flip-back success-back"><div class="flip-a">穩定成就感<br>真正的放鬆！</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <span class="chip chip-info mb-8"><i class="ti ti-pencil"></i> 小測驗</span>
+            <div class="quiz-q">滑手機為什麼讓焦慮更嚴重？</div>
+            <button class="quiz-opt" onclick="ansQ(this,false,'q1')">A. 螢幕藍光讓大腦更清醒</button>
+            <button class="quiz-opt" onclick="ansQ(this,true,'q1')">B. 多巴胺快速消退後，焦慮反彈更高</button>
+            <button class="quiz-opt" onclick="ansQ(this,false,'q1')">C. 手機讓人忘記時間</button>
+            <div class="quiz-result" id="q1res"></div>
+          </div>
+          <div id="p1-next" style="display:none" class="mt-10">
+            <button class="btn-primary" onclick="goPage(2)"><i class="ti ti-player-play"></i> 前往情境練習！</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="page2">
+        <span class="chip chip-info"><i class="ti ti-player-play"></i> 情境與行為練習</span>
+        <div class="page-title">系統內練習</div>
+        <div class="page-sub">先在安全環境中練習，再把技巧帶到現實生活。</div>
+        <div class="practice-tabs">
+          <button class="ptab active" id="btn-tab-breath" onclick="switchTab(this,'ptab-breath')"><i class="ti ti-wind"></i> 呼吸引導</button>
+          <button class="ptab" id="btn-tab-scen" onclick="switchTab(this,'ptab-scen')"><i class="ti ti-map"></i> 情境決策</button>
+          <button class="ptab" id="btn-tab-task" onclick="switchTab(this,'ptab-task')"><i class="ti ti-puzzle"></i> 任務拆解</button>
+        </div>
+
+        <div class="practice-panel active" id="ptab-breath">
+          <div class="card mb-10 text-center">
+            <div class="section-label jc"><i class="ti ti-wind"></i> 4-7-8 呼吸法 — 快速降低焦慮</div>
+            <div class="breath-circle" id="breathCircle">
+              <div class="breath-text" id="breathText">準備好了嗎？</div>
+            </div>
+            <div class="breath-count" id="breathCount">—</div>
+            <div class="breath-phase" id="breathPhase">點下方開始練習</div>
+            <div class="btn-row mt-12">
+              <button class="btn-ghost btn-auto" onclick="startBreathEngine()"><i class="ti ti-player-play"></i> 開始練習</button>
+              <button class="btn-ghost btn-auto" onclick="stopBreathEngine()"><i class="ti ti-player-stop"></i> 停止</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="section-label"><i class="ti ti-info-circle"></i> 為什麼有效？</div>
+            <p class="body-text">7 秒屏氣能激活副交感神經，讓心跳放慢、皮質醇下降。重複練習能有效切換大腦的防禦狀態。</p>
+            <button class="btn-primary mt-10" onclick="switchTab(document.getElementById('btn-tab-scen'),'ptab-scen')">下一階段：情境決策 <i class="ti ti-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <div class="practice-panel" id="ptab-scen">
+          <div class="card mb-10">
+            <div class="scene-place"><i class="ti ti-map-pin"></i> 晚上 9 點，書房</div>
+            <div class="scene-story">「你打開課本，看到還剩 30 頁。胸口悶悶的，手不自覺地伸向手機...」</div>
+            <div class="scene-q">運用剛學到的策略，你會怎麼做？</div>
+            <button class="choice-btn" id="sc0" onclick="pickChoiceNode(0, false, -30)"><span class="choice-key">A</span>先滑 10 分鐘 IG 冷靜一下</button>
+            <button class="choice-btn" id="sc1" onclick="pickChoiceNode(1, true, 10)"><span class="choice-key">B</span>設 25 分鐘番茄鐘，只讀前 8 頁</button>
+            <button class="choice-btn" id="sc2" onclick="pickChoiceNode(2, false, -10)"><span class="choice-key">C</span>30 頁太多，今晚直接放棄</button>
+          </div>
+          <div class="fb-box" id="scenFB" style="display:none">
+            <div class="fb-title" id="fbTitle"></div>
+            <div class="fb-body" id="fbBody"></div>
+            <div class="navi-row"><i class="ti ti-robot navi-icon"></i><div class="navi-text" id="naviText"></div></div>
+          </div>
+          <div id="scen-next" style="display:none" class="mt-10">
+            <button class="btn-primary" onclick="switchTab(document.getElementById('btn-tab-task'),'ptab-task')">下一階段：動態任務拆解 <i class="ti ti-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <div class="practice-panel" id="ptab-task">
+          <div id="task-input-area">
+            <div class="card mb-10">
+              <div class="section-label"><i class="ti ti-writing"></i> 你想拆解哪個任務？</div>
+              <input class="task-input" id="taskInput" type="text" placeholder="例如：明天要交英文報告，還沒開始..." maxlength="100">
+              <div class="meta-row">
+                <div class="meta-col">
+                  <div class="meta-label">大概剩多少時間？</div>
+                  <select class="meta-select" id="timeLeft">
+                    <option>今天晚上（2-3 小時）</option>
+                    <option>明天之前（一天）</option>
+                    <option>這週內（3-5 天）</option>
+                    <option>下週前（一週）</option>
+                  </select>
+                </div>
+                <div class="meta-col">
+                  <div class="meta-label">目前的狀態？</div>
+                  <select class="meta-select" id="currentState">
+                    <option>完全沒開始</option>
+                    <option>有一點頭緒</option>
+                    <option>做了一半卡住</option>
+                    <option>快完成但拖著</option>
+                  </select>
+                </div>
+              </div>
+              <button class="btn-primary mt-10" onclick="startBreakdown()"><i class="ti ti-robot"></i> AI 幫我拆解任務</button>
+            </div>
+          </div>
+          <div id="task-loading" style="display:none">
+            <div class="card"><div class="ai-loading"><div class="spinner"></div><span>AI 正在分析你的任務，規劃最適合的步驟...</span></div></div>
+          </div>
+          <div id="task-result" style="display:none" class="fade-in">
+            <div class="card">
+              <div class="ai-result-header">
+                <div class="ai-ava"><i class="ti ti-robot"></i></div>
+                <div><div class="result-title">AI 任務拆解完成</div><div class="result-sub" id="taskSummary"></div></div>
+                <button class="link-btn" onclick="resetTask()">重新輸入</button>
+              </div>
+              <div class="big-task-box">
+                <i class="ti ti-alert-circle" style="color:var(--warning);font-size:16px;flex-shrink:0;margin-top:2px"></i>
+                <div><div class="big-task-label">原始任務（讓你感到壓力的）</div><div class="big-task-text" id="bigTaskDisplay"></div></div>
+              </div>
+              <div class="arrow-row">
+                <div class="arrow-line"></div>
+                <div class="arrow-label"><i class="ti ti-arrow-down"></i> AI 拆解成今天能做的步驟</div>
+                <div class="arrow-line"></div>
+              </div>
+              <div class="step-list" id="stepList"></div>
+              <div class="prog-area">
+                <div class="prog-row"><span>完成進度</span><span class="prog-num" id="progText">0 / 0</span></div>
+                <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+              </div>
+              <div class="navi-row mt-10"><i class="ti ti-robot navi-icon"></i><div class="navi-text" id="naviTip"></div></div>
+              <button class="btn-ghost mt-10" onclick="resetTask()"><i class="ti ti-refresh"></i> 換一個任務試試</button>
+            </div>
+          </div>
+          <div id="task-error" style="display:none">
+            <div class="card">
+              <div class="error-box" id="taskErrorMsg"></div>
+              <button class="btn-ghost mt-10" onclick="resetTask()"><i class="ti ti-refresh"></i> 重試</button>
+            </div>
+          </div>
+          <div id="task-to-challenge" style="display:none" class="mt-10">
+            <button class="btn-primary" onclick="goPage(3)"><i class="ti ti-sword"></i> 練習完成，去現實挑戰</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="page3">
+        <span class="chip chip-warning"><i class="ti ti-sword"></i> 現實生活挑戰</span>
+        <div class="page-title">把技巧帶進真實生活</div>
+        <div class="page-sub">系統內練完了！現在的挑戰是：在今天真實的情境中，做到這些事。</div>
+        <div class="challenge-card mb-10">
+          <div class="challenge-header">
+            <div class="challenge-icon" style="background:var(--info-bg);color:var(--info)"><i class="ti ti-wind"></i></div>
+            <div>
+              <div class="challenge-title">情緒調節挑戰</div>
+              <div class="chip-row mt-4"><span class="chip chip-info">今日</span><span class="chip">3 項任務</span></div>
+            </div>
+          </div>
+          <div class="challenge-sub">當你感到焦慮時，在現實中試著做到以下幾件事：</div>
+          <div class="task-list" id="realList1">
+            <div class="task-item done" onclick="toggleRealTask(this,1)"><div class="task-check"><i class="ti ti-check"></i></div><span>情緒高漲時，做 3 次 4-7-8 深呼吸</span></div>
+            <div class="task-item" onclick="toggleRealTask(this,1)"><div class="task-check"></div><span>感到想逃避時，先暫停 10 秒，說出「我現在感到焦慮」</span></div>
+            <div class="task-item" onclick="toggleRealTask(this,1)"><div class="task-check"></div><span>在手機備忘錄記錄當下的情緒（一句話就好）</span></div>
+          </div>
+          <div class="prog-row"><span>完成進度</span><span class="prog-num" id="rPct1">33%</span></div>
+          <div class="prog-track"><div class="prog-fill" id="rBar1" style="width:33%;background:var(--success)"></div></div>
+        </div>
+        <div class="challenge-card mb-10">
+          <div class="challenge-header">
+            <div class="challenge-icon" style="background:var(--warning-bg);color:var(--warning)"><i class="ti ti-clock"></i></div>
+            <div>
+              <div class="challenge-title">拖延症行為重塑挑戰</div>
+              <div class="chip-row mt-4"><span class="chip chip-warning">今日</span><span class="chip">3 項任務</span></div>
+            </div>
+          </div>
+          <div class="challenge-sub">用今天學到的番茄鐘策略，在生活中實際執行：</div>
+          <div class="task-list" id="realList2">
+            <div class="task-item done" onclick="toggleRealTask(this,2)"><div class="task-check"><i class="ti ti-check"></i></div><span>設定一個 25 分鐘番茄鐘，開始讀數學</span></div>
+            <div class="task-item done" onclick="toggleRealTask(this,2)"><div class="task-check"><i class="ti ti-check"></i></div><span>完成後，給自己一個小獎勵（5 分鐘休息）</span></div>
+            <div class="task-item" onclick="toggleRealTask(this,2)"><div class="task-check"></div><span>今晚睡前，在日記記錄「我做到了什麼」</span></div>
+          </div>
+          <div class="prog-row"><span>完成進度</span><span class="prog-num" id="rPct2">67%</span></div>
+          <div class="prog-track"><div class="prog-fill" id="rBar2" style="width:67%;background:var(--success)"></div></div>
+        </div>
+        <div class="card">
+          <div class="section-label"><i class="ti ti-writing"></i> 完成後回報給 AI</div>
+          <textarea class="report-textarea" id="reportText" placeholder="今天有做到哪些挑戰？遇到什麼困難？隨便說都可以...">做了兩個番茄鐘，讀了數學！但第三個想滑手機，還是抵擋不住...</textarea>
+          <button class="btn-primary mt-8" onclick="submitReport()"><i class="ti ti-robot"></i> 送出給 AI 分析</button>
+        </div>
+      </div>
+
+      <div class="page" id="page4">
+        <span class="chip chip-success"><i class="ti ti-chart-line"></i> 情緒與行為追蹤</span>
+        <div class="page-title">你這週的成長軌跡</div>
+        <div class="page-sub">情緒值、行為完成率、學習歷程，一起呈現你的真實進步。</div>
+        <div class="three-col mb-12">
+          <div class="stat-card"><div class="stat-num" style="color:var(--warning)">7</div><div class="stat-lbl">連續打卡</div></div>
+          <div class="stat-card"><div class="stat-num" style="color:var(--success)">83%</div><div class="stat-lbl">任務完成率</div></div>
+          <div class="stat-card"><div class="stat-num" style="color:var(--info)">+80</div><div class="stat-lbl">本週能量</div></div>
+        </div>
+        <div class="card mb-10">
+          <div class="section-label"><i class="ti ti-chart-bar"></i> 每日情緒壓力值（實時連動雲端 SQLite）</div>
+          <div class="chart-wrap" id="cloudChartWrapper">
+            <div class="chart-col"><div class="chart-bar-outer"><div class="chart-bar-inner" style="height:55%;background:var(--info)"></div></div><div class="chart-day">一</div></div>
+            <div class="chart-col"><div class="chart-bar-outer"><div class="chart-bar-inner" style="height:35%;background:var(--danger)"></div></div><div class="chart-day">二</div></div>
+            <div class="chart-col"><div class="chart-bar-outer"><div class="chart-bar-inner" style="height:62%;background:var(--info)"></div></div><div class="chart-day">三</div></div>
+            <div class="chart-col"><div class="chart-bar-outer"><div class="chart-bar-inner" style="height:48%;background:var(--warning)"></div></div><div class="chart-day">四</div></div>
+            <div class="chart-col"><div class="chart-bar-outer"><div class="chart-bar-inner" style="height:75%;background:var(--success)"></div></div><div class="chart-day">五</div></div>
+            <div class="chart-col"><div class="chart-bar-outer"><div class="chart-bar-inner" style="height:80%;background:var(--success)"></div></div><div class="chart-day">六</div></div>
+            <div class="chart-col"><div class="chart-bar-outer"><div class="chart-bar-inner" id="todayBarInner" style="height:72%;background:var(--info)"></div></div><div class="chart-day">今</div></div>
+          </div>
+        </div>
+        <div class="card mb-10">
+          <div class="section-label"><i class="ti ti-checklist"></i> 行為紀錄 — 本週完成任務</div>
+          <div class="behavior-list">
+            <div class="behavior-item"><i class="ti ti-circle-check" style="color:var(--success)"></i><span>完成 14 個番茄鐘（共 350 分鐘專注）</span></div>
+            <div class="behavior-item"><i class="ti ti-circle-check" style="color:var(--success)"></i><span>執行深呼吸練習 9 次</span></div>
+            <div class="behavior-item"><i class="ti ti-circle-check" style="color:var(--success)"></i><span>完成現實挑戰任務 10 / 12 項</span></div>
+            <div class="behavior-item"><i class="ti ti-circle-x" style="color:var(--danger)"></i><span>週二情緒崩潰，未完成任何任務（已記錄）</span></div>
+          </div>
+        </div>
+        <div class="section-label"><i class="ti ti-sparkles"></i> AI 洞察</div>
+        <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--success)"></div><div class="insight-text">完成番茄鐘後，當天情緒值平均高出未完成日 32%。策略有效！</div><span class="chip chip-success">進步</span></div>
+        <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--warning)"></div><div class="insight-text">週二焦慮高峰可能與模考壓力累積有關，建議提前做任務拆解。</div><span class="chip chip-warning">注意</span></div>
+        <div class="insight-item mb-12"><div class="insight-dot" style="background:var(--info)"></div><div class="insight-text">連續 7 天打卡，情緒自覺能力持續建立中，習慣正在成形！</div><span class="chip chip-info">習慣</span></div>
+        <button class="btn-primary" onclick="goPage(5)"><i class="ti ti-robot"></i> 看 AI 個人化回饋</button>
+      </div>
+
+      <div class="page" id="page5">
+        <span class="chip chip-info"><i class="ti ti-robot"></i> AI 回饋與反思引導</span>
+        <div class="page-title">Navi 的個人化分析</div>
+        <div class="page-sub">根據你這週的情緒、行為紀錄，AI 給你專屬的回饋與下一步建議。</div>
+        <div class="ai-chat mb-10">
+          <div class="ai-msg">
+            <div class="ai-msg-header"><div class="ai-ava sm"><i class="ti ti-robot"></i></div><div class="ai-msg-name">Navi</div><div class="ai-msg-time">剛剛</div></div>
+            <div class="ai-msg-body">阿明，你這週很厲害！完成了 14 個番茄鐘，任務完成率達到 83%。我注意到一個很重要的模式：<br><br>你在<strong>番茄鐘結束後</strong>的當天，情緒值平均比沒做的日子高 32%。這說明「開始」才是最難的一步——一旦你開始了，後續幾乎都能完成。</div>
+          </div>
+          <div class="ai-msg">
+            <div class="ai-msg-header"><div class="ai-ava sm"><i class="ti ti-robot"></i></div><div class="ai-msg-name">Navi</div><div class="ai-msg-time">剛剛</div></div>
+            <div class="ai-msg-body">你提到週三「第三個番茄鐘想滑手機沒抵擋住」——這很正常。自制力是有限資源，前兩個番茄鐘已經用掉很多了。<br><br>下週建議：在第二個番茄鐘結束後，<strong>主動把手機放到另一個房間</strong>，而不是靠意志力抵抗。</div>
+          </div>
+        </div>
+        <div class="card mb-10">
+          <div class="section-label"><i class="ti ti-messages"></i> 反思引導</div>
+          <div class="reflect-q">這週完成了兩個番茄鐘之後，你心裡感覺是什麼？</div>
+          <div class="reflect-opts">
+            <button class="reflect-opt" onclick="selReflect(this)">有成就感，但還是覺得不夠</button>
+            <button class="reflect-opt" onclick="selReflect(this)">鬆了一口氣，比預期容易</button>
+            <button class="reflect-opt" onclick="selReflect(this)">做完就累了，不想繼續</button>
+          </div>
+          <div id="reflectResult" class="reflect-result" style="display:none"></div>
+        </div>
+        <div class="next-cycle mb-10">
+          <div class="next-cycle-title"><i class="ti ti-refresh"></i> 下一個學習循環</div>
+          <div class="next-item"><i class="ti ti-mood-smile"></i> 明天繼續情緒打卡（連續第 8 天）</div>
+          <div class="next-item"><i class="ti ti-book"></i> 解鎖新課程：建立微計畫習慣</div>
+          <div class="next-item"><i class="ti ti-sword"></i> 新現實挑戰：社交焦慮克服任務</div>
+          <div class="next-item"><i class="ti ti-chart-line"></i> 下週追蹤：番茄鐘完成率目標 90%</div>
+        </div>
+        <button class="btn-primary" onclick="startNewCycle()">
+          <i class="ti ti-refresh"></i> 開始新的一天循環
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// 🔗 關鍵串接：完全對齊你們在 Colab 上啟動成功的 ngrok 隧道公開網址
+const CLOUD_BASE_URL = "https://overnight-circular-pony.ngrok-free.dev";
+let currentSelectedScore = 3; // 預設分數為 3 (普普)
+
+// ── 行為描述標準矩陣 (補齊設計細節) ──
+const standardBehaviorMap = {
+  1: "極度放鬆：心情很好，沒有任何壓力干擾，可以非常專注。",
+  2: "輕度干擾：雖然心裡有點掛心考題，但依然能正常專心讀書 1 小時以上。",
+  3: "中度焦慮：心有點靜不下來，手一直想去拿手機滑社群、看通知。",
+  4: "高度拖延：感到明顯的抗拒與焦慮，已經滑手機磨蹭超過 30 分鐘。",
+  5: "嚴重逃避：胸口極度沉悶、完全讀不下去，產生強烈的躺平逃避心理。"
+};
+
+function selectMoodNode(btn) {
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  currentSelectedScore = parseInt(btn.dataset.score);
+  // 動態更新行為標準化文字
+  document.getElementById("moodStandardDescText").innerText = standardBehaviorMap[currentSelectedScore];
+}
+
+// ── 串接 API 1：點擊分析按鈕，傳送打分與描述並寫入 SQLite ──
+async function runAICloud() {
+  const textDesc = document.getElementById('moodText').value.trim();
+  if(!textDesc) { alert("請填寫你目前的具體心境或壓力源描述！"); return; }
+
+  // 啟動原本設計的精美 Loading
+  document.getElementById('p0-input').style.display = 'none';
+  document.getElementById('p0-loading').style.display = 'block';
+
+  try {
+    const response = await fetch(`${CLOUD_BASE_URL}/api/mood/checkin`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: 1,
+        mood_score: currentSelectedScore,
+        user_description: textDesc
+      })
+    });
+    const resData = await response.json();
+
+    if(resData.status === "success") {
+      // 動態渲染後端傳回的 Gemini 分析標籤
+      const chipContainer = document.getElementById("aiDynamicChips");
+      const barContainer = document.getElementById("aiDynamicBars");
+      chipContainer.innerHTML = "";
+      barContainer.innerHTML = "";
+
+      for (const [key, val] of Object.entries(resData.ai_analysis)) {
+        if(key !== "個人化推薦") {
+          // 插入標籤
+          chipContainer.innerHTML += `<span class="chip chip-danger"><i class="ti ti-trending-up"></i> ${key} ${val}%</span>`;
+          // 插入進度條
+          barContainer.innerHTML += `
+            <div class="bar-row">
+              <div class="bar-lbl"><span>${key}</span><span>${val}%</span></div>
+              <div class="bar-track"><div class="bar-fill" style="width:${val}%;background:var(--danger)"></div></div>
+            </div>`;
+        }
+      }
+      
+      // 更新 Navi 助理的台詞與推薦課程
+      document.getElementById("aiCloudInsightText").innerText = `AI 洞察：${resData.ai_analysis["個人化推薦"]}。大腦此時正面臨多巴胺防禦陷阱，建議立即啟動下方的系統內練習流。`;
+      
+      // 切換為結果視窗
+      document.getElementById('p0-loading').style.display = 'none';
+      document.getElementById('p0-result').style.display = 'block';
+    }
+  } catch (err) {
+    alert("打資料到 Colab 雲端失敗！請確保你的 Colab 與 ngrok 還在正常運行中！");
+    document.getElementById('p0-loading').style.display = 'none';
+    document.getElementById('p0-input').style.display = 'block';
+    console.error(err);
+  }
+}
+
+// ── 串接 API 2：從雲端資料庫撈取歷史數據並動態生成圖表高低 ──
+async function fetchChartDataFromSQLite() {
+  const chartWrapper = document.getElementById("cloudChartWrapper");
+  
+  try {
+    const response = await fetch(`${CLOUD_BASE_URL}/api/mood/history/1`);
+    const resData = await response.json();
+    
+    if(resData.chart_data && resData.chart_data.length > 0) {
+      chartWrapper.innerHTML = "";
+      // 根據歷史紀錄動態畫出長條圖
+      resData.chart_data.forEach(d => {
+        const percentageHeight = d.score * 20; // 1-5分映射到百分比高度
+        let barColor = "var(--info)";
+        if(d.score >= 4) barColor = "var(--danger)";
+        else if(d.score === 3) barColor = "var(--warning)";
+        
+        chartWrapper.innerHTML += `
+          <div class="chart-col">
+            <div class="chart-bar-outer">
+              <div class="chart-bar-inner" style="height:${percentageHeight}%;background:${barColor}"></div>
+            </div>
+            <div class="chart-day" style="font-size:10px; white-space:nowrap;">${d.date}</div>
+          </div>`;
+      });
+    }
+  } catch (err) {
+    console.log("後端未回應，啟用原 HTML 的優雅離線防禦機制。");
+  }
+}
+
+// ── 4-7-8 呼吸引擎 (實時驅動縮放動畫 + 手機觸覺微震) ──
+let breathLoopInterval = null;
+function startBreathEngine() {
+  stopBreathEngine();
+  let phaseIdx = 0;
+  let cycleCount = 0;
+  
+  const phases = [
+    { name: '吸氣', dur: 4, expand: true, tip: '用鼻子緩慢吸氣...' },
+    { name: '屏氣', dur: 7, expand: true, tip: '屏住呼吸，安頓身心...' },
+    { name: '吐氣', dur: 8, expand: false, tip: '用嘴緩慢吐氣，釋放焦慮...' }
+  ];
+
+  function runPhase() {
+    if(cycleCount >= 1) { // 成果展演練完一輪後，自動解鎖提示前往下一關關卡
+      document.getElementById('breathText').textContent = "完成";
+      document.getElementById('breathPhase').textContent = "身體已成功放鬆，正在解鎖生活情境決策...";
+      setTimeout(() => {
+        // 優雅切換到情境決策子面板
+        document.getElementById("ptab-breath").classList.remove("active");
+        document.getElementById("ptab-scen").classList.add("active");
+        document.getElementById("btn-tab-breath").classList.remove("active");
+        document.getElementById("btn-tab-scen").classList.add("active");
+      }, 1200);
+      return;
+    }
+
+    const currentP = phases[phaseIdx];
+    document.getElementById('breathText').textContent = currentP.name;
+    document.getElementById('breathPhase').textContent = currentP.tip;
+    
+    let secondsLeft = currentP.dur;
+    document.getElementById('breathCount').textContent = secondsLeft;
+    
+    const circleEl = document.getElementById('breathCircle');
+    currentP.expand ? circleEl.classList.add('expand') : circleEl.classList.remove('expand');
+
+    // 如果是用手機開啟網頁，在吸氣與吐氣時觸發手機硬體的真實微震動回饋
+    if (navigator.vibrate && currentP.name === '吸氣') {
+      navigator.vibrate([150, 100, 150]);
+    }
+
+    breathLoopInterval = setInterval(() => {
+      secondsLeft--;
+      document.getElementById('breathCount').textContent = secondsLeft;
+      if (secondsLeft <= 0) {
+        clearInterval(breathLoopInterval);
+        if(phaseIdx === 2) cycleCount++; // 完成一整輪
+        phaseIdx = (phaseIdx + 1) % 3;
+        runPhase();
+      }
+    }, 1000);
+  }
+  runPhase();
+}
+
+function stopBreathEngine() {
+  if (breathLoopInterval) clearInterval(breathLoopInterval);
+  document.getElementById('breathText').textContent = '準備好了嗎？';
+  document.getElementById('breathCount').textContent = '—';
+  document.getElementById('breathPhase').textContent = '點下方開始練習';
+  document.getElementById('breathCircle').classList.remove('expand');
+}
+
+// ── 情境決策 (加強連動 LMS 心理能量與高亮狀態) ──
+function pickChoiceNode(idx, correct, energyChange) {
+  ['sc0', 'sc1', 'sc2'].forEach(id => { document.getElementById(id).disabled = true; });
+  document.getElementById('sc' + idx).classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) document.getElementById('sc1').classList.add('correct');
+  
+  // 更新使用者層的心理能量狀態
+  mentalEnergy = Math.max(0, Math.min(100, mentalEnergy + energyChange));
+  document.getElementById("energy-display").innerText = `⚡ 心理能量: ${mentalEnergy}`;
+
+  const fb = document.getElementById('scenFB');
+  fb.style.display = 'block';
+  const configs = {
+    correct: { cls: 'fb-box success', title: '完美應用！', titleCls: 'fb-title success', body: '「只讀前 8 頁 + 25 分鐘」讓大腦看到明確終點，警報就消失了。', navi: '你把學到的知識真正用出來了！現在去現實生活試試看這個策略。' },
+    0: { cls: 'fb-box danger', title: '多巴胺陷阱！', titleCls: 'fb-title danger', body: '滑 IG 讓多巴胺瞬間飆高，但消退後焦慮會加倍。心理能量扣除 30。', navi: '不要擔心，認識陷阱就是進步的第一步。' },
+    2: { cls: 'fb-box warning', title: '逃避模式啟動！', titleCls: 'fb-title warning', body: '大腦把 30 頁判定為威脅所以想放棄，解法是把任務縮小！', navi: '把「30 頁」變成「8 頁」，任務就從威脅變成小目標了。' }
+  };
+  const cfg = correct ? configs.correct : configs[idx];
+  fb.className = cfg.cls;
+  document.getElementById('fbTitle').textContent = cfg.title;
+  document.getElementById('fbTitle').className = cfg.titleCls;
+  document.getElementById('fbBody').textContent = cfg.body;
+  document.getElementById('naviText').textContent = cfg.navi;
+  document.getElementById('scen-next').style.display = 'block';
+}
+
+// ── Navigation (原有導覽邏輯無縫對接) ──
+function goPage(idx) {
+  document.querySelectorAll('.page').forEach((p, i) => p.classList.toggle('active', i === idx));
+  document.querySelectorAll('.nav-item[data-page]').forEach(n => {
+    if(n.dataset.page) n.classList.toggle('active', parseInt(n.dataset.page) === idx);
+  });
+  document.querySelectorAll('.flow-step[data-page]').forEach(s => {
+    const p = parseInt(s.dataset.page);
+    s.classList.remove('done', 'active');
+    if (p < idx) s.classList.add('done');
+    if (p === idx) s.classList.add('active');
+  });
+  document.querySelector('.main').scrollTop = 0;
+
+  // 核心改進：當學生換到第 4 頁（追蹤頁），自動打 API 讀取 SQLite 最新歷史紀錄
+  if (idx === 4) {
+    fetchChartDataFromSQLite();
+  }
+}
+
+// 點擊頂部橫向進度標籤無縫切換
+document.querySelectorAll('.flow-step[data-page]').forEach(s =>
+  s.addEventListener('click', () => goPage(parseInt(s.dataset.page)))
+);
+
+// ── PAGE 1: 課程切換 ──
+function openLesson() {
+  document.getElementById('p1-overview').style.display = 'none';
+  document.getElementById('p1-lesson').style.display = 'block';
+}
+function closeLesson() {
+  document.getElementById('p1-lesson').style.display = 'none';
+  document.getElementById('p1-overview').style.display = 'block';
+}
+function ansQ(btn, correct, qid) {
+  btn.closest('.card').querySelectorAll('.quiz-opt').forEach(b => b.disabled = true);
+  btn.classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) btn.closest('.card').querySelectorAll('.quiz-opt')[1].classList.add('correct');
+  const r = document.getElementById(qid + 'res');
+  r.style.display = 'block';
+  r.className = 'quiz-result ' + (correct ? 'success' : 'danger');
+  r.textContent = correct
+    ? '正確！多巴胺消退後焦慮反彈，這正是多巴胺陷阱的核心機制。'
+    : '再想想！關鍵是多巴胺快速消退後的焦慮反彈。';
+  document.getElementById('p1-next').style.display = 'block';
+}
+
+// ── PAGE 2: 子分頁 Tab 切換 ──
+function switchTab(btn, panelId) {
+  document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.practice-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(panelId).classList.add('active');
+}
+
+// ── AI 任務拆解 (完全保留你們原有的前端本地防禦代碼) ──
+let aiSteps = [];
+async function startBreakdown() {
+  const task = document.getElementById('taskInput').value.trim();
+  if (!task) { document.getElementById('taskInput').focus(); return; }
+  const timeLeft = document.getElementById('timeLeft').value;
+  const state = document.getElementById('currentState').value;
+
+  document.getElementById('task-input-area').style.display = 'none';
+  document.getElementById('task-loading').style.display = 'block';
+  document.getElementById('task-result').style.display = 'none';
+  document.getElementById('task-error').style.
