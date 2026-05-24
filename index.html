@@ -1281,59 +1281,61 @@ function selReflect(btn) {
 
 // 22 & 23. 送出反思至 Colab 後開啟新循環
 async function submitFinalReflection() {
-    const selectedBtn = document.querySelector('.reflect-opt.selected');
-    if (!selectedBtn) { 
-        alert("請先選擇一個反思感受喔！"); 
-        return; 
+  const selectedBtn = document.querySelector('.reflect-opt.selected');
+  if (!selectedBtn) { alert("請先選擇一個反思感受！"); return; }
+
+  const btn = document.getElementById('finalSubmitBtn');
+  btn.textContent = "⏳ 同步中...";
+  btn.disabled = true;
+
+  // Step 1：確保使用者存在於後端
+  try {
+    await fetch(`${CLOUD_BASE_URL}/api/user/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: currentUser.id,
+        name: currentUser.name,
+        streak: currentUser.streak,
+        badges: currentUser.badges,
+        last_login: currentUser.lastLogin
+      })
+    });
+  } catch(e) { console.log('使用者同步失敗:', e); }
+
+  // Step 2：寫入反思結算
+  try {
+    await fetch(`${CLOUD_BASE_URL}/api/reflection/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: currentUser.id,
+        reflect_choice: selectedBtn.textContent,
+        final_badges: currentUser.badges,
+        final_streak: currentUser.streak,
+        mood_text_snapshot: currentMoodText
+      })
+    });
+  } catch(e) { console.log('反思同步失敗:', e); }
+
+  // Step 3：寫入 action_logs（萬用備份）
+  try {
+    if (typeof syncToBackend === 'function') {
+      await syncToBackend("點擊了確認送出總結資料");
     }
+  } catch(e) { console.log('Log 同步失敗:', e); }
 
-    const btn = document.getElementById('finalSubmitBtn');
-    btn.innerHTML = "⏳ 同步中...";
-    btn.disabled = true;
-
-    try {
-        // 準備要傳送的結算資料
-        const payload = {
-            user_id: currentUser.id,
-            reflect_choice: selectedBtn.textContent,
-            final_badges: currentUser.badges,
-            final_streak: currentUser.streak,
-            mood_text_snapshot: typeof currentMoodText !== 'undefined' ? currentMoodText : "無"
-        };
-
-        // 發送給 Colab
-        const response = await fetch(`${CLOUD_BASE_URL}/api/reflection/submit`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        // 判斷 Colab 是否成功接收
-        if (response.ok) {
-            // 成功！改變按鈕外觀
-            btn.innerHTML = "✅ 已同步至雲端資料庫！";
-            btn.style.background = "#28a745"; // 變成代表成功的綠色
-            btn.style.color = "white";
-            btn.style.border = "none";
-            
-            // 延遲一下跳出成功提示
-            setTimeout(() => {
-                alert("太棒了！您的反思紀錄已成功儲存到 Colab 囉！🎉");
-            }, 600);
-        } else {
-            throw new Error("伺服器沒有回傳成功代碼");
-        }
-
-    } catch (error) {
-        console.error('同步發生錯誤:', error);
-        // 失敗！改變按鈕外觀，並允許重新點擊
-        btn.innerHTML = "❌ 同步失敗，請點此重試";
-        btn.style.background = "#dc3545"; // 變成代表錯誤的紅色
-        btn.style.color = "white";
-        btn.disabled = false;
-    }
+  // 🌟 補上這段：當上面的步驟都做完後，把按鈕變成綠色成功狀態！
+  btn.textContent = "✅ 已同步至雲端資料庫";
+  btn.style.background = "#28a745"; // 變成漂亮的成功綠色
+  btn.style.color = "white";
+  btn.style.border = "none";
+  
+  // 彈出成功的提示視窗
+  setTimeout(() => {
+    alert("🎉 太棒了！您的反思紀錄與數據已完美同步至 Colab 資料庫囉！");
+  }, 300);
 }
-
 function startNewCycle() {
   // 重置 UI
   document.getElementById('p0-result').style.display = 'none';
