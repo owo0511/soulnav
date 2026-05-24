@@ -654,11 +654,57 @@
 </div>
 
 <script>
+// 這個函數綁定在您的「確認送出」按鈕上
+async function submitFinalReflection() {
+    // 1. 取得按鈕元素並改變狀態為「同步中」
+    const btn = document.getElementById('finalSubmitBtn');
+    btn.innerHTML = "<div class='spinner' style='width:16px;height:16px;border-width:2px;margin-right:8px;'></div> 同步中...";
+    btn.disabled = true;
+
+    try {
+        // 2. 準備要傳送的資料 (ID 與 當下時間)
+        // 取得台灣時間
+        const currentTime = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }); 
+        
+        const payload = {
+            user_id: currentUser.id,   // 取得當前使用者的 ID
+            submit_time: currentTime   // 剛剛抓取的送出時間
+        };
+
+        // 3. 發送 POST 請求給 Colab (注意路徑要跟 Colab 寫的一致)
+        const response = await fetch(`${CLOUD_BASE_URL}/api/reflection/submit`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json' // 告訴後端我們傳的是 JSON 格式
+            },
+            body: JSON.stringify(payload) // 將物件轉成文字格式傳送
+        });
+
+        // 4. 解析 Colab 回傳的結果
+        const result = await response.json();
+
+        // 5. 如果 Colab 回傳成功，改變按鈕外觀
+        if (result.status === "success") {
+            btn.innerHTML = "<i class='ti ti-check'></i> 已同步至雲端資料庫";
+            btn.style.background = "var(--success)"; // 變成綠色
+        } else {
+            alert("同步發生未知的錯誤！");
+            btn.innerHTML = "重新送出";
+            btn.disabled = false;
+        }
+
+    } catch (error) {
+        console.error('傳送資料失敗:', error);
+        btn.innerHTML = "網路錯誤，請重試";
+        btn.disabled = false;
+        btn.style.background = "var(--danger)"; // 變成紅色
+    }
+}
 // ==========================================
 // 核心變數與資料庫
 // ==========================================
 // ★ 請在此填入您的 Colab Ngrok 網址 ★
-const CLOUD_BASE_URL = "https://a447-104-199-238-161.ngrok-free.app";
+const CLOUD_BASE_URL = "https://overnight-circular-pony.ngrok-free.dev";
 
 let usersDB = JSON.parse(localStorage.getItem('soulnav_users')) || {};
 let currentUser = null;
