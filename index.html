@@ -7,140 +7,305 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
-<link rel="stylesheet" href="soulsav-demo.css">
 <style>
-/* ── 登入介面 ── */
-#login-overlay {
-  position: fixed; inset: 0; z-index: 9999;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  display: flex; align-items: center; justify-content: center;
+/* ==========================================
+   全域變數與基礎設定
+========================================== */
+:root {
+  --bg: #f5fbf8;
+  --panel: #ffffff;
+  --panel-soft: #f1faf7;
+  --text: #243338;
+  --muted: #687d84;
+  --line: #dce9e7;
+  --brand: #1f9c8d;
+  --brand-2: #6fd4bc;
+  --info: #5aaeff;
+  --success: #2fb176;
+  --warning: #f2a51a;
+  --danger: #e65f68;
+  --violet: #9b8af5;
+  --radius: 18px;
+  --shadow: 0 18px 48px rgba(38, 50, 56, .11);
+  --shadow-sm: 0 10px 26px rgba(38, 50, 56, .08);
+  font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
 }
-.login-card {
-  background: #fff; padding: 40px 30px; border-radius: 28px;
-  box-shadow: 0 32px 80px rgba(0,0,0,.15); width: 100%; max-width: 360px;
-  text-align: center; border: 1px solid var(--line);
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 9% 8%, rgba(255, 209, 102, .34), transparent 26%),
+    radial-gradient(circle at 90% 10%, rgba(90, 174, 255, .22), transparent 28%),
+    linear-gradient(135deg, #fbfff9 0%, #edf8f5 50%, #fff8f1 100%);
 }
+
+button, textarea, input, select { font: inherit; }
+button { cursor: pointer; }
+
+/* ==========================================
+   登入介面與覆寫樣式
+========================================== */
+#login-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; }
+.login-card { background: #fff; padding: 40px 30px; border-radius: 28px; box-shadow: 0 32px 80px rgba(0,0,0,.15); width: 100%; max-width: 360px; text-align: center; border: 1px solid var(--line); }
 .login-card h2 { margin: 0 0 10px; color: var(--brand); font-weight: 900; }
 .login-card p { color: var(--muted); font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
-.login-input {
-  width: 100%; padding: 12px 16px; margin-bottom: 12px;
-  border: 1.5px solid var(--line); border-radius: 14px;
-  font-size: 15px; outline: none; transition: 0.2s;
-}
+.login-input { width: 100%; padding: 12px 16px; margin-bottom: 12px; border: 1.5px solid var(--line); border-radius: 14px; font-size: 15px; outline: none; transition: 0.2s; }
 .login-input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(31,156,141,0.1); }
 .login-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-.login-tab {
-  flex: 1; padding: 8px; font-size: 14px; font-weight: 700;
-  color: var(--muted); background: transparent; border: 1px solid transparent;
-  border-radius: 10px; cursor: pointer;
-}
+.login-tab { flex: 1; padding: 8px; font-size: 14px; font-weight: 700; color: var(--muted); background: transparent; border: 1px solid transparent; border-radius: 10px; cursor: pointer; }
 .login-tab.active { background: var(--panel-soft); color: var(--brand); border-color: rgba(31,156,141,0.2); }
 
-/* 心情選取單一化與綠框 */
-.mood-btn.sel {
-  border: 2px solid var(--success) !important;
-  background: #effaf5 !important;
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(47,177,118,0.15) !important;
+/* ==========================================
+   排版與元件
+========================================== */
+.app {
+  width: min(1180px, calc(100vw - 28px));
+  min-height: calc(100vh - 28px);
+  margin: 14px auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: 28px;
+  background: rgba(255,255,255,.72);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
 }
 
-/* 滑桿樣式 */
+.top-bar { min-height: 68px; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; background: rgba(255,255,255,.82); border-bottom: 1px solid var(--line); }
+.logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 20px; white-space: nowrap; }
+.logo i { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 14px; color: #fff; background: linear-gradient(135deg, var(--brand), var(--info)); box-shadow: var(--shadow-sm); }
+.logo em { color: var(--brand); font-style: normal; }
+
+.flow-indicator { display: flex; align-items: center; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.flow-indicator::-webkit-scrollbar, .sidebar::-webkit-scrollbar, .practice-tabs::-webkit-scrollbar { display: none; }
+.flow-indicator, .sidebar, .practice-tabs { scrollbar-width: none; -ms-overflow-style: none; }
+.flow-step { display: inline-flex; align-items: center; min-height: 32px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.76); color: var(--muted); font-size: 12px; font-weight: 700; white-space: nowrap; transition: .18s ease; }
+.flow-step:hover { color: var(--text); transform: translateY(-1px); }
+.flow-step.done { color: var(--success); border-color: rgba(47,177,118,.35); background: #effaf5; }
+.flow-step.active { color: #fff; border-color: transparent; background: var(--brand); box-shadow: var(--shadow-sm); }
+.flow-arrow { color: #9badb2; font-size: 12px; }
+
+.body-wrap { flex: 1; min-height: 0; display: grid; grid-template-columns: 228px 1fr; }
+.sidebar { padding: 18px 14px; display: flex; flex-direction: column; gap: 8px; background: rgba(255,255,255,.72); border-right: 1px solid var(--line); }
+.nav-section { padding: 4px 10px 8px; color: var(--muted); font-size: 12px; font-weight: 800; }
+.nav-item { display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 10px 11px; border: 1px solid transparent; border-radius: 15px; color: var(--muted); transition: .18s ease; cursor: pointer; }
+.nav-item i { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 10px; background: var(--panel-soft); color: var(--brand); flex: 0 0 auto; }
+.nav-item:hover { background: rgba(255,255,255,.82); color: var(--text); }
+.nav-item.active { color: var(--brand); background: #fff; border-color: rgba(111,212,188,.55); box-shadow: var(--shadow-sm); }
+.nav-badge { margin-left: auto; padding: 3px 8px; border-radius: 999px; background: rgba(255,209,102,.3); color: #8a6200; font-size: 11px; font-weight: 800; }
+.nav-divider { height: 1px; margin: 8px 10px; background: var(--line); }
+
+.nav-user { margin-top: auto; padding: 12px; display: flex; align-items: center; gap: 10px; border-radius: 18px; background: linear-gradient(135deg, rgba(111,212,188,.2), rgba(255,209,102,.2)); border: 1px solid rgba(111,212,188,.36); }
+.user-ava { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 15px; background: #fff; color: var(--brand); font-weight: 900; box-shadow: var(--shadow-sm); }
+.user-name { font-weight: 800; font-size: 14px; }
+.user-lv { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+.main { min-width: 0; overflow: hidden; }
+.page { display: none; height: 100%; max-height: calc(100vh - 96px); overflow: auto; padding: 24px; animation: rise .22s ease both; }
+.page.active { display: block; }
+
+.page-title { margin: 10px 0 6px; font-size: 30px; line-height: 1.18; font-weight: 900; letter-spacing: 0; }
+.page-sub { margin: 0 0 16px; color: var(--muted); line-height: 1.7; font-size: 15px; }
+.card, .challenge-card, .ai-chat, .next-cycle { background: rgba(255,255,255,.9); border: 1px solid var(--line); border-radius: 22px; padding: 18px; box-shadow: var(--shadow-sm); }
+.card + .card, .challenge-card + .challenge-card { margin-top: 12px; }
+.section-label { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: var(--text); font-weight: 800; font-size: 14px; }
+.section-label i { color: var(--brand); }
+.jc { justify-content: center; }
+
+/* 標籤群 */
+.chip, .step-tag { display: inline-flex; align-items: center; gap: 6px; width: fit-content; border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; background: #fff; color: var(--muted); font-size: 12px; font-weight: 800; }
+.chip-info { color: #176fb3; background: #edf7ff; border-color: rgba(90,174,255,.36); }
+.chip-success { color: #168257; background: #effaf5; border-color: rgba(47,177,118,.34); }
+.chip-warning { color: #8a6200; background: #fff8e7; border-color: rgba(242,165,26,.38); }
+.chip-danger { color: #b33745; background: #fff0f2; border-color: rgba(230,95,104,.34); }
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* 按鈕群 */
+.btn-primary, .btn-ghost, .ghost-sm, .link-btn { border-radius: 15px; min-height: 42px; padding: 10px 14px; border: 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 900; transition: .18s ease; }
+.btn-primary { width: 100%; color: #fff; background: linear-gradient(135deg, var(--brand), #24aaa0); }
+.btn-ghost, .ghost-sm { color: var(--text); background: #fff; border: 1px solid var(--line); }
+.btn-auto { width: auto; }
+.link-btn { min-height: 34px; padding: 7px 10px; color: var(--brand); background: #effaf7; border: 1px solid rgba(111,212,188,.45); }
+.btn-primary:hover, .btn-ghost:hover, .ghost-sm:hover, .link-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* 網格系統 */
+.two-col, .flip-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.three-col { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+
+/* 互動元件：情緒 */
+.mood-emojis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.mood-btn { min-height: 88px; display: grid; place-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 18px; background: #fff; font-size: 28px; color: var(--text); transition: .18s ease; }
+.mood-btn span { color: var(--muted); font-size: 12px; font-weight: 700; }
+.mood-btn:hover, .mood-btn.sel { border-color: var(--brand-2); background: #effaf7; transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.mood-btn.sel { border: 2px solid var(--success) !important; background: #effaf5 !important; }
+
+/* 互動元件：壓力滑桿 */
 .stress-item { margin-bottom: 18px; }
-.stress-slider {
-  -webkit-appearance: none; width: 100%; height: 8px; border-radius: 999px;
-  background: var(--line); outline: none; margin: 8px 0;
-}
-.stress-slider::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none;
-  width: 20px; height: 20px; border-radius: 50%;
-  background: var(--brand); cursor: pointer; transition: 0.2s;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
+.stress-slider { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 999px; background: var(--line); outline: none; margin: 8px 0; }
+.stress-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--brand); cursor: pointer; transition: 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
 .stress-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
 .stress-desc { font-size: 13px; font-weight: 500; color: var(--muted); }
 
-/* Gemini 分析框 */
-.gemini-box {
-  background: linear-gradient(135deg, #f0f7ff, #f9f0ff);
-  border: 1px solid rgba(155, 138, 245, 0.4);
-  border-radius: 20px; padding: 20px; margin-top: 15px;
-}
-.gemini-title {
-  display: flex; align-items: center; gap: 8px;
-  color: #6d28d9; font-weight: 900; font-size: 16px; margin-bottom: 12px;
-}
+/* 輸入框 */
+.mood-textarea, .report-textarea, .task-input { width: 100%; border: 1px solid var(--line); border-radius: 18px; padding: 13px 14px; color: var(--text); background: #fff; outline: 0; resize: vertical; line-height: 1.6; }
+.mood-textarea { min-height: 96px; }
+.report-textarea { min-height: 108px; }
+.task-input { min-height: 92px; }
+
+/* 進度與統計 */
+.bar-lbl, .prog-row { display: flex; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+.bar-track, .prog-track { height: 10px; border-radius: 999px; background: #edf5f4; overflow: hidden; }
+.bar-fill, #progFill { height: 100%; display: block; border-radius: inherit; transition: width 0.3s ease; }
+
+.streak-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+.streak-card, .stat-card { padding: 14px; border-radius: 18px; border: 1px solid var(--line); background: #fff; text-align: center; }
+.streak-num, .stat-num { color: var(--brand); font-size: 26px; font-weight: 900; }
+.streak-lbl, .stat-lbl { color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+/* AI 載入與結果 */
+.ai-loading { min-height: 140px; display: grid; place-items: center; gap: 10px; color: var(--muted); text-align: center; }
+.spinner { width: 42px; height: 42px; border-radius: 50%; border: 4px solid #e4f1ef; border-top-color: var(--brand); animation: spin .8s linear infinite; }
+.ai-result-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.ai-ava, .rec-icon, .char-icon, .challenge-icon { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 16px; background: var(--panel-soft); color: var(--brand); font-size: 22px; flex: 0 0 auto; }
+.result-title { font-weight: 900; }
+.result-sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+/* AI 洞察框 */
+.gemini-box { background: linear-gradient(135deg, #f0f7ff, #f9f0ff); border: 1px solid rgba(155, 138, 245, 0.4); border-radius: 20px; padding: 20px; margin-top: 15px; }
+.gemini-title { display: flex; align-items: center; gap: 8px; color: #6d28d9; font-weight: 900; font-size: 16px; margin-bottom: 12px; }
 .gemini-content { color: #4c1d95; line-height: 1.7; font-size: 14.5px; }
 
-/* 行為標準化說明框 */
-.mood-behavior-standard-box {
-  background: var(--panel-soft); padding: 12px 14px; border-radius: var(--radius);
-  margin-top: 12px; font-size: 13px; font-weight: 500; line-height: 1.5;
-  color: var(--text); border-left: 4px solid var(--brand);
-}
+/* 路徑推薦 */
+.rec-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 14px; border-radius: 18px; border: 1px solid var(--line); background: #fff; transition: .18s ease; cursor: pointer; }
+.rec-row:hover { border-color: var(--brand-2); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.rec-title { font-weight: 900; }
+.rec-meta { color: var(--muted); font-size: 13px; line-height: 1.45; margin-top: 3px; }
 
-/* 情境開場覆蓋層 */
-#scenario-intro {
-  position: fixed; inset: 0; z-index: 999;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,.55); backdrop-filter: blur(6px); padding: 20px;
-}
-.intro-card {
-  background: #fff; border-radius: 28px; padding: 32px 28px;
-  max-width: 440px; width: 100%; box-shadow: 0 32px 80px rgba(0,0,0,.22);
-  animation: rise .28s ease both;
-}
-.intro-emoji { font-size: 52px; text-align: center; margin-bottom: 18px; }
-.intro-title { font-size: 22px; font-weight: 900; margin-bottom: 10px; line-height: 1.3; }
-.intro-desc { color: var(--muted); line-height: 1.7; margin-bottom: 22px; }
-.intro-opts { display: grid; gap: 10px; margin-bottom: 20px; }
-.intro-opt {
-  padding: 14px 16px; border: 1.5px solid var(--line); border-radius: 16px;
-  background: #fff; text-align: left; font-weight: 700; font-size: 15px;
-  color: var(--text); transition: .18s ease; cursor: pointer;
-}
-.intro-opt:hover { border-color: var(--brand-2); background: #f7fffc; transform: translateX(3px); }
-.intro-opt.selected { border-color: var(--brand); background: #effaf7; color: var(--brand); }
+/* 課程模組 */
+.lesson-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 14px; margin-bottom: 10px; border: 1px solid var(--line); border-radius: 18px; background: #fff; transition: .18s ease; cursor: pointer;}
+.lesson-card:hover, .lesson-card.cur { border-color: var(--brand-2); background: #f7fffc; box-shadow: var(--shadow-sm); }
+.lesson-card.done { background: #f4fbf7; border-color: rgba(47,177,118,.34); }
+.lesson-num { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 14px; background: var(--panel-soft); color: var(--brand); font-weight: 900; }
+.lesson-num.cur { background: #edf7ff; color: #176fb3; }
+.lesson-title { font-weight: 900; }
+.lesson-sub { color: var(--muted); font-size: 13px; margin-top: 3px; }
+.lesson-nav { justify-content: space-between; margin-bottom: 12px; display: flex; }
 
-/* AI 助理引導泡泡 */
-.navi-intro-row {
-  display: flex; align-items: flex-start; gap: 12px; padding: 14px;
-  border-radius: 18px; background: #f7fffc; border: 1px solid rgba(111,212,188,.38); margin-bottom: 18px;
-}
-.navi-ava-sm {
-  width: 36px; height: 36px; border-radius: 12px;
-  background: linear-gradient(135deg, var(--brand), var(--info));
-  display: grid; place-items: center; color: #fff; flex: 0 0 auto;
-}
-.navi-speech { color: var(--muted); line-height: 1.65; font-size: 14px; }
+/* 情境漫畫 */
+.manga-row { display: flex; align-items: flex-end; gap: 10px; margin: 12px 0; }
+.manga-row.r { flex-direction: row-reverse; }
+.char-wrap { text-align: center; }
+.char-name { display: block; color: var(--muted); font-size: 11px; margin-top: 4px; }
+.bubble { max-width: 620px; padding: 12px 14px; border-radius: 18px; border: 1px solid var(--line); background: #fff; line-height: 1.7; box-shadow: 0 8px 18px rgba(38,50,56,.06); }
+.bubble.navi { background: #effaf7; border-color: rgba(111,212,188,.45); }
+.bubble.stu { background: #fff8e9; border-color: rgba(255,209,102,.52); }
 
-/* PWA 安裝提示 */
-#pwa-banner {
-  display: none; align-items: center; gap: 12px; padding: 10px 16px;
-  background: linear-gradient(135deg, rgba(31,156,141,.12), rgba(90,174,255,.12));
-  border-bottom: 1px solid var(--line); font-size: 13px;
-}
-#pwa-banner.show { display: flex; }
-.pwa-btn {
-  margin-left: auto; padding: 6px 14px; border-radius: 999px;
-  background: var(--brand); color: #fff; border: 0; font-weight: 800; font-size: 12px; white-space: nowrap;
-}
+/* 情境決策按鈕 */
+.quiz-q { margin-bottom: 10px; font-weight: 900; }
+.quiz-opt, .choice-btn, .reflect-opt { width: 100%; display: flex; align-items: flex-start; gap: 10px; margin-top: 8px; padding: 13px 14px; border: 1px solid var(--line); border-radius: 16px; background: #fff; color: var(--text); text-align: left; line-height: 1.55; transition: .18s ease; }
+.quiz-opt:hover, .choice-btn:hover, .reflect-opt:hover { border-color: var(--brand-2); background: #f7fffc; }
+.quiz-opt.correct, .choice-btn.correct { border-color: var(--success); background: #effaf5; color: #168257; }
+.quiz-opt.wrong, .choice-btn.wrong { border-color: var(--danger); background: #fff0f2; color: #ad3340; }
+.quiz-result, .fb-box, .reflect-result { margin-top: 10px; padding: 13px 14px; border-radius: 16px; line-height: 1.6; background: #f7faf9; border: 1px solid var(--line); }
+.fb-box.success { background: #effaf5; border-color: rgba(47,177,118,.4); }
+.fb-box.danger { background: #fff0f2; border-color: rgba(230,95,104,.38); }
+.fb-title { font-weight: 900; margin-bottom: 4px; }
+.fb-title.success { color: var(--success); }
+.fb-title.danger { color: var(--danger); }
 
-/* 勳章數能量顯示優化 */
-.energy-bar-wrap { margin-top: 6px; height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; }
-.energy-bar-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--warning), var(--brand)); transition: width .5s ease; }
+/* 練習頁面 */
+.practice-tabs { display: flex; gap: 8px; width: fit-content; max-width: 100%; padding: 5px; margin-bottom: 14px; overflow-x: auto; border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.72); }
+.ptab { border: 0; border-radius: 13px; padding: 10px 13px; background: transparent; color: var(--muted); font-weight: 900; white-space: nowrap; }
+.ptab.active { color: #fff; background: var(--text); }
+.practice-panel { display: none; }
+.practice-panel.active { display: block; animation: rise .2s ease both; }
 
-/* 情境選題增強回饋 */
-.dopamine-meter { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 12px 14px; border-radius: 16px; background: linear-gradient(135deg, rgba(255,209,102,.18), rgba(230,95,104,.12)); border: 1px solid rgba(255,209,102,.4); }
-.dopamine-label { font-size: 12px; font-weight: 800; color: var(--muted); white-space: nowrap; }
-.dopamine-track { flex: 1; height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
-.dopamine-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--success), var(--warning), var(--danger)); transition: width 1.2s ease; }
+/* 呼吸引導 */
+.breath-circle { width: 174px; height: 174px; margin: 14px auto; display: grid; place-items: center; border-radius: 50%; color: #fff; background: radial-gradient(circle at 35% 28%, rgba(255,255,255,.62), transparent 25%), linear-gradient(135deg, var(--info), var(--brand-2)); box-shadow: 0 22px 48px rgba(31,156,141,.22); transition: transform 4s ease; }
+.breath-circle.expand { transform: scale(1.16); }
+.breath-text { font-size: 24px; font-weight: 900; }
+.breath-count { color: var(--brand); font-size: 32px; font-weight: 900; }
 
-.scenario-opener { padding: 18px; border-radius: 22px; background: linear-gradient(135deg, rgba(255,209,102,.18), rgba(90,174,255,.12)); border: 1px solid rgba(255,209,102,.45); margin-bottom: 14px; }
-.scenario-opener .opener-q { font-size: 18px; font-weight: 900; line-height: 1.4; margin-bottom: 12px; }
+/* 任務拆解 */
+.meta-row { display: flex; gap: 10px; margin-bottom: 10px; }
+.meta-col { flex: 1; }
+.meta-select { width: 100%; border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; background: #fff; color: var(--text); }
+.step-list { display: grid; gap: 9px; margin-top: 12px; }
+.step-item { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 16px; background: #fff; transition: .18s ease; cursor: pointer; }
+.step-item.done { opacity: .75; background: #f4fbf7; }
+.step-check { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 9px; border: 1px solid var(--line); color: #fff; }
+.step-item.done .step-check { background: var(--success); border-color: var(--success); }
+.step-title { font-weight: 900; }
+.step-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: var(--muted); font-size: 12px; margin-top: 4px; }
 
+/* 現實挑戰 */
+.challenge-title { font-size: 18px; font-weight: 900; }
+.task-list { display: grid; gap: 9px; }
+.task-item { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 16px; background: #fff; transition: .18s ease; cursor: pointer; }
+.task-item.done { background: #effaf5; }
+.task-check { width: 26px; height: 26px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 9px; color: #fff; }
+.task-item.done .task-check { background: var(--success); border-color: var(--success); }
+
+/* 圖表與洞察 */
+.chart-wrap { height: 180px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 9px; align-items: end; }
+.chart-col { display: grid; grid-template-rows: 1fr auto; gap: 7px; align-items: end; text-align: center; color: var(--muted); font-size: 12px; }
+.chart-bar-outer { height: 150px; display: flex; align-items: flex-end; overflow: hidden; border-radius: 14px 14px 8px 8px; background: #edf5f4; }
+.chart-bar-inner { width: 100%; border-radius: inherit; }
+.chart-day { font-weight: 800; }
+.insight-item { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; padding: 12px; border-radius: 16px; background: #fff; border: 1px solid var(--line); }
+.insight-dot { width: 10px; height: 10px; margin-top: 5px; border-radius: 50%; }
+
+/* AI 聊天 */
+.ai-msg { margin-bottom: 12px; }
+.ai-msg-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.ai-msg-name { font-weight: 900; }
+.ai-msg-body { padding: 13px 14px; border: 1px solid var(--line); border-radius: 0 18px 18px 18px; background: #f7fffc; color: var(--muted); line-height: 1.7; }
+.reflect-q { font-weight: 900; margin-bottom: 10px; }
+.reflect-opt.selected { border-color: var(--brand-2); background: #effaf7; color: var(--brand); }
+
+/* 勳章收藏 */
+.badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 15px; margin-top: 20px; }
+.badge-item { text-align: center; filter: grayscale(100%); opacity: 0.4; transition: 0.3s; }
+.badge-item.unlocked { filter: grayscale(0%); opacity: 1; transform: scale(1.05); }
+.badge-img { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #f6d365, #fda085); margin: 0 auto 8px; display: grid; place-items: center; font-size: 28px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.badge-item p { margin: 0; font-size: 12px; color: var(--muted); font-weight: bold; }
+
+/* 輔助類與動畫 */
+.fade-in { animation: rise .24s ease both; }
+.mb-7 { margin-bottom: 7px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-10 { margin-bottom: 10px; }
+.mb-12 { margin-bottom: 12px; }
+.mt-4 { margin-top: 4px; }
+.mt-8 { margin-top: 8px; }
+.mt-10 { margin-top: 10px; }
+.mt-12 { margin-top: 12px; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes spin { to { transform: rotate(360deg); } }
-.spinner { width: 28px; height: 28px; border: 3px solid var(--line); border-top-color: var(--brand); border-radius: 50%; animation: spin .8s linear infinite; flex: 0 0 auto; }
+
+/* 響應式 */
+@media (max-width: 920px) {
+  .app { width: 100%; min-height: 100vh; margin: 0; border-radius: 0; }
+  .top-bar { align-items: flex-start; flex-direction: column; }
+  .body-wrap { grid-template-columns: 1fr; }
+  .sidebar { border-right: 0; border-bottom: 1px solid var(--line); display: grid; grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; padding: 12px; }
+  .nav-section, .nav-user, .nav-divider { display: none; }
+  .nav-item { min-width: 126px; }
+  .page { max-height: none; padding: 18px; }
+  .two-col, .three-col, .flip-grid { grid-template-columns: 1fr; }
+  .mood-emojis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .page-title { font-size: 25px; }
+  .mood-emojis, .streak-row { grid-template-columns: 1fr; }
+  .lesson-card, .rec-row { grid-template-columns: auto 1fr; }
+  .flow-indicator { width: 100%; }
+}
 </style>
 </head>
 <body>
@@ -194,20 +359,14 @@
 </div>
 
 <div class="app">
-
   <div class="top-bar">
     <div class="logo"><i class="ti ti-brain"></i> Soul<em>Nav</em></div>
     <div class="flow-indicator">
-      <span class="flow-step active" data-page="0">情緒評估</span>
-      <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
-      <span class="flow-step" data-page="1">課程學習</span>
-      <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
-      <span class="flow-step" data-page="2">情境練習</span>
-      <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
-      <span class="flow-step" data-page="3">現實挑戰</span>
-      <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
-      <span class="flow-step" data-page="4">追蹤</span>
-      <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
+      <span class="flow-step active" data-page="0">情緒評估</span><span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
+      <span class="flow-step" data-page="1">課程學習</span><span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
+      <span class="flow-step" data-page="2">情境練習</span><span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
+      <span class="flow-step" data-page="3">現實挑戰</span><span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
+      <span class="flow-step" data-page="4">追蹤</span><span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
       <span class="flow-step" data-page="5">AI 回饋</span>
     </div>
   </div>
@@ -222,14 +381,15 @@
       <div class="nav-item" data-page="4" onclick="goPage(4)"><i class="ti ti-chart-line"></i>情緒追蹤</div>
       <div class="nav-item" data-page="5" onclick="goPage(5)"><i class="ti ti-robot"></i>AI 回饋反思</div>
       <div class="nav-divider"></div>
-      <div class="nav-item"><i class="ti ti-trophy"></i>勳章收藏</div>
+      <div class="nav-item" data-page="6" onclick="goPage(6)"><i class="ti ti-trophy"></i>勳章收藏</div>
       <div class="nav-item"><i class="ti ti-settings"></i>設定</div>
       <div class="nav-user">
-        <div class="user-ava" id="user-ava-letter">明</div>
+        <div class="user-ava" id="user-ava-letter">訪</div>
         <div style="flex:1;min-width:0">
-          <div class="user-name" id="display-user-name">阿明同學</div>
-          <div class="user-lv" id="badge-display">🏅 勳章數：5</div>
-          <div class="energy-bar-wrap"><div class="energy-bar-fill" id="badge-bar" style="width:25%"></div></div>
+          <div class="user-name" id="display-user-name">訪客</div>
+          <div class="user-lv" id="display-user-id" style="font-size: 11px; margin-bottom: 2px;">ID: 未登入</div>
+          <div class="user-lv" id="badge-display">🏅 勳章數：0</div>
+          <div class="energy-bar-wrap"><div class="energy-bar-fill" id="badge-bar" style="width:0%"></div></div>
         </div>
       </div>
     </div>
@@ -239,7 +399,7 @@
       <div class="page active" id="page0">
         <div id="p0-input">
           <span class="chip chip-info"><i class="ti ti-sun"></i> 今日情緒評估</span>
-          <div class="page-title" id="greeting-title">今天感覺怎樣，阿明？</div>
+          <div class="page-title" id="greeting-title">今天感覺怎樣？</div>
           <div class="page-sub">每日打卡，AI 即時分析你的情緒狀態，推薦最適合今天的練習。</div>
 
           <div class="navi-intro-row mb-10">
@@ -260,7 +420,7 @@
               中度焦慮：心有點靜不下來，手一直想去拿手機滑社群、看通知。
             </div>
             <div class="section-label mt-10"><i class="ti ti-writing"></i> 說說發生了什麼</div>
-            <textarea class="mood-textarea" id="moodText" placeholder="隨便說，越具體越好...">明天模考，書還沒讀完，一直想滑手機逃避...</textarea>
+            <textarea class="mood-textarea" id="moodText" placeholder="隨便說，越具體越好..."></textarea>
           </div>
 
           <div class="card mb-10">
@@ -268,40 +428,39 @@
             <div class="stress-item">
               <div class="bar-lbl"><span>學業壓力</span><span id="val-study">40%</span></div>
               <input type="range" class="stress-slider" id="slider-study" min="0" max="100" step="20" value="40" oninput="updateStress('study', this.value)">
-              <div class="stress-desc" id="desc-study">有一點壓力，需要稍微留意並規劃。</div>
+              <div class="stress-desc" id="desc-study">需要規劃進度</div>
             </div>
             <div class="stress-item">
               <div class="bar-lbl"><span>社交壓力</span><span id="val-social">20%</span></div>
               <input type="range" class="stress-slider" id="slider-social" min="0" max="100" step="20" value="20" oninput="updateStress('social', this.value)">
-              <div class="stress-desc" id="desc-social">有些微的壓力，感覺還可以。</div>
+              <div class="stress-desc" id="desc-social">微小摩擦</div>
             </div>
             <div class="stress-item">
               <div class="bar-lbl"><span>睡眠狀態</span><span id="val-sleep">60%</span></div>
               <input type="range" class="stress-slider" id="slider-sleep" min="0" max="100" step="20" value="60" oninput="updateStress('sleep', this.value)">
-              <div class="stress-desc" id="desc-sleep">壓力中等，開始覺得有點負擔。</div>
+              <div class="stress-desc" id="desc-sleep">總覺得睡不飽</div>
             </div>
           </div>
 
           <button class="btn-primary" onclick="runGeminiAI()"><i class="ti ti-robot"></i> 送出，AI 開始分析</button>
           <div class="streak-row">
-            <div class="streak-card"><div class="streak-num" id="ui-streak">7</div><div class="streak-lbl">連續打卡天數</div></div>
-            <div class="streak-card"><div class="streak-num" id="badgeNum" style="color:var(--warning)">5</div><div class="streak-lbl">目前勳章數</div></div>
+            <div class="streak-card"><div class="streak-num" id="ui-streak">1</div><div class="streak-lbl">連續打卡天數</div></div>
+            <div class="streak-card"><div class="streak-num" id="badgeNum" style="color:var(--warning)">0</div><div class="streak-lbl">目前勳章數</div></div>
           </div>
         </div>
 
         <div id="p0-loading" style="display:none">
-          <div class="card"><div class="ai-loading"><div class="spinner"></div><span>呼叫 Gemini 模型進行語意建模分析...</span></div></div>
+          <div class="card"><div class="ai-loading"><div class="spinner"></div><span>呼叫 Gemini Pro 模型綜合分析中...</span></div></div>
         </div>
 
         <div id="p0-result" style="display:none" class="fade-in">
           <div class="ai-result-header">
             <div class="ai-ava"><i class="ti ti-robot"></i></div>
             <div><div class="result-title">AI 情緒分析完成</div><div class="result-sub" id="p0-result-sub">資料已存入雲端資料庫</div></div>
-            <button class="link-btn" onclick="resetAI()">重新填寫</button>
           </div>
           <div class="card mb-10">
             <div class="gemini-box">
-              <div class="gemini-title"><i class="ti ti-sparkles"></i> Gemini AI 深度分析</div>
+              <div class="gemini-title"><i class="ti ti-sparkles"></i> Gemini Pro 綜合分析</div>
               <div class="gemini-content" id="gemini-result-text">載入中...</div>
             </div>
           </div>
@@ -321,20 +480,10 @@
         <div class="page-sub">漫畫對話 + 翻牌知識 + 情境小測驗，每單元不超過 3 分鐘。</div>
 
         <div id="p1-overview">
-          <div class="lesson-card done">
-            <div class="lesson-num done"><i class="ti ti-check"></i></div>
-            <div class="lesson-info"><div class="lesson-title">什麼是逃避心理？</div><div class="lesson-sub">已完成 · 1 分鐘</div></div>
-            <span class="chip chip-success">完成</span>
-          </div>
           <div class="lesson-card cur" onclick="openLesson()">
-            <div class="lesson-num cur">2</div>
+            <div class="lesson-num cur">1</div>
             <div class="lesson-info"><div class="lesson-title">多巴胺陷阱與番茄鐘策略</div><div class="lesson-sub">進行中 · 2 分鐘</div></div>
             <span class="chip chip-info">進行中 ›</span>
-          </div>
-          <div class="lesson-card">
-            <div class="lesson-num"><i class="ti ti-lock"></i></div>
-            <div class="lesson-info"><div class="lesson-title">建立你的微計畫習慣</div><div class="lesson-sub">尚未解鎖 · 2 分鐘</div></div>
-            <span class="chip">鎖定</span>
           </div>
           <button class="btn-primary mt-10" onclick="openLesson()">繼續學習 <i class="ti ti-arrow-right"></i></button>
         </div>
@@ -342,50 +491,29 @@
         <div id="p1-lesson" style="display:none" class="fade-in">
           <div class="lesson-nav">
             <button class="ghost-sm" onclick="closeLesson()"><i class="ti ti-arrow-left"></i> 返回</button>
-            <span class="chip chip-info">單元 2 / 3</span>
           </div>
           <div class="scenario-opener mb-10">
             <div class="opener-q">滑完手機，你是不是反而更焦慮？</div>
-            <div style="color:var(--muted);font-size:14px;line-height:1.65">這不是你的問題——是多巴胺在作怪。我們來看看為什麼。</div>
           </div>
           <div class="manga-row">
             <div class="char-wrap"><div class="char-icon"><i class="ti ti-robot"></i></div><span class="char-name">Navi</span></div>
             <div class="bubble navi">滑完手機，反而<strong>更焦慮</strong>——你有這種感覺嗎？</div>
           </div>
-          <div class="manga-row r">
-            <div class="char-wrap"><div class="char-icon"><i class="ti ti-mood-nervous"></i></div><span class="char-name">阿明</span></div>
-            <div class="bubble stu">超準！滑完罪惡感更重，書根本讀不下去...</div>
-          </div>
-          <div class="manga-row">
-            <div class="char-wrap"><div class="char-icon"><i class="ti ti-robot"></i></div><span class="char-name">Navi</span></div>
-            <div class="bubble navi">這是<strong>「多巴胺陷阱」</strong>！破解方法是番茄鐘：只承諾 25 分鐘，大腦就不怕了！</div>
+          
+          <div id="manga-choices" class="btn-row mt-10" style="justify-content: flex-end;">
+            <button class="btn-ghost" onclick="replyManga('超準！滑完罪惡感更重，書根本讀不下去...')">超準...</button>
+            <button class="btn-ghost" onclick="replyManga('還好，只是有點分心')">還好...</button>
+            <button class="btn-ghost" onclick="replyManga('只有一點點')">一點點</button>
           </div>
 
-          <div class="section-label mt-12"><i class="ti ti-cards"></i> 點擊翻牌看重點</div>
-          <div class="flip-grid">
-            <div class="flip-wrap" onclick="this.classList.toggle('flipped')" tabindex="0">
-              <div class="flip-inner">
-                <div class="flip-face flip-front"><span class="flip-hint"><i class="ti ti-refresh"></i> 點我</span><div class="flip-q">滑手機後多巴胺怎麼變化？</div></div>
-                <div class="flip-face flip-back danger-back"><div class="flip-a">飆高 → 快速崩落<br>焦慮 ×2 反彈</div></div>
-              </div>
+          <div id="manga-reply" style="display:none">
+            <div class="manga-row r">
+              <div class="char-wrap"><div class="char-icon"><i class="ti ti-mood-nervous"></i></div><span class="char-name">你</span></div>
+              <div class="bubble stu" id="manga-user-text"></div>
             </div>
-            <div class="flip-wrap" onclick="this.classList.toggle('flipped')" tabindex="0">
-              <div class="flip-inner">
-                <div class="flip-face flip-front"><span class="flip-hint"><i class="ti ti-refresh"></i> 點我</span><div class="flip-q">番茄鐘完成後感覺如何？</div></div>
-                <div class="flip-face flip-back success-back"><div class="flip-a">穩定成就感<br>真正的放鬆！</div></div>
-              </div>
-            </div>
-            <div class="flip-wrap" onclick="this.classList.toggle('flipped')" tabindex="0">
-              <div class="flip-inner">
-                <div class="flip-face flip-front"><span class="flip-hint"><i class="ti ti-refresh"></i> 點我</span><div class="flip-q">大腦為什麼怕大任務？</div></div>
-                <div class="flip-face flip-back warning-back"><div class="flip-a">30 頁 = 威脅訊號<br>8 頁 = 可完成目標</div></div>
-              </div>
-            </div>
-            <div class="flip-wrap" onclick="this.classList.toggle('flipped')" tabindex="0">
-              <div class="flip-inner">
-                <div class="flip-face flip-front"><span class="flip-hint"><i class="ti ti-refresh"></i> 點我</span><div class="flip-q">微計畫的核心原則？</div></div>
-                <div class="flip-face flip-back info-back"><div class="flip-a">只承諾「第一步」<br>動起來就贏了</div></div>
-              </div>
+            <div class="manga-row">
+              <div class="char-wrap"><div class="char-icon"><i class="ti ti-robot"></i></div><span class="char-name">Navi</span></div>
+              <div class="bubble navi">這是<strong>「多巴胺陷阱」</strong>！破解方法是番茄鐘：只承諾 25 分鐘，大腦就不怕了！</div>
             </div>
           </div>
 
@@ -395,7 +523,7 @@
             <button class="quiz-opt" onclick="ansQ(this,true,'q1')">A. 作業還沒開始，先滑 10 分鐘 IG「冷靜一下」</button>
             <button class="quiz-opt" onclick="ansQ(this,false,'q1')">B. 寫不出來，先去散步 5 分鐘再回來</button>
             <button class="quiz-opt" onclick="ansQ(this,false,'q1')">C. 先做最簡單的第一題暖身</button>
-            <div class="quiz-result" id="q1res"></div>
+            <div class="quiz-result" id="q1res" style="display:none"></div>
           </div>
           <div id="p1-next" style="display:none" class="mt-10">
             <button class="btn-primary" onclick="goPage(2)"><i class="ti ti-player-play"></i> 學完了！去情境練習！</button>
@@ -406,7 +534,6 @@
       <div class="page" id="page2">
         <span class="chip chip-info"><i class="ti ti-player-play"></i> 情境與行為練習</span>
         <div class="page-title">系統內練習</div>
-        <div class="page-sub">先在安全環境中練習，再把技巧帶到現實生活。</div>
         <div class="practice-tabs">
           <button class="ptab active" id="btn-tab-breath" onclick="switchTab(this,'ptab-breath')"><i class="ti ti-wind"></i> 呼吸引導</button>
           <button class="ptab" id="btn-tab-scen" onclick="switchTab(this,'ptab-scen')"><i class="ti ti-map"></i> 情境決策</button>
@@ -415,45 +542,30 @@
 
         <div class="practice-panel active" id="ptab-breath">
           <div class="card mb-10 text-center">
-            <div class="section-label jc"><i class="ti ti-wind"></i> 4-7-8 呼吸法 — 快速降低焦慮</div>
-            <div class="breath-circle" id="breathCircle">
-              <div class="breath-text" id="breathText">準備好了嗎？</div>
-            </div>
+            <div class="section-label jc"><i class="ti ti-wind"></i> 4-7-8 呼吸法</div>
+            <div class="breath-circle" id="breathCircle"><div class="breath-text" id="breathText">準備好了嗎？</div></div>
             <div class="breath-count" id="breathCount">—</div>
             <div class="breath-phase" id="breathPhase">點下方開始練習</div>
-            <div class="btn-row mt-12">
-              <button class="btn-ghost btn-auto" onclick="startBreath()"><i class="ti ti-player-play"></i> 開始練習</button>
-              <button class="btn-ghost btn-auto" onclick="stopBreath()"><i class="ti ti-player-stop"></i> 停止</button>
+            <div class="btn-row mt-12 jc">
+              <button class="btn-ghost btn-auto" onclick="startBreath()"><i class="ti ti-player-play"></i> 開始</button>
             </div>
-          </div>
-          <div class="card">
-            <div class="section-label"><i class="ti ti-info-circle"></i> 為什麼有效？</div>
-            <p class="body-text">7 秒屏氣能激活副交感神經，讓心跳放慢、皮質醇下降。重複練習能有效切換大腦的防禦狀態，讓你從「想逃跑」變成「可以開始」。</p>
-            <button class="btn-primary mt-10" onclick="switchTab(document.getElementById('btn-tab-scen'),'ptab-scen')">下一階段：情境決策 <i class="ti ti-arrow-right"></i></button>
           </div>
         </div>
 
         <div class="practice-panel" id="ptab-scen">
           <div class="card mb-10">
             <div class="scene-place"><i class="ti ti-map-pin"></i> 晚上 9 點，書房</div>
-            <div class="scene-story">「你打開課本，看到還剩 30 頁。胸口悶悶的，手不自覺地伸向手機...」</div>
-            <div class="dopamine-meter">
-              <div class="dopamine-label">目前多巴胺</div>
-              <div class="dopamine-track"><div class="dopamine-fill" id="dopamineFill" style="width:55%"></div></div>
-              <div style="font-size:12px;font-weight:800;color:var(--muted)" id="dopamineVal">中</div>
-            </div>
+            <div class="scene-story">「打開課本剩 30 頁，胸口悶悶的，手不自覺伸向手機...」</div>
             <div class="scene-q">運用剛學到的策略，你会怎麼做？</div>
-            <button class="choice-btn" id="sc0" onclick="pickChoice(0, false)"><span class="choice-key">A</span>先滑 10 分鐘 IG 冷靜一下</button>
+            <button class="choice-btn" id="sc0" onclick="pickChoice(0, false)"><span class="choice-key">A</span>先滑 10 分鐘 IG</button>
             <button class="choice-btn" id="sc1" onclick="pickChoice(1, true)"><span class="choice-key">B</span>設 25 分鐘番茄鐘，只讀前 8 頁</button>
-            <button class="choice-btn" id="sc2" onclick="pickChoice(2, false)"><span class="choice-key">C</span>30 頁太多，今晚直接放棄</button>
-          </div>
-          <div class="fb-box" id="scenFB" style="display:none">
-            <div class="fb-title" id="fbTitle"></div>
-            <div class="fb-body" id="fbBody"></div>
-            <div class="navi-row"><i class="ti ti-robot navi-icon"></i><div class="navi-text" id="naviText"></div></div>
-          </div>
-          <div id="scen-next" style="display:none" class="mt-10">
-            <button class="btn-primary" onclick="switchTab(document.getElementById('btn-tab-task'),'ptab-task')">下一階段：AI 任務拆解 <i class="ti ti-arrow-right"></i></button>
+            <button class="choice-btn" id="sc2" onclick="pickChoice(2, false)"><span class="choice-key">C</span>直接放棄</button>
+            
+            <div class="fb-box mt-10" id="scenFB" style="display:none">
+              <div class="fb-title" id="fbTitle"></div>
+              <div class="fb-body" id="fbBody"></div>
+              <button class="btn-primary mt-10" onclick="switchTab(document.getElementById('btn-tab-task'),'ptab-task')">下一階段：任務拆解 <i class="ti ti-arrow-right"></i></button>
+            </div>
           </div>
         </div>
 
@@ -461,37 +573,20 @@
           <div id="task-input-area">
             <div class="navi-intro-row mb-10">
               <div class="navi-ava-sm"><i class="ti ti-robot"></i></div>
-              <div class="navi-speech">告訴我你現在最不想做的事，我幫你把它拆成「今天立刻就能動手做」的小步驟！</div>
+              <div class="navi-speech">告訴我你現在最不想做的事，Gemini Pro 會幫你拆成小步驟！</div>
             </div>
             <div class="card mb-10">
-              <div class="section-label"><i class="ti ti-writing"></i> 你想拆解哪個任務？</div>
-              <input class="task-input" id="taskInput" type="text" placeholder="例如：明天要交英文報告，還沒開始..." maxlength="100">
+              <input class="task-input mb-8" id="taskInput" type="text" placeholder="例如：明天要交英文報告...">
               <div class="meta-row">
-                <div class="meta-col">
-                  <div class="meta-label">大概剩多少時間？</div>
-                  <select class="meta-select" id="timeLeft">
-                    <option>今天晚上（2-3 小時）</option>
-                    <option>明天之前（一天）</option>
-                    <option>這週內（3-5 天）</option>
-                    <option>下週前（一週）</option>
-                  </select>
-                </div>
-                <div class="meta-col">
-                  <div class="meta-label">目前的狀態？</div>
-                  <select class="meta-select" id="currentState">
-                    <option>完全沒開始</option>
-                    <option>有一點頭緒</option>
-                    <option>做了一半卡住</option>
-                    <option>快完成但拖著</option>
-                  </select>
-                </div>
+                <select class="meta-select meta-col" id="timeLeft"><option>今天晚上</option><option>明天之前</option><option>一週內</option></select>
+                <select class="meta-select meta-col" id="currentState"><option>完全沒開始</option><option>做了一半卡住</option></select>
               </div>
-              <button class="btn-primary mt-10" onclick="startBreakdown()"><i class="ti ti-robot"></i> AI 幫我拆解任務</button>
+              <button class="btn-primary mt-10" onclick="startBreakdown()"><i class="ti ti-robot"></i> Gemini AI 任務拆解</button>
             </div>
           </div>
 
           <div id="task-loading" style="display:none">
-            <div class="card"><div class="ai-loading"><div class="spinner"></div><span>AI 正在分析你的任務，規劃最適合的微步驟...</span></div></div>
+            <div class="card"><div class="ai-loading"><div class="spinner"></div><span>Gemini Pro 分析中...</span></div></div>
           </div>
 
           <div id="task-result" style="display:none" class="fade-in">
@@ -499,28 +594,11 @@
               <div class="ai-result-header">
                 <div class="ai-ava"><i class="ti ti-robot"></i></div>
                 <div><div class="result-title">AI 任務拆解完成</div><div class="result-sub" id="taskSummary"></div></div>
-                <button class="link-btn" onclick="resetTask()">重新輸入</button>
-              </div>
-              <div class="big-task-box">
-                <i class="ti ti-alert-circle" style="color:var(--warning);font-size:16px;flex-shrink:0;margin-top:2px"></i>
-                <div><div class="big-task-label">原始任務（讓你感到壓力的）</div><div class="big-task-text" id="bigTaskDisplay"></div></div>
-              </div>
-              <div class="arrow-row">
-                <div class="arrow-line"></div>
-                <div class="arrow-label"><i class="ti ti-arrow-down"></i> AI 拆解成今天能做的步驟</div>
-                <div class="arrow-line"></div>
               </div>
               <div class="step-list" id="stepList"></div>
-              <div class="prog-area">
-                <div class="prog-row"><span>完成進度</span><span class="prog-num" id="progText">0 / 0</span></div>
-                <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
-              </div>
               <div class="navi-row mt-10"><i class="ti ti-robot navi-icon"></i><div class="navi-text" id="naviTip"></div></div>
-              <button class="btn-ghost mt-10" onclick="resetTask()"><i class="ti ti-refresh"></i> 換一個任務試試</button>
+              <button class="btn-primary mt-10" onclick="goPage(3)"><i class="ti ti-sword"></i> 去現實挑戰！</button>
             </div>
-          </div>
-          <div id="task-to-challenge" style="display:none" class="mt-10">
-            <button class="btn-primary" onclick="goPage(3)"><i class="ti ti-sword"></i> 練習完成，去現實挑戰！</button>
           </div>
         </div>
       </div>
@@ -528,133 +606,101 @@
       <div class="page" id="page3">
         <span class="chip chip-warning"><i class="ti ti-sword"></i> 現實生活挑戰</span>
         <div class="page-title">把技巧帶進真實生活</div>
-        <div class="page-sub">系統內練完了！現在的挑戰是：在今天真實的情境中，做到這些事。</div>
 
         <div class="challenge-card mb-10">
-          <div class="challenge-header">
-            <div class="challenge-icon" style="background:var(--info-bg);color:var(--info)"><i class="ti ti-wind"></i></div>
-            <div>
-              <div class="challenge-title">情緒調節挑戰</div>
-              <div class="chip-row mt-4"><span class="chip chip-info">今日</span><span class="chip">3 項任務</span></div>
-            </div>
-          </div>
-          <div class="challenge-sub">當你感到焦慮時，在現實中試著做到以下幾件事：</div>
+          <div class="challenge-title mb-8">情緒調節挑戰</div>
           <div class="task-list" id="realList1">
-            <div class="task-item done" onclick="toggleRealTask(this,1)"><div class="task-check"><i class="ti ti-check"></i></div><span>情緒高漲時，做 3 次 4-7-8 深呼吸</span></div>
-            <div class="task-item" onclick="toggleRealTask(this,1)"><div class="task-check"></div><span>感到想逃避時，先暫停 10秒，說出「我現在感到焦慮」</span></div>
-            <div class="task-item" onclick="toggleRealTask(this,1)"><div class="task-check"></div><span>在手機備忘錄記錄當下的情緒（一句話就好）</span></div>
+            <div class="task-item" onclick="toggleRealTask(this, 1)"><div class="task-check"></div><span>情緒高漲時，做 3 次 4-7-8 深呼吸</span></div>
+            <div class="task-item" onclick="toggleRealTask(this, 1)"><div class="task-check"></div><span>說出「我現在感到焦慮」</span></div>
           </div>
-          <div class="prog-row mt-8"><span>完成進度</span><span class="prog-num" id="rPct1">33%</span></div>
-          <div class="prog-track"><div class="prog-fill" id="rBar1" style="width:33%;background:var(--success)"></div></div>
+          <div class="prog-row mt-8"><span>完成進度</span><span class="prog-num" id="rPct1">0%</span></div>
+          <div class="prog-track"><div class="prog-fill" id="rBar1" style="width:0%;background:var(--success)"></div></div>
         </div>
 
         <div class="challenge-card mb-10">
-          <div class="challenge-header">
-            <div class="challenge-icon" style="background:var(--warning-bg);color:var(--warning)"><i class="ti ti-clock"></i></div>
-            <div>
-              <div class="challenge-title">拖延症行為重塑挑戰</div>
-              <div class="chip-row mt-4"><span class="chip chip-warning">今日</span><span class="chip">3 項任務</span></div>
-            </div>
-          </div>
-          <div class="challenge-sub">用今天學到的番茄鐘策略，在生活中實際執行：</div>
+          <div class="challenge-title mb-8">拖延症行為重塑挑戰</div>
           <div class="task-list" id="realList2">
-            <div class="task-item done" onclick="toggleRealTask(this,2)"><div class="task-check"><i class="ti ti-check"></i></div><span>設定一個 25 分鐘番茄鐘，開始專注處理</span></div>
-            <div class="task-item done" onclick="toggleRealTask(this,2)"><div class="task-check"><i class="ti ti-check"></i></div><span>完成後，給自己一個小獎勵（5 分鐘休息）</span></div>
-            <div class="task-item" onclick="toggleRealTask(this,2)"><div class="task-check"></div><span>今晚睡前，在日記記錄「我做到了什麼」</span></div>
+            <div class="task-item" onclick="toggleRealTask(this, 2)"><div class="task-check"></div><span>設定一個 25 分鐘番茄鐘</span></div>
+            <div class="task-item" onclick="toggleRealTask(this, 2)"><div class="task-check"></div><span>給自己一個小獎勵</span></div>
           </div>
-          <div class="prog-row mt-8"><span>完成進度</span><span class="prog-num" id="rPct2">67%</span></div>
-          <div class="prog-track"><div class="prog-fill" id="rBar2" style="width:67%;background:var(--success)"></div></div>
+          <div class="prog-row mt-8"><span>完成進度</span><span class="prog-num" id="rPct2">0%</span></div>
+          <div class="prog-track"><div class="prog-fill" id="rBar2" style="width:0%;background:var(--success)"></div></div>
         </div>
 
         <div class="card">
           <div class="section-label"><i class="ti ti-writing"></i> 完成後回報給 AI</div>
-          <textarea class="report-textarea" id="reportText" placeholder="今天有做到哪些挑戰？遇到什麼困難？隨便說都可以...">做了兩個番茄鐘，完成既定進度！但第三個想滑手機，還是抵擋不住...</textarea>
+          <textarea class="report-textarea" id="reportText" placeholder="今天遇到什麼困難？"></textarea>
           <button class="btn-primary mt-8" onclick="submitReport()"><i class="ti ti-robot"></i> 送出給 AI 分析</button>
         </div>
       </div>
 
       <div class="page" id="page4">
         <span class="chip chip-success"><i class="ti ti-chart-line"></i> 情緒與行為追蹤</span>
-        <div class="page-title">你這週的成長軌跡</div>
-        <div class="page-sub">情緒值、行為完成率、學習歷程，一起呈現你的真實進步。</div>
+        <div class="page-title">這週的成長軌跡</div>
         <div class="three-col mb-12">
-          <div class="stat-card"><div class="stat-num" style="color:var(--warning)" id="stat-streak">7</div><div class="stat-lbl">連續打卡</div></div>
-          <div class="stat-card"><div class="stat-num" style="color:var(--success)">83%</div><div class="stat-lbl">任務完成率</div></div>
-          <div class="stat-card"><div class="stat-num" style="color:var(--info)" id="stat-badges">+5</div><div class="stat-lbl">累計勳章數</div></div>
+          <div class="stat-card"><div class="stat-num" style="color:var(--warning)" id="stat-streak-p4">1</div><div class="stat-lbl">連續打卡</div></div>
+          <div class="stat-card"><div class="stat-num" style="color:var(--success)" id="stat-rate">0%</div><div class="stat-lbl">任務完成率</div></div>
+          <div class="stat-card"><div class="stat-num" style="color:var(--info)" id="stat-tasks">0</div><div class="stat-lbl">累積任務數</div></div>
         </div>
-        <div class="card mb-10">
+        
+        <div class="card mb-10" id="chart-card">
           <div class="section-label"><i class="ti ti-chart-bar"></i> 每日情緒值（最近紀錄）</div>
-          <div class="chart-wrap" id="cloudChartWrapper">
-            <div class="chart-col"><div class="chart-bar-outer"><div class="chart-bar-inner" style="height:55%;background:var(--info)"></div></div><div class="chart-day">一</div></div>
-            <div class="chart-col"><div class="chart-bar-outer"><div class="chart-bar-inner" style="height:35%;background:var(--danger)"></div></div><div class="chart-day">二</div></div>
-            <div class="chart-col"><div class="chart-bar-outer"><div class="chart-bar-inner" style="height:62%;background:var(--info)"></div></div><div class="chart-day">三</div></div>
-            <div class="chart-col"><div class="chart-bar-outer"><div class="chart-bar-inner" style="height:48%;background:var(--warning)"></div></div><div class="chart-day">四</div></div>
-            <div class="chart-col"><div class="chart-bar-outer"><div class="chart-bar-inner" style="height:75%;background:var(--success)"></div></div><div class="chart-day">五</div></div>
-            <div class="chart-col"><div class="chart-bar-outer"><div class="chart-bar-inner" style="height:80%;background:var(--success)"></div></div><div class="chart-day">六</div></div>
-            <div class="chart-col"><div class="chart-bar-outer"><div class="chart-bar-inner" style="height:72%;background:var(--info)"></div></div><div class="chart-day">今</div></div>
-          </div>
+          <div class="chart-wrap" id="cloudChartWrapper"></div>
         </div>
+
         <div class="card mb-10">
           <div class="section-label"><i class="ti ti-checklist"></i> 行為紀錄 — 本週完成任務</div>
-          <div class="behavior-list">
-            <div class="behavior-item"><i class="ti ti-circle-check" style="color:var(--success)"></i><span>完成 14 個番茄鐘（共 350 分鐘專注）</span></div>
-            <div class="behavior-item"><i class="ti ti-circle-check" style="color:var(--success)"></i><span>執行深呼吸練習 9 次</span></div>
-            <div class="behavior-item"><i class="ti ti-circle-check" style="color:var(--success)"></i><span>完成現實挑戰任務 10 / 12 項</span></div>
-            <div class="behavior-item"><i class="ti ti-circle-x" style="color:var(--danger)"></i><span>週二情緒崩潰，未完成任何任務（已記錄）</span></div>
-          </div>
+          <div class="behavior-list" id="behavior-list-container"></div>
         </div>
+
         <div class="section-label"><i class="ti ti-sparkles"></i> AI 洞察</div>
-        <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--success)"></div><div class="insight-text">完成番茄鐘後，當天情緒值平均高出未完成日 <strong>32%</strong>。數據證明：獲得新勳章能正向激勵你跨出第一步！</div><span class="chip chip-success">進步</span></div>
-        <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--warning)"></div><div class="insight-text">週二焦慮高峰與模考壓力累積有關，建議下次考前提前做任務拆解，不要等到當天。</div><span class="chip chip-warning">注意</span></div>
-        <div class="insight-item mb-12"><div class="insight-dot" style="background:var(--info)"></div><div class="insight-text">連續穩定打卡，情緒自覺能力持續建立中，健康的心理防禦習慣正在成形！</div><span class="chip chip-info">習慣</span></div>
-        <button class="btn-primary" onclick="goPage(5)"><i class="ti ti-robot"></i> 看 AI 個人化回饋</button>
+        <div id="ai-insights-container">
+          <div class="card"><div class="ai-loading"><div class="spinner"></div><span>Gemini 分析中...</span></div></div>
+        </div>
+        <button class="btn-primary mt-10" onclick="goPage(5)"><i class="ti ti-robot"></i> 看 AI 個人化回饋</button>
       </div>
 
       <div class="page" id="page5">
         <span class="chip chip-info"><i class="ti ti-robot"></i> AI 回饋與反思引導</span>
         <div class="page-title">Navi 的個人化分析</div>
-        <div class="page-sub">根據你這週的情緒、行為紀錄，AI 給你專屬的回饋與下一步建議。</div>
-        <div class="ai-chat mb-10">
-          <div class="ai-msg">
-            <div class="ai-msg-header"><div class="ai-ava sm"><i class="ti ti-robot"></i></div><div class="ai-msg-name">Navi</div><div class="ai-msg-time">剛剛</div></div>
-            <div class="ai-msg-body">你這週很厲害！完成了多個番茄專注，並收集了大量成長勳章。我注意到一個很重要的模式：<br><br>你在<strong>獲得新勳章</strong>的當天，心理狀態平均比沒做的日子高 32%。這說明「開始」才是最難的一步——一旦你開始了，後續幾乎都能完成。</div>
+        <div class="ai-chat mb-10" id="navi-chat-container"></div>
+
+        <div class="card mb-10">
+          <div class="section-label"><i class="ti ti-messages"></i> 反思引導</div>
+          <div class="reflect-q">這週達成了目標、贏得新勳章之後，你心裡感覺是什麼？</div>
+          <div class="reflect-opts">
+            <button class="reflect-opt" onclick="selReflect(this)">有成就感，但還是覺得不夠</button>
+            <button class="reflect-opt" onclick="selReflect(this)">鬆了一口氣，比預期容易</button>
+            <button class="reflect-opt" onclick="selReflect(this)">做完就累了，不想繼續</button>
           </div>
-          <div class="ai-msg">
-            <div class="ai-msg-header"><div class="ai-ava sm"><i class="ti ti-robot"></i></div><div class="ai-msg-name">Navi</div><div class="ai-msg-time">剛剛</div></div>
-            <div class="ai-msg-body">你提到「第三個專注時段想滑手機沒抵擋住」——這很正常。自制力是有限資源，前兩個目標已經用掉很多了。<br><br>下週建議：在第二個專注段結束後，<strong>主動把手機放到另一個房間</strong>，用主動隔離代替用意志力硬撐。</div>
-          </div>
+          <button class="btn-primary mt-12" id="finalSubmitBtn" onclick="submitFinalReflection()">
+            <i class="ti ti-send"></i> 確認送出總結資料
+          </button>
         </div>
-		<div class="card mb-10">
-			<div class="section-label"><i class="ti ti-messages"></i> 反思引導</div>
-			<div class="reflect-q">這週達成了兩個專注目標、贏得新勳章之後，你心裡感覺是什麼？</div>
-			<div class="reflect-opts">
-				<button class="reflect-opt" onclick="selReflect(this)">有成就感，但還是覺得不夠</button>
-				<button class="reflect-opt" onclick="selReflect(this)">鬆了一口氣，比預期容易</button>
-				<button class="reflect-opt" onclick="selReflect(this)">做完就累了，不想繼續</button>
-			</div>
-			<div id="reflectResult" class="reflect-result" style="display:none"></div>
-  
-			<button class="btn-primary mt-12" id="finalSubmitBtn" onclick="submitFinalReflection()">
-				<i class="ti ti-send"></i> 確認送出總結資料
-			</button>
-			</div>
-        <div class="next-cycle mb-10">
-          <div class="next-cycle-title"><i class="ti ti-refresh"></i> 下一個學習循環</div>
-          <div class="next-item"><i class="ti ti-mood-smile"></i> 明天繼續情緒打卡</div>
-          <div class="next-item"><i class="ti ti-book"></i> 解鎖新課程：建立微計畫習慣</div>
-          <div class="next-item"><i class="ti ti-sword"></i> 新現實挑戰：放鬆與抗壓練習</div>
-        </div>
-        <button class="btn-primary" onclick="startNewCycle()">
-          <i class="ti ti-refresh"></i> 開始新的一天循環
+        
+        <button class="btn-ghost" id="btn-new-cycle" onclick="startNewCycle()" disabled style="opacity:0.5; width:100%">
+          <i class="ti ti-refresh"></i> 需先送出總結才能開啟新循環
         </button>
       </div>
 
-    </div></div></div><script>
+      <div class="page" id="page6">
+        <span class="chip chip-warning"><i class="ti ti-trophy"></i> 勳章收藏</span>
+        <div class="page-title">你的榮耀時刻</div>
+        <div class="page-sub">每完成 5 個任務即可解鎖 1 枚勳章（最多 10 枚）。</div>
+        <div class="card">
+          <div class="badge-grid" id="badge-grid-container"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
 // ==========================================
-// 核心變數與資料庫
+// 核心變數與設定
 // ==========================================
-// 這行保留給 Colab 腳本自動替換網址使用
-const CLOUD_BASE_URL = "https://overnight-circular-pony.ngrok-free.dev"; 
+const CLOUD_BASE_URL = "https://overnight-circular-pony.ngrok-free.dev"; // 請改成你 Colab 最新的 ngrok 網址
 
 let usersDB = JSON.parse(localStorage.getItem('soulnav_users')) || {};
 let currentUser = null;
@@ -670,42 +716,27 @@ const moodStandardMap = {
   1: "極度放鬆：心情很好，沒有任何壓力干擾，可以非常專注。"
 };
 
-const stressLevelText = {
-  0: "毫無壓力，非常輕鬆自在！",
-  20: "有些微的壓力，感覺還可以。",
-  40: "有一點壓力，需要稍微留意並規劃。",
-  60: "壓力中等，開始覺得有點負擔。",
-  80: "壓力很大，感到明顯的焦慮與緊繃。",
-  100: "極度壓力，快要喘不過氣了，請務必休息！"
+const stressTexts = {
+  study: { 0:"游刃有餘", 20:"稍微有點多", 40:"需要規劃進度", 60:"有點負擔", 80:"感到緊繃焦慮", 100:"快被課業壓垮了" },
+  social: { 0:"人際關係良好", 20:"微小摩擦", 40:"有些在意別人眼光", 60:"不想參與社交", 80:"嚴重內耗", 100:"完全封閉自我" },
+  sleep: { 0:"精神飽滿", 20:"偶爾打哈欠", 40:"需要午休補眠", 60:"總覺得睡不飽", 80:"失眠多夢", 100:"嚴重睡眠剝奪" }
 };
 
 // ==========================================
-// 🚀 全新核心：萬用背景資料同步函數
+// API 同步函數
 // ==========================================
 async function syncToBackend(actionType, detailsObj) {
-  if (!currentUser || !currentUser.id) {
-    console.warn("尚未登入，略過同步");
-    return;
-  }
-  
+  if (!currentUser || !currentUser.id) return;
   try {
-    const response = await fetch(`${CLOUD_BASE_URL}/api/track`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        user_id: currentUser.id,  // 這裡就是 LMS0001 格式
-        action_type: actionType,
-        action_details: detailsObj
-      })
+    await fetch(`${CLOUD_BASE_URL}/api/track`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: currentUser.id, action_type: actionType, action_details: detailsObj })
     });
-    console.log(`✅ [${actionType}] 已同步至後台`);
-  } catch (error) {
-    console.error("同步失敗：", error);
-  }
+  } catch (e) { console.error("同步失敗：", e); }
 }
 
 // ==========================================
-// 登入系統與打卡天數邏輯
+// 登入系統與連打天數
 // ==========================================
 function switchLoginMode(mode) {
   document.getElementById('tab-new').classList.toggle('active', mode === 'new');
@@ -714,59 +745,62 @@ function switchLoginMode(mode) {
   document.getElementById('login-old-area').style.display = mode === 'old' ? 'block' : 'none';
 }
 
+function updateBadgeUI() {
+  document.getElementById('greeting-title').textContent = `今天感覺怎樣，${currentUser.name}？`;
+  document.getElementById('display-user-name').textContent = currentUser.name;
+  document.getElementById('user-ava-letter').textContent = currentUser.name.charAt(0);
+  document.getElementById('display-user-id').textContent = `ID: ${currentUser.id}`;
+  
+  document.getElementById('ui-streak').textContent = currentUser.streak;
+  document.getElementById('stat-streak').textContent = currentUser.streak;
+  document.getElementById('stat-streak-p4').textContent = currentUser.streak;
+  document.getElementById('badge-display').textContent = `🏅 勳章數：${currentUser.badges}`;
+  document.getElementById('badgeNum').textContent = currentUser.badges;
+  document.getElementById('stat-tasks').textContent = currentUser.completedTasks;
+  document.getElementById('badge-bar').style.width = Math.min(100, (currentUser.badges / 10) * 100) + '%';
+  
+  renderBadgePage();
+}
+
 async function updateStreakAndLogin() {
   const today = new Date().toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
-  if (currentUser.badges === undefined) currentUser.badges = 5; 
+  if (currentUser.badges === undefined) currentUser.badges = 0; 
+  if (currentUser.completedTasks === undefined) currentUser.completedTasks = 0;
+
   if (currentUser.lastLogin !== today) {
     if (currentUser.lastLogin) {
       const last = new Date(currentUser.lastLogin);
       const curr = new Date(today);
       const diffTime = Math.abs(curr - last);
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      if (diffDays === 1) currentUser.streak += 1;
-      else currentUser.streak = 1;
-    } else currentUser.streak = 1;
+      if (diffDays === 1) { currentUser.streak += 1; } 
+      else { currentUser.streak = 1; }
+    } else { currentUser.streak = 1; }
     currentUser.lastLogin = today;
     usersDB[currentUser.id] = currentUser;
     localStorage.setItem('soulnav_users', JSON.stringify(usersDB));
   }
+  
   document.getElementById('login-overlay').style.display = 'none';
   document.getElementById('scenario-intro').style.display = 'flex';
   updateBadgeUI();
-  // 把使用者資料同步到後端資料庫
-  await fetch(`${CLOUD_BASE_URL}/api/user/register`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    user_id: currentUser.id,
-    name: currentUser.name,
-    streak: currentUser.streak,
-    badges: currentUser.badges,
-    last_login: currentUser.lastLogin
-  })
-}).catch(e => console.log('使用者同步失敗:', e));
-  syncToBackend("使用者登入", { 名字: currentUser.name, 連續打卡: currentUser.streak, 勳章數: currentUser.badges });
-}
 
-function updateBadgeUI() {
-  document.getElementById('greeting-title').textContent = `今天感覺怎樣，${currentUser.name}？`;
-  document.getElementById('display-user-name').textContent = currentUser.name;
-  document.getElementById('user-ava-letter').textContent = currentUser.name.charAt(0);
-  document.getElementById('display-user-id').textContent = `ID: ${currentUser.id}`;
-  document.getElementById('ui-streak').textContent = currentUser.streak;
-  document.getElementById('stat-streak').textContent = currentUser.streak;
-  document.getElementById('badge-display').textContent = `🏅 勳章數：${currentUser.badges}`;
-  document.getElementById('badgeNum').textContent = currentUser.badges;
-  document.getElementById('stat-badges').textContent = `+${currentUser.badges}`;
-  document.getElementById('badge-bar').style.width = Math.min(100, (currentUser.badges / 20) * 100) + '%';
+  try {
+    await fetch(`${CLOUD_BASE_URL}/api/user/register`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: currentUser.id, name: currentUser.name, streak: currentUser.streak, badges: currentUser.badges, last_login: currentUser.lastLogin })
+    });
+  } catch(e) {}
+  syncToBackend("使用者登入", { 名字: currentUser.name, 連續打卡: currentUser.streak });
 }
 
 function registerUser() {
   const name = document.getElementById('reg-name').value.trim();
   if (!name) { alert("請輸入名字！"); return; }
-  const newNum = Object.keys(usersDB).length + 1;
-  const newId = 'LMS' + String(newNum).padStart(4, '0');
-  currentUser = { id: newId, name: name, streak: 0, lastLogin: null, badges: 5 };
+  const uniqueCount = Object.keys(usersDB).length + 1;
+  const newId = 'LMS' + String(uniqueCount).padStart(4, '0');
+  
+  currentUser = { id: newId, name: name, streak: 0, lastLogin: null, badges: 0, completedTasks: 0 };
   usersDB[newId] = currentUser;
   localStorage.setItem('soulnav_users', JSON.stringify(usersDB));
   alert(`註冊成功！\n你的專屬登入 ID 是：${newId}`);
@@ -785,44 +819,46 @@ function goPage(idx) {
     if (n.dataset.page !== undefined) n.classList.toggle('active', parseInt(n.dataset.page) === idx);
   });
   document.querySelectorAll('.flow-step[data-page]').forEach(s => {
+    if(!s) return;
     const p = parseInt(s.dataset.page);
     s.classList.remove('done', 'active');
     if (p < idx) s.classList.add('done');
     if (p === idx) s.classList.add('active');
   });
-  document.querySelector('.main').scrollTop = 0;
 }
 
-document.querySelectorAll('.flow-step[data-page]').forEach(s =>
-  s.addEventListener('click', () => goPage(parseInt(s.dataset.page)))
-);
+function renderBadgePage() {
+  const grid = document.getElementById('badge-grid-container');
+  grid.innerHTML = '';
+  for(let i=1; i<=10; i++) {
+    const isUnlocked = i <= currentUser.badges;
+    grid.innerHTML += `<div class="badge-item ${isUnlocked ? 'unlocked' : ''}"><div class="badge-img">${isUnlocked ? '🏆' : '🔒'}</div><p>完成 ${i * 5} 個任務</p></div>`;
+  }
+}
+
+function addCompletedTask(taskName) {
+  currentUser.completedTasks += 1;
+  const newBadges = Math.floor(currentUser.completedTasks / 5);
+  if(newBadges > currentUser.badges && newBadges <= 10) {
+    currentUser.badges = newBadges;
+    alert(`🎉 恭喜！你完成了 5 個任務，獲得了 1 枚新勳章！`);
+  }
+  usersDB[currentUser.id] = currentUser;
+  localStorage.setItem('soulnav_users', JSON.stringify(usersDB));
+  updateBadgeUI();
+  syncToBackend("完成任務", { 任務名稱: taskName, 累積任務數: currentUser.completedTasks, 勳章數: currentUser.badges });
+}
 
 // ==========================================
-// 開場情境層與情緒單選
+// 頁面 0: 情緒評估
 // ==========================================
 function selectIntroOpt(btn, type) {
-  document.querySelectorAll('.intro-opt').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  const navi = document.getElementById('intro-navi');
-  navi.style.display = 'flex';
-  
-  const introNaviMap = { 
-    avoid: '這是最典型的「多巴胺陷阱」！滑完手機後焦慮會更重。不過，認識這個陷阱，你就已經比大多數人前進了一步。', 
-    escape: '逃避會讓任務在腦海中越來越大，壓力也越來越重。我來幫你把它變小，讓你可以真正開始。', 
-    stress: '熬夜硬撐效率很低，而且隔天更難專注。我們有更好的方法——先調節情緒，再開始任務。', 
-    start: '太棒了！「先做一點點」正是最有效的策略。我來幫你把步驟設計得更具體，讓你更容易做到！' 
-  };
-  
-  document.getElementById('intro-navi-text').textContent = introNaviMap[type] || "很好！我們開始吧！";
+  document.getElementById('intro-navi').style.display = 'flex';
+  document.getElementById('intro-navi-text').textContent = "很好！我們開始吧！";
   document.getElementById('intro-continue-btn').style.display = 'block';
-  
   syncToBackend("開場情境選擇", { 選擇: btn.textContent });
 }
-
-function closeIntro() {
-  document.getElementById('scenario-intro').style.display = 'none';
-  goPage(0);
-}
+function closeIntro() { document.getElementById('scenario-intro').style.display = 'none'; goPage(0); }
 
 function selectMood(btn) {
   document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('sel'));
@@ -834,334 +870,195 @@ function selectMood(btn) {
 
 function updateStress(type, value) {
   document.getElementById(`val-${type}`).textContent = `${value}%`;
-  document.getElementById(`desc-${type}`).textContent = stressLevelText[value];
+  document.getElementById(`desc-${type}`).textContent = stressTexts[type][value];
 }
 
-// ==========================================
-// Step 0: 送出情緒評估 
-// ==========================================
-function runGeminiAI() {
+async function runGeminiAI() {
   const textDesc = document.getElementById('moodText').value.trim();
   if (!textDesc) { alert('請填寫你目前的具體心境描述！'); return; }
+  document.getElementById('p0-input').style.display = 'none'; document.getElementById('p0-loading').style.display = 'block';
   
-  const studyStress = document.getElementById('slider-study').value;
-  const socialStress = document.getElementById('slider-social').value;
-  const sleepStress = document.getElementById('slider-sleep').value;
+  const payload = {
+    mood: currentMoodText, score: currentMoodScore, desc: textDesc,
+    study: document.getElementById('slider-study').value, social: document.getElementById('slider-social').value, sleep: document.getElementById('slider-sleep').value
+  };
+  syncToBackend("Step 0 - 情緒評估", payload);
 
-  syncToBackend("Step 0 - 情緒與壓力評估", {
-    選擇的心情: currentMoodText,
-    心情分數: currentMoodScore,
-    發生了什麼事: textDesc,
-    學業壓力: studyStress + "%",
-    社交壓力: socialStress + "%",
-    睡眠狀態: sleepStress + "%"
-  });
-
-  document.getElementById('p0-input').style.display = 'none';
-  document.getElementById('p0-loading').style.display = 'block';
-
-  setTimeout(() => {
-    document.getElementById('p0-loading').style.display = 'none';
-    document.getElementById('p0-result').style.display = 'block';
-    
-    const aiText = `根據 ${currentUser ? currentUser.name : '你'} 的今日打卡數據，目前心情處於「${currentMoodText}」狀態。<br><br>
-    <strong>Gemini 核心評估：</strong><br>
-    偵測到學業壓力指標為 ${studyStress}%。你提到的「${textDesc}」表現出需要調整節奏。建議立即執行「微型番茄鐘」，無須追求一次到位。`;
-    document.getElementById('gemini-result-text').innerHTML = aiText;
-  }, 1300);
+  try {
+    const res = await fetch(`${CLOUD_BASE_URL}/api/ai/mood`, { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const data = await res.json();
+    document.getElementById('gemini-result-text').innerHTML = data.html;
+  } catch(e) { document.getElementById('gemini-result-text').innerHTML = `<strong>建議立即執行『情緒調節 + 拖延症重塑』練習路徑。</strong>`; }
+  
+  document.getElementById('p0-loading').style.display = 'none'; document.getElementById('p0-result').style.display = 'block';
 }
 
-function resetAI() {
-  document.getElementById('p0-result').style.display = 'none';
-  document.getElementById('p0-input').style.display = 'block';
-}
-
-function openLesson() {
-  document.getElementById('p1-overview').style.display = 'none';
-  document.getElementById('p1-lesson').style.display = 'block';
-  syncToBackend("Step 1 - 課程學習", { 動作: "開始閱讀微課程：克服逃避心理" });
-}
-function closeLesson() {
-  document.getElementById('p1-lesson').style.display = 'none';
-  document.getElementById('p1-overview').style.display = 'block';
+// ==========================================
+// 頁面 1: 課程學習
+// ==========================================
+function openLesson() { document.getElementById('p1-overview').style.display = 'none'; document.getElementById('p1-lesson').style.display = 'block'; }
+function closeLesson() { document.getElementById('p1-lesson').style.display = 'none'; document.getElementById('p1-overview').style.display = 'block'; }
+function replyManga(text) {
+  document.getElementById('manga-choices').style.display = 'none';
+  document.getElementById('manga-user-text').textContent = text;
+  document.getElementById('manga-reply').style.display = 'block';
+  syncToBackend("Step 1 - 漫畫回覆", { 選擇: text });
 }
 function ansQ(btn, correct, qid) {
   btn.closest('.card').querySelectorAll('.quiz-opt').forEach(b => b.disabled = true);
   btn.classList.add(correct ? 'correct' : 'wrong');
   if (!correct) btn.closest('.card').querySelectorAll('.quiz-opt')[0].classList.add('correct');
   const r = document.getElementById(qid + 'res');
-  r.style.display = 'block';
-  r.className = 'quiz-result ' + (correct ? 'success' : 'danger');
+  r.style.display = 'block'; r.className = 'quiz-result ' + (correct ? 'success' : 'danger');
   r.textContent = correct ? '正確！這就是多巴胺陷阱的核心。' : '再想想！A 才是逃避。';
   document.getElementById('p1-next').style.display = 'block';
-  
-  syncToBackend("Step 1 - 課程測驗", { 選擇的答案: btn.textContent, 是否正確: correct });
+  syncToBackend("Step 1 - 課程測驗", { 答案: btn.textContent, 正確: correct });
 }
 
+// ==========================================
+// 頁面 2: 情境與任務
+// ==========================================
 function switchTab(btn, panelId) {
   document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.practice-panel').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById(panelId).classList.add('active');
+  btn.classList.add('active'); document.getElementById(panelId).classList.add('active');
 }
 
-// ==========================================
-// 恢復完整版：4-7-8 呼吸引擎 
-// ==========================================
-let breathInterval = null;
-let breathPhaseIdx = 0;
-let breathCycleCount = 0;
-const breathPhases = [
-  { name: '吸氣', dur: 4, expand: true, tip: '用鼻子緩慢吸氣...' },
-  { name: '屏氣', dur: 7, expand: true, tip: '屏住呼吸，安頓身心...' },
-  { name: '吐氣', dur: 8, expand: false, tip: '用嘴緩慢吐氣，釋放焦慮...' }
-];
-
-function startBreath() {
-  stopBreath();
-  breathPhaseIdx = 0;
-  breathCycleCount = 0;
-  runBreathPhase();
-  syncToBackend("Step 2 - 呼吸引導", { 狀態: "開始練習" });
-}
-
+let breathInterval = null; let breathPhaseIdx = 0; let breathCycleCount = 0;
+const breathPhases = [ { name: '吸氣', dur: 4, expand: true }, { name: '屏氣', dur: 7, expand: true }, { name: '吐氣', dur: 8, expand: false } ];
+function startBreath() { stopBreath(); runBreathPhase(); syncToBackend("Step 2 - 呼吸", { 狀態: "開始" }); }
 function runBreathPhase() {
-  if (breathCycleCount >= 1) {
-    document.getElementById('breathText').textContent = '完成！';
-    document.getElementById('breathPhase').textContent = '身體已成功放鬆，正在自動解鎖情境決策關卡...';
-    setTimeout(() => { switchTab(document.getElementById('btn-tab-scen'), 'ptab-scen'); }, 1400);
-    return;
-  }
-  const ph = breathPhases[breathPhaseIdx];
-  document.getElementById('breathText').textContent = ph.name;
-  document.getElementById('breathPhase').textContent = ph.tip;
-  let sec = ph.dur;
-  document.getElementById('breathCount').textContent = sec;
-  const c = document.getElementById('breathCircle');
-  ph.expand ? c.classList.add('expand') : c.classList.remove('expand');
-  
+  if (breathCycleCount >= 1) { document.getElementById('breathText').textContent = '完成！'; setTimeout(()=>switchTab(document.getElementById('btn-tab-scen'), 'ptab-scen'), 1000); return; }
+  const ph = breathPhases[breathPhaseIdx]; document.getElementById('breathText').textContent = ph.name; let sec = ph.dur;
+  const c = document.getElementById('breathCircle'); ph.expand ? c.classList.add('expand') : c.classList.remove('expand');
   breathInterval = setInterval(() => {
-    sec--;
-    document.getElementById('breathCount').textContent = sec;
-    if (sec <= 0) {
-      clearInterval(breathInterval);
-      if (breathPhaseIdx === 2) breathCycleCount++;
-      breathPhaseIdx = (breathPhaseIdx + 1) % 3;
-      runBreathPhase();
-    }
+    sec--; document.getElementById('breathCount').textContent = sec;
+    if (sec <= 0) { clearInterval(breathInterval); if (breathPhaseIdx === 2) breathCycleCount++; breathPhaseIdx = (breathPhaseIdx + 1) % 3; runBreathPhase(); }
   }, 1000);
 }
+function stopBreath() { clearInterval(breathInterval); document.getElementById('breathCircle').classList.remove('expand'); }
 
-function stopBreath() {
-  if (breathInterval) clearInterval(breathInterval);
-  document.getElementById('breathText').textContent = '準備好了嗎？';
-  document.getElementById('breathCount').textContent = '—';
-  document.getElementById('breathPhase').textContent = '點下方開始練習';
-  document.getElementById('breathCircle').classList.remove('expand');
-}
-
-// ==========================================
-// Step 2-1: 情境決策
-// ==========================================
 function pickChoice(idx, correct) {
   ['sc0', 'sc1', 'sc2'].forEach(id => { document.getElementById(id).disabled = true; });
   const selectedBtnText = document.getElementById('sc' + idx).textContent;
   document.getElementById('sc' + idx).classList.add(correct ? 'correct' : 'wrong');
   if (!correct) document.getElementById('sc1').classList.add('correct');
-
-  if (correct && currentUser) {
-    currentUser.badges += 1;
-    usersDB[currentUser.id] = currentUser;
-    localStorage.setItem('soulnav_users', JSON.stringify(usersDB));
-    updateBadgeUI();
-  }
-
-  syncToBackend("Step 2 - 情境決策", { 
-    面臨情境: "打開課本剩30頁，想拿手機...",
-    選擇行動: selectedBtnText,
-    是否正確: correct,
-    目前總勳章數: currentUser.badges
-  });
-
+  syncToBackend("Step 2 - 情境決策", { 選擇行動: selectedBtnText, 是否正確: correct });
   const fb = document.getElementById('scenFB');
-  fb.className = correct ? 'fb-box success' : 'fb-box danger';
-  fb.style.display = 'block';
+  fb.className = correct ? 'fb-box success mt-10' : 'fb-box danger mt-10'; fb.style.display = 'block';
   document.getElementById('fbTitle').textContent = correct ? '完美應用！' : '陷阱警告！';
-  document.getElementById('fbBody').textContent = correct ? '策略正確，獲得 1 枚勳章！' : '這樣會加重焦慮喔。';
-  document.getElementById('scen-next').style.display = 'block';
+  document.getElementById('fbBody').textContent = correct ? '策略正確！' : '這樣會加重焦慮喔。';
 }
 
-// ==========================================
-// 恢復完整版：Step 2-2 AI 任務拆解
-// ==========================================
 async function startBreakdown() {
   const task = document.getElementById('taskInput').value.trim();
-  if (!task) { document.getElementById('taskInput').focus(); return; }
+  if (!task) return;
   const timeLeft = document.getElementById('timeLeft').value;
   const state = document.getElementById('currentState').value;
+  syncToBackend("Step 2 - 任務拆解", { 任務: task, 剩餘時間: timeLeft, 狀態: state });
+  document.getElementById('task-input-area').style.display = 'none'; document.getElementById('task-loading').style.display = 'block';
 
-  syncToBackend("Step 2 - 任務拆解", {
-    感到壓力的任務: task,
-    剩餘時間: timeLeft,
-    目前狀態: state
-  });
-
-  document.getElementById('task-input-area').style.display = 'none';
-  document.getElementById('task-loading').style.display = 'block';
-
-  await new Promise(r => setTimeout(r, 1000)); 
-  
-  const parsed = {
-    summary: '化整為零，解鎖動力',
-    naviTip: `目前狀態為「${state}」，不用焦慮一次完工。每完成下方一個小步驟就能獲贈 1 枚勳章，動手就贏了！`,
-    steps: [
-      { title: '打開必要檔案並關閉無關網頁', duration: '5 分鐘', tag: '準備' },
-      { title: '草擬或框架核心骨架標題', duration: '10 分鐘', tag: '整理' },
-      { title: '專注撰寫第一小段微型內容', duration: '15 分鐘', tag: '寫作' },
-      { title: '時間到！立刻給自己放鬆倒水', duration: '5 分鐘', tag: '收尾' }
-    ]
-  };
-
-  aiSteps = parsed.steps.map(s => ({ ...s, done: false }));
-  document.getElementById('task-loading').style.display = 'none';
-  document.getElementById('task-result').style.display = 'block';
+  try {
+    const res = await fetch(`${CLOUD_BASE_URL}/api/ai/task`, { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ task, time: timeLeft, state }) });
+    const parsed = await res.json();
+    aiSteps = parsed.steps.map(s => ({ ...s, done: false }));
+    document.getElementById('taskSummary').textContent = parsed.summary;
+    document.getElementById('naviTip').textContent = parsed.naviTip;
+  } catch(e) {
+    aiSteps = [ { title: '打開必要檔案', duration: '5 分鐘', tag: '準備', done: false }, { title: '寫第一段', duration: '15 分鐘', tag: '寫作', done: false } ];
+    document.getElementById('naviTip').textContent = `目前狀態為「${state}」，每完成五個任務就會獲得 1 枚勳章，動手就贏了！`;
+  }
+  document.getElementById('task-loading').style.display = 'none'; document.getElementById('task-result').style.display = 'block';
   document.getElementById('bigTaskDisplay').textContent = task;
-  document.getElementById('taskSummary').textContent = parsed.summary;
-  document.getElementById('naviTip').textContent = parsed.naviTip;
-  
   renderAISteps();
-  updateAIProgress();
-  document.getElementById('task-to-challenge').style.display = 'block';
 }
-
-// 恢復完整版標籤與圖示樣式
-const tagColors = { '準備': '#EFF6FF:#1D4ED8', '整理': '#ECFDF5:#065F46', '寫作': '#FFF7ED:#C2410C', '收尾': '#F0FDF4:#15803D' };
 
 function renderAISteps() {
-  const list = document.getElementById('stepList');
-  list.innerHTML = '';
+  const list = document.getElementById('stepList'); list.innerHTML = '';
   aiSteps.forEach((s, i) => {
-    const [bg, color] = (tagColors[s.tag] || '#F1F5F9:#64748B').split(':');
-    const el = document.createElement('div');
-    el.className = 'step-item' + (s.done ? ' done' : '');
-    el.onclick = () => toggleAIStep(i, el);
-    el.innerHTML = `
-      <div class="step-check">${s.done ? '<i class="ti ti-check"></i>' : ''}</div>
-      <div class="step-content">
-        <div class="step-title">${i + 1}. ${s.title}</div>
-        <div class="step-meta">
-          <i class="ti ti-clock"></i> ${s.duration}
-          <span class="step-tag" style="background:${bg};color:${color}">${s.tag}</span>
-        </div>
-      </div>`;
+    const el = document.createElement('div'); el.className = 'step-item' + (s.done ? ' done' : '');
+    el.onclick = () => {
+      if(!aiSteps[i].done) {
+        aiSteps[i].done = true; el.classList.add('done'); el.querySelector('.step-check').innerHTML = '<i class="ti ti-check"></i>';
+        document.getElementById('progText').textContent = aiSteps.filter(x => x.done).length + ' / ' + aiSteps.length;
+        addCompletedTask(s.title); 
+      }
+    };
+    el.innerHTML = `<div class="step-check">${s.done ? '<i class="ti ti-check"></i>' : ''}</div><div class="step-content"><div class="step-title">${i + 1}. ${s.title}</div><div class="step-meta"><span class="step-tag">${s.tag}</span></div></div>`;
     list.appendChild(el);
   });
+  document.getElementById('progText').textContent = '0 / ' + aiSteps.length;
 }
 
-function toggleAIStep(i, el) {
-  aiSteps[i].done = !aiSteps[i].done;
-  el.classList.toggle('done', aiSteps[i].done);
-  el.querySelector('.step-check').innerHTML = aiSteps[i].done ? '<i class="ti ti-check"></i>' : '';
-  updateAIProgress();
-  
-  if (aiSteps[i].done && currentUser) {
-    currentUser.badges += 1;
-    usersDB[currentUser.id] = currentUser;
-    localStorage.setItem('soulnav_users', JSON.stringify(usersDB));
-    updateBadgeUI();
-    syncToBackend("任務執行進度", { 完成項目: aiSteps[i].title, 獲得勳章: 1 });
+// ==========================================
+// 頁面 3: 現實挑戰
+// ==========================================
+function toggleRealTask(el, listNum) {
+  if(!el.classList.contains('done')) {
+    el.classList.add('done'); 
+    el.querySelector('.task-check').innerHTML = '<i class="ti ti-check"></i>';
+    addCompletedTask(el.querySelector('span').textContent);
+    
+    if (listNum) {
+      const list = document.getElementById('realList' + listNum);
+      const total = list.querySelectorAll('.task-item').length;
+      const done = list.querySelectorAll('.task-item.done').length;
+      const pct = Math.round((done / total) * 100);
+      document.getElementById('rPct' + listNum).textContent = pct + '%';
+      document.getElementById('rBar' + listNum).style.width = pct + '%';
+    }
   }
 }
 
-function updateAIProgress() {
-  const total = aiSteps.length;
-  const done = aiSteps.filter(s => s.done).length;
-  const pct = total ? Math.round(done / total * 100) : 0;
-  document.getElementById('progText').textContent = done + ' / ' + total;
-  document.getElementById('progFill').style.width = pct + '%';
-}
-
-function resetTask() {
-  document.getElementById('task-result').style.display = 'none';
-  document.getElementById('task-to-challenge').style.display = 'none';
-  document.getElementById('task-input-area').style.display = 'block';
-  document.getElementById('taskInput').value = '';
-}
-
-// ==========================================
-// 恢復完整版：Step 3 現實挑戰回報
-// ==========================================
-function toggleRealTask(el, listNum) {
-  el.classList.toggle('done');
-  el.querySelector('.task-check').innerHTML = el.classList.contains('done') ? '<i class="ti ti-check"></i>' : '';
-  const list = document.getElementById('realList' + listNum);
-  const total = list.querySelectorAll('.task-item').length;
-  const done = list.querySelectorAll('.task-item.done').length;
-  const pct = Math.round(done / total * 100);
-  document.getElementById('rPct' + listNum).textContent = pct + '%';
-  document.getElementById('rBar' + listNum).style.width = pct + '%';
-}
-
-function submitReport() {
+async function submitReport() {
   const reportText = document.getElementById('reportText').value.trim();
-  syncToBackend("Step 3 - 現實挑戰回報", {
-    使用者心得回報: reportText
-  });
+  syncToBackend("Step 3 - 現實挑戰回報", { 心得: reportText });
+  loadAIInsights(reportText);
   goPage(4);
 }
 
 // ==========================================
-// Step 5: AI 反思引導
+// 頁面 4 & 5: 追蹤與反思
 // ==========================================
-async function selReflect(btn) {
+async function loadAIInsights(report) {
+  const totalChecks = document.querySelectorAll('.task-item').length;
+  const doneChecks = document.querySelectorAll('.task-item.done').length;
+  const rate = totalChecks > 0 ? Math.round((doneChecks/totalChecks)*100) : 0;
+  document.getElementById('stat-rate').textContent = `${rate}%`;
+  
+  renderChart();
+  document.getElementById('behavior-list-container').innerHTML = `<div class="behavior-item"><i class="ti ti-circle-check" style="color:var(--success)"></i><span>今日完成任務：${doneChecks} 項</span></div>`;
+
+  try {
+    const res = await fetch(`${CLOUD_BASE_URL}/api/ai/insights`, { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ completed_tasks: currentUser.completedTasks, report: report }) });
+    const data = await res.json();
+    let html4 = ''; data.insights.forEach(ins => { const color = ins.type === 'success' ? 'var(--success)' : (ins.type==='warning' ? 'var(--warning)' : 'var(--info)'); html4 += `<div class="insight-item mb-7"><div class="insight-dot" style="background:${color}"></div><div class="insight-text">${ins.text}</div></div>`; });
+    document.getElementById('ai-insights-container').innerHTML = html4;
+    let html5 = ''; data.navi_msgs.forEach(msg => { html5 += `<div class="ai-msg"><div class="ai-msg-header"><div class="ai-ava sm"><i class="ti ti-robot"></i></div><div class="ai-msg-name">Navi</div></div><div class="ai-msg-body">${msg}</div></div>`; });
+    document.getElementById('navi-chat-container').innerHTML = html5;
+  } catch(e) { document.getElementById('ai-insights-container').innerHTML = "AI 分析完成。"; }
+}
+
+async function renderChart() {
+  const wrap = document.getElementById('cloudChartWrapper'); wrap.innerHTML = '';
+  try {
+    const res = await fetch(`${CLOUD_BASE_URL}/api/track/history/${currentUser.id}`);
+    const logs = await res.json();
+    const moodLogs = logs.filter(l => l.type === 'Step 0 - 情緒評估').slice(-7);
+    if(moodLogs.length === 0) { document.getElementById('chart-card').style.display = 'none'; return; }
+    document.getElementById('chart-card').style.display = 'block';
+    moodLogs.forEach(l => {
+      const score = l.details.心情分數; const height = score * 20; const color = score > 3 ? 'var(--danger)' : 'var(--success)';
+      wrap.innerHTML += `<div class="chart-col"><div class="chart-bar-outer"><div class="chart-bar-inner" style="height:${height}%;background:${color}"></div></div></div>`;
+    });
+  } catch(e) { console.log(e); }
+}
+
+function selReflect(btn) {
   document.querySelectorAll('.reflect-opt').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
-  const r = document.getElementById('reflectResult');
-  r.style.display = 'block';
-  r.textContent = "資料傳送至資料庫中，AI 正在分析..."; 
-
-  const reflectText = btn.textContent;
-  
-  syncToBackend("Step 5 - AI反思總結", { 選擇的反思: reflectText });
-
-  setTimeout(() => {
-    const reflectMap = {
-      '有成就感，但還是覺得不夠': '這很正常，成就感是真實的，好好讚賞自己。',
-      '鬆了一口氣，比預期容易': '大腦正在重新學習任務不可怕，繼續保持！',
-      '做完就累了，不想繼續': '精力是有限資源，你已跨出第一步，好好休息。'
-    };
-    r.textContent = reflectMap[reflectText] || '收到你的反思，請繼續保持！';
-  }, 800);
 }
 
-function startNewCycle() {
-  document.getElementById('p0-result').style.display = 'none';
-  document.getElementById('p0-input').style.display = 'block';
-  document.getElementById('moodText').value = '';
-  
-  //把「完成並重新開始」的動作送到資料庫！
-  syncToBackend("完成今日所有流程", { 
-    動作: "點擊開始新的一天循環", 
-    目前總勳章數: currentUser ? currentUser.badges : 0 
-  });
-
-  goPage(0);
-}
-
-// ==========================================
-// PWA 機制
-// ==========================================
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault(); deferredPrompt = e;
-  document.getElementById('pwa-banner').classList.add('show');
-});
-document.getElementById('pwa-install-btn').addEventListener('click', async () => {
-  if (deferredPrompt) {
-    deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null;
-    document.getElementById('pwa-banner').classList.remove('show');
-  }
-});
 async function submitFinalReflection() {
   const selectedBtn = document.querySelector('.reflect-opt.selected');
   if (!selectedBtn) { alert("請先選擇一個反思感受！"); return; }
@@ -1170,7 +1067,6 @@ async function submitFinalReflection() {
   btn.textContent = "⏳ 同步中...";
   btn.disabled = true;
 
-  // Step 1：確保使用者存在於後端
   try {
     await fetch(`${CLOUD_BASE_URL}/api/user/register`, {
       method: 'POST',
@@ -1185,7 +1081,6 @@ async function submitFinalReflection() {
     });
   } catch(e) { console.log('使用者同步失敗:', e); }
 
-  // Step 2：寫入反思結算
   try {
     await fetch(`${CLOUD_BASE_URL}/api/reflection/submit`, {
       method: 'POST',
@@ -1200,7 +1095,6 @@ async function submitFinalReflection() {
     });
   } catch(e) { console.log('反思同步失敗:', e); }
 
-  // Step 3：寫入 action_logs（萬用備份）
   await syncToBackend("Step 5 - 最終結算送出", {
     心情紀錄: currentMoodText,
     最終反思: selectedBtn.textContent,
@@ -1211,6 +1105,32 @@ async function submitFinalReflection() {
   btn.textContent = "✅ 已同步至後台資料庫";
   btn.style.background = "var(--success)";
   alert("紀錄已安全儲存至 Soulnav 資料庫！");
+  
+  const newCycleBtn = document.getElementById('btn-new-cycle'); 
+  newCycleBtn.disabled = false; 
+  newCycleBtn.style.opacity = 1;
+  newCycleBtn.classList.add('btn-primary'); 
+  newCycleBtn.classList.remove('btn-ghost');
+}
+
+function startNewCycle() {
+  document.getElementById('p0-result').style.display = 'none'; 
+  document.getElementById('p0-input').style.display = 'block'; 
+  document.getElementById('moodText').value = '';
+  
+  document.getElementById('btn-new-cycle').disabled = true; 
+  document.getElementById('btn-new-cycle').style.opacity = 0.5;
+  document.getElementById('btn-new-cycle').classList.add('btn-ghost'); 
+  document.getElementById('btn-new-cycle').classList.remove('btn-primary');
+  
+  document.getElementById('finalSubmitBtn').disabled = false; 
+  document.getElementById('finalSubmitBtn').textContent = "確認送出總結資料"; 
+  document.getElementById('finalSubmitBtn').style.background = "";
+  
+  document.querySelectorAll('.reflect-opt').forEach(b => b.classList.remove('selected'));
+  
+  syncToBackend("完成今日流程", { 動作: "重啟循環" }); 
+  goPage(0);
 }
 </script>
 </body>
