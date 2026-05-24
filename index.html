@@ -624,16 +624,20 @@
             <div class="ai-msg-body">你提到「第三個專注時段想滑手機沒抵擋住」——這很正常。自制力是有限資源，前兩個目標已經用掉很多了。<br><br>下週建議：在第二個專注段結束後，<strong>主動把手機放到另一個房間</strong>，用主動隔離代替用意志力硬撐。</div>
           </div>
         </div>
-        <div class="card mb-10">
-          <div class="section-label"><i class="ti ti-messages"></i> 反思引導</div>
-          <div class="reflect-q">這週達成了兩個專注目標、贏得新勳章之後，你心裡感覺是什麼？</div>
-          <div class="reflect-opts">
-            <button class="reflect-opt" onclick="selReflect(this)">有成就感，但還是覺得不夠</button>
-            <button class="reflect-opt" onclick="selReflect(this)">鬆了一口氣，比預期容易</button>
-            <button class="reflect-opt" onclick="selReflect(this)">做完就累了，不想繼續</button>
-          </div>
-          <div id="reflectResult" class="reflect-result" style="display:none"></div>
-        </div>
+		<div class="card mb-10">
+			<div class="section-label"><i class="ti ti-messages"></i> 反思引導</div>
+			<div class="reflect-q">這週達成了兩個專注目標、贏得新勳章之後，你心裡感覺是什麼？</div>
+			<div class="reflect-opts">
+				<button class="reflect-opt" onclick="selReflect(this)">有成就感，但還是覺得不夠</button>
+				<button class="reflect-opt" onclick="selReflect(this)">鬆了一口氣，比預期容易</button>
+				<button class="reflect-opt" onclick="selReflect(this)">做完就累了，不想繼續</button>
+			</div>
+			<div id="reflectResult" class="reflect-result" style="display:none"></div>
+  
+			<button class="btn-primary mt-12" id="finalSubmitBtn" onclick="submitFinalReflection()">
+				<i class="ti ti-send"></i> 確認送出總結資料
+			</button>
+			</div>
         <div class="next-cycle mb-10">
           <div class="next-cycle-title"><i class="ti ti-refresh"></i> 下一個學習循環</div>
           <div class="next-item"><i class="ti ti-mood-smile"></i> 明天繼續情緒打卡</div>
@@ -649,9 +653,13 @@
 // ==========================================
 // 核心變數與資料庫
 // ==========================================
+// 這行保留給 Colab 腳本自動替換網址使用
+const CLOUD_BASE_URL = "https://overnight-circular-pony.ngrok-free.dev"; 
+
 let usersDB = JSON.parse(localStorage.getItem('soulnav_users')) || {};
 let currentUser = null;
 let currentMoodScore = 3;
+let currentMoodText = "普普"; 
 let aiSteps = [];
 
 const moodStandardMap = {
@@ -671,18 +679,30 @@ const stressLevelText = {
   100: "極度壓力，快要喘不過氣了，請務必休息！"
 };
 
-const introNaviMap = {
-  avoid: '這是最典型的「多巴胺陷阱」！滑完手機後焦慮會更重。不過，認識這個陷阱，你就已經比大多數人前進了一步。',
-  escape: '逃避會讓任務在腦海中越來越大，壓力也越來越重。我來幫你把它變小，讓你可以真正開始。',
-  stress: '熬夜硬撐效率很低，而且隔天更難專注。我們有更好的方法——先調節情緒，再開始任務。',
-  start: '太棒了！「先做一點點」正是最有效的策略。我來幫你把步驟設計得更具體，讓你更容易做到！'
-};
-
-const reflectMap = {
-  '有成就感，但還是覺得不夠': '這種「不夠」的感覺大腦常見的「完美主義焦慮」。提醒你：今天獲得的每一枚勳章，都是你進步的證明。成就感是真實的，好好讚賞自己。',
-  '鬆了一口氣，比預期容易': '這個感覺很重要！大腦正在重新學習「任務不是那麼可怕的」。每次這種體驗，都在削弱逃避心理的力量。繼續保持！',
-  '做完就累了，不想繼續': '意志力與精力是有限資源，用完很正常。關鍵是你確實跨出第一步並贏得勳章了。好好休息，明天我們繼續。'
-};
+// ==========================================
+// 🚀 全新核心：萬用背景資料同步函數
+// ==========================================
+async function syncToBackend(actionType, detailsObj) {
+  if (!currentUser || !currentUser.id) {
+    console.warn("尚未登入，略過同步");
+    return;
+  }
+  
+  try {
+    const response = await fetch(`${CLOUD_BASE_URL}/api/track`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: currentUser.id,  // 這裡就是 LMS0001 格式
+        action_type: actionType,
+        action_details: detailsObj
+      })
+    });
+    console.log(`✅ [${actionType}] 已同步至後台`);
+  } catch (error) {
+    console.error("同步失敗：", error);
+  }
+}
 
 // ==========================================
 // 登入系統與打卡天數邏輯
@@ -696,32 +716,25 @@ function switchLoginMode(mode) {
 
 function updateStreakAndLogin() {
   const today = new Date().toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
-  
-  if (currentUser.badges === undefined) currentUser.badges = 5; // 預設 5 個勳章
-
+  if (currentUser.badges === undefined) currentUser.badges = 5; 
   if (currentUser.lastLogin !== today) {
     if (currentUser.lastLogin) {
       const last = new Date(currentUser.lastLogin);
       const curr = new Date(today);
       const diffTime = Math.abs(curr - last);
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
       if (diffDays === 1) currentUser.streak += 1;
       else currentUser.streak = 1;
-    } else {
-      currentUser.streak = 1;
-    }
+    } else currentUser.streak = 1;
     currentUser.lastLogin = today;
     usersDB[currentUser.id] = currentUser;
     localStorage.setItem('soulnav_users', JSON.stringify(usersDB));
   }
-
-  // 隱藏登入層，顯現情境引導層
   document.getElementById('login-overlay').style.display = 'none';
   document.getElementById('scenario-intro').style.display = 'flex';
-
-  // 更新系統介面 UI 勳章與使用者資訊
   updateBadgeUI();
+  
+  syncToBackend("使用者登入", { 名字: currentUser.name, 連續打卡: currentUser.streak, 勳章數: currentUser.badges });
 }
 
 function updateBadgeUI() {
@@ -731,12 +744,9 @@ function updateBadgeUI() {
   document.getElementById('display-user-id').textContent = `ID: ${currentUser.id}`;
   document.getElementById('ui-streak').textContent = currentUser.streak;
   document.getElementById('stat-streak').textContent = currentUser.streak;
-  
-  // 更新勳章顯示
   document.getElementById('badge-display').textContent = `🏅 勳章數：${currentUser.badges}`;
   document.getElementById('badgeNum').textContent = currentUser.badges;
   document.getElementById('stat-badges').textContent = `+${currentUser.badges}`;
-  // 勳章進度條視覺效果 (以20個為一滿條循環)
   document.getElementById('badge-bar').style.width = Math.min(100, (currentUser.badges / 20) * 100) + '%';
 }
 
@@ -745,28 +755,19 @@ function registerUser() {
   if (!name) { alert("請輸入名字！"); return; }
   const newNum = Object.keys(usersDB).length + 1;
   const newId = 'LMS' + String(newNum).padStart(4, '0');
-  
   currentUser = { id: newId, name: name, streak: 0, lastLogin: null, badges: 5 };
   usersDB[newId] = currentUser;
   localStorage.setItem('soulnav_users', JSON.stringify(usersDB));
-  
-  alert(`註冊成功！\n你的專屬登入 ID 是：${newId}\n下次請使用此 ID 登入保留紀錄。`);
+  alert(`註冊成功！\n你的專屬登入 ID 是：${newId}`);
   updateStreakAndLogin();
 }
 
 function loginUser() {
   const id = document.getElementById('login-id-input').value.trim();
-  if (usersDB[id]) {
-    currentUser = usersDB[id];
-    updateStreakAndLogin();
-  } else {
-    alert("找不到這個 ID 喔！請確認輸入是否正確。");
-  }
+  if (usersDB[id]) { currentUser = usersDB[id]; updateStreakAndLogin(); } 
+  else { alert("找不到這個 ID 喔！"); }
 }
 
-// ==========================================
-// 導覽切換 (Page Routing)
-// ==========================================
 function goPage(idx) {
   document.querySelectorAll('.page').forEach((p, i) => p.classList.toggle('active', i === idx));
   document.querySelectorAll('.nav-item[data-page]').forEach(n => {
@@ -793,8 +794,18 @@ function selectIntroOpt(btn, type) {
   btn.classList.add('selected');
   const navi = document.getElementById('intro-navi');
   navi.style.display = 'flex';
-  document.getElementById('intro-navi-text').textContent = introNaviMap[type];
+  
+  const introNaviMap = { 
+    avoid: '這是最典型的「多巴胺陷阱」！滑完手機後焦慮會更重。不過，認識這個陷阱，你就已經比大多數人前進了一步。', 
+    escape: '逃避會讓任務在腦海中越來越大，壓力也越來越重。我來幫你把它變小，讓你可以真正開始。', 
+    stress: '熬夜硬撐效率很低，而且隔天更難專注。我們有更好的方法——先調節情緒，再開始任務。', 
+    start: '太棒了！「先做一點點」正是最有效的策略。我來幫你把步驟設計得更具體，讓你更容易做到！' 
+  };
+  
+  document.getElementById('intro-navi-text').textContent = introNaviMap[type] || "很好！我們開始吧！";
   document.getElementById('intro-continue-btn').style.display = 'block';
+  
+  syncToBackend("開場情境選擇", { 選擇: btn.textContent });
 }
 
 function closeIntro() {
@@ -806,6 +817,7 @@ function selectMood(btn) {
   document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('sel'));
   btn.classList.add('sel');
   currentMoodScore = parseInt(btn.dataset.score);
+  currentMoodText = btn.querySelector('span').textContent;
   document.getElementById('moodStandardDesc').textContent = moodStandardMap[currentMoodScore];
 }
 
@@ -815,11 +827,25 @@ function updateStress(type, value) {
 }
 
 // ==========================================
-// 送出 Gemini AI 分析
+// Step 0: 送出情緒評估 
 // ==========================================
 function runGeminiAI() {
   const textDesc = document.getElementById('moodText').value.trim();
   if (!textDesc) { alert('請填寫你目前的具體心境描述！'); return; }
+  
+  const studyStress = document.getElementById('slider-study').value;
+  const socialStress = document.getElementById('slider-social').value;
+  const sleepStress = document.getElementById('slider-sleep').value;
+
+  syncToBackend("Step 0 - 情緒與壓力評估", {
+    選擇的心情: currentMoodText,
+    心情分數: currentMoodScore,
+    發生了什麼事: textDesc,
+    學業壓力: studyStress + "%",
+    社交壓力: socialStress + "%",
+    睡眠狀態: sleepStress + "%"
+  });
+
   document.getElementById('p0-input').style.display = 'none';
   document.getElementById('p0-loading').style.display = 'block';
 
@@ -827,11 +853,9 @@ function runGeminiAI() {
     document.getElementById('p0-loading').style.display = 'none';
     document.getElementById('p0-result').style.display = 'block';
     
-    const studyStress = document.getElementById('slider-study').value;
-    const aiText = `根據 ${currentUser ? currentUser.name : '你'} 的今日打卡數據，目前心情處於「${moodStandardMap[currentMoodScore].split('：')[0]}」狀態。<br><br>
+    const aiText = `根據 ${currentUser ? currentUser.name : '你'} 的今日打卡數據，目前心情處於「${currentMoodText}」狀態。<br><br>
     <strong>Gemini 核心評估：</strong><br>
-    偵測到學業壓力指標為 ${studyStress}%，反映出顯著的拖延與避難防禦機制。你提到的「${textDesc}」在語意分析中表現出高度完美主義停滯。建議立即執行「微型番茄鐘」，無須追求一次到位。每完成下方練習中的一個微小步驟，系統將立刻為你增發勳章以活化大腦的多巴胺回饋。`;
-    
+    偵測到學業壓力指標為 ${studyStress}%。你提到的「${textDesc}」表現出需要調整節奏。建議立即執行「微型番茄鐘」，無須追求一次到位。`;
     document.getElementById('gemini-result-text').innerHTML = aiText;
   }, 1300);
 }
@@ -841,12 +865,10 @@ function resetAI() {
   document.getElementById('p0-input').style.display = 'block';
 }
 
-// ==========================================
-// 頁面 1：課程單元
-// ==========================================
 function openLesson() {
   document.getElementById('p1-overview').style.display = 'none';
   document.getElementById('p1-lesson').style.display = 'block';
+  syncToBackend("Step 1 - 課程學習", { 動作: "開始閱讀微課程：克服逃避心理" });
 }
 function closeLesson() {
   document.getElementById('p1-lesson').style.display = 'none';
@@ -859,15 +881,12 @@ function ansQ(btn, correct, qid) {
   const r = document.getElementById(qid + 'res');
   r.style.display = 'block';
   r.className = 'quiz-result ' + (correct ? 'success' : 'danger');
-  r.textContent = correct
-    ? '正確！滑 IG 讓多巴胺瞬間飆高，消退後焦慮反而加倍——這就是多巴胺陷阱的核心。'
-    : '再想想！A 才是多巴胺陷阱式的逃避，B 和 C 都是正面的應對策略。';
+  r.textContent = correct ? '正確！這就是多巴胺陷阱的核心。' : '再想想！A 才是逃避。';
   document.getElementById('p1-next').style.display = 'block';
+  
+  syncToBackend("Step 1 - 課程測驗", { 選擇的答案: btn.textContent, 是否正確: correct });
 }
 
-// ==========================================
-// 頁面 2：核心系統練習引擎
-// ==========================================
 function switchTab(btn, panelId) {
   document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.practice-panel').forEach(p => p.classList.remove('active'));
@@ -875,7 +894,9 @@ function switchTab(btn, panelId) {
   document.getElementById(panelId).classList.add('active');
 }
 
-// 4-7-8 呼吸引擎
+// ==========================================
+// 恢復完整版：4-7-8 呼吸引擎 
+// ==========================================
 let breathInterval = null;
 let breathPhaseIdx = 0;
 let breathCycleCount = 0;
@@ -890,6 +911,7 @@ function startBreath() {
   breathPhaseIdx = 0;
   breathCycleCount = 0;
   runBreathPhase();
+  syncToBackend("Step 2 - 呼吸引導", { 狀態: "開始練習" });
 }
 
 function runBreathPhase() {
@@ -927,13 +949,15 @@ function stopBreath() {
   document.getElementById('breathCircle').classList.remove('expand');
 }
 
-// 情境決策與勳章激勵
+// ==========================================
+// Step 2-1: 情境決策
+// ==========================================
 function pickChoice(idx, correct) {
   ['sc0', 'sc1', 'sc2'].forEach(id => { document.getElementById(id).disabled = true; });
+  const selectedBtnText = document.getElementById('sc' + idx).textContent;
   document.getElementById('sc' + idx).classList.add(correct ? 'correct' : 'wrong');
   if (!correct) document.getElementById('sc1').classList.add('correct');
 
-  // 如果答對，發放 1 枚成長勳章
   if (correct && currentUser) {
     currentUser.badges += 1;
     usersDB[currentUser.id] = currentUser;
@@ -941,39 +965,41 @@ function pickChoice(idx, correct) {
     updateBadgeUI();
   }
 
-  const dopVal = idx === 0 ? 95 : idx === 1 ? 35 : 20;
-  document.getElementById('dopamineFill').style.width = dopVal + '%';
-  document.getElementById('dopamineVal').textContent = idx === 0 ? '爆高' : idx === 1 ? '穩定' : '低';
+  syncToBackend("Step 2 - 情境決策", { 
+    面臨情境: "打開課本剩30頁，想拿手機...",
+    選擇行動: selectedBtnText,
+    是否正確: correct,
+    目前總勳章數: currentUser.badges
+  });
 
   const fb = document.getElementById('scenFB');
-  const configs = {
-    correct: { cls: 'fb-box success', title: '完美應用！', titleCls: 'fb-title success', body: '「只讀前 8 頁 + 25 分鐘番茄鐘」成功欺騙大腦防禦警報。由於策略正確，你額外贏得 1 枚勳章！', navi: '幹得好！你已成功在模擬環境中突破心魔，現在讓我們前往下一關進行現實拆解。' },
-    0: { cls: 'fb-box danger', title: '多巴胺防禦陷阱！', titleCls: 'fb-title danger', body: '滑社群會讓多巴胺飆高，但消退後焦慮反噬。此選擇未獲得任何勳章。', navi: '別灰心，看清陷阱就是進步。請點擊下一關，讓 AI 直接幫你拆解大任務！' },
-    2: { cls: 'fb-box warning', title: '逃避放棄模式！', titleCls: 'fb-title warning', body: '大腦將大任務視為致命威脅因而本能逃避，應該將其化整為零。無勳章變動。', navi: '不用一次做完，把大目標砍成今天能做的小碎塊。點擊下一關試試看。' }
-  };
-  const cfg = correct ? configs.correct : configs[idx];
-  fb.className = cfg.cls;
+  fb.className = correct ? 'fb-box success' : 'fb-box danger';
   fb.style.display = 'block';
-  document.getElementById('fbTitle').textContent = cfg.title;
-  document.getElementById('fbTitle').className = cfg.titleCls;
-  document.getElementById('fbBody').textContent = cfg.body;
-  document.getElementById('naviText').textContent = cfg.navi;
+  document.getElementById('fbTitle').textContent = correct ? '完美應用！' : '陷阱警告！';
+  document.getElementById('fbBody').textContent = correct ? '策略正確，獲得 1 枚勳章！' : '這樣會加重焦慮喔。';
   document.getElementById('scen-next').style.display = 'block';
 }
 
-// AI 任務拆解引擎 & 勳章獲得
+// ==========================================
+// 恢復完整版：Step 2-2 AI 任務拆解
+// ==========================================
 async function startBreakdown() {
   const task = document.getElementById('taskInput').value.trim();
   if (!task) { document.getElementById('taskInput').focus(); return; }
   const timeLeft = document.getElementById('timeLeft').value;
   const state = document.getElementById('currentState').value;
 
+  syncToBackend("Step 2 - 任務拆解", {
+    感到壓力的任務: task,
+    剩餘時間: timeLeft,
+    目前狀態: state
+  });
+
   document.getElementById('task-input-area').style.display = 'none';
   document.getElementById('task-loading').style.display = 'block';
 
-  await new Promise(r => setTimeout(r, 1000)); // 模擬引擎演算
+  await new Promise(r => setTimeout(r, 1000)); 
   
-  const compactTask = task.length > 18 ? task.slice(0, 18) + '...' : task;
   const parsed = {
     summary: '化整為零，解鎖動力',
     naviTip: `目前狀態為「${state}」，不用焦慮一次完工。每完成下方一個小步驟就能獲贈 1 枚勳章，動手就贏了！`,
@@ -997,6 +1023,7 @@ async function startBreakdown() {
   document.getElementById('task-to-challenge').style.display = 'block';
 }
 
+// 恢復完整版標籤與圖示樣式
 const tagColors = { '準備': '#EFF6FF:#1D4ED8', '整理': '#ECFDF5:#065F46', '寫作': '#FFF7ED:#C2410C', '收尾': '#F0FDF4:#15803D' };
 
 function renderAISteps() {
@@ -1026,12 +1053,12 @@ function toggleAIStep(i, el) {
   el.querySelector('.step-check').innerHTML = aiSteps[i].done ? '<i class="ti ti-check"></i>' : '';
   updateAIProgress();
   
-  // 每完成一個子步驟，增加 1 枚成長勳章
   if (aiSteps[i].done && currentUser) {
     currentUser.badges += 1;
     usersDB[currentUser.id] = currentUser;
     localStorage.setItem('soulnav_users', JSON.stringify(usersDB));
     updateBadgeUI();
+    syncToBackend("任務執行進度", { 完成項目: aiSteps[i].title, 獲得勳章: 1 });
   }
 }
 
@@ -1051,7 +1078,7 @@ function resetTask() {
 }
 
 // ==========================================
-// 頁面 3、4、5 既有互動功能
+// 恢復完整版：Step 3 現實挑戰回報
 // ==========================================
 function toggleRealTask(el, listNum) {
   el.classList.toggle('done');
@@ -1065,24 +1092,48 @@ function toggleRealTask(el, listNum) {
 }
 
 function submitReport() {
-  if (document.getElementById('reportText').value.trim()) goPage(4);
+  const reportText = document.getElementById('reportText').value.trim();
+  syncToBackend("Step 3 - 現實挑戰回報", {
+    使用者心得回報: reportText
+  });
+  goPage(4);
 }
 
-function selReflect(btn) {
+// ==========================================
+// Step 5: AI 反思引導
+// ==========================================
+async function selReflect(btn) {
   document.querySelectorAll('.reflect-opt').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
   const r = document.getElementById('reflectResult');
   r.style.display = 'block';
-  r.textContent = reflectMap[btn.textContent] || '';
+  r.textContent = "資料傳送至資料庫中，AI 正在分析..."; 
+
+  const reflectText = btn.textContent;
+  
+  syncToBackend("Step 5 - AI反思總結", { 選擇的反思: reflectText });
+
+  setTimeout(() => {
+    const reflectMap = {
+      '有成就感，但還是覺得不夠': '這很正常，成就感是真實的，好好讚賞自己。',
+      '鬆了一口氣，比預期容易': '大腦正在重新學習任務不可怕，繼續保持！',
+      '做完就累了，不想繼續': '精力是有限資源，你已跨出第一步，好好休息。'
+    };
+    r.textContent = reflectMap[reflectText] || '收到你的反思，請繼續保持！';
+  }, 800);
 }
 
 function startNewCycle() {
   document.getElementById('p0-result').style.display = 'none';
   document.getElementById('p0-input').style.display = 'block';
   document.getElementById('moodText').value = '';
-  document.querySelectorAll('.mood-btn').forEach((b, i) => b.classList.toggle('sel', i === 2));
-  currentMoodScore = 3;
-  document.getElementById('moodStandardDesc').textContent = moodStandardMap[3];
+  
+  //把「完成並重新開始」的動作送到資料庫！
+  syncToBackend("完成今日所有流程", { 
+    動作: "點擊開始新的一天循環", 
+    目前總勳章數: currentUser ? currentUser.badges : 0 
+  });
+
   goPage(0);
 }
 
@@ -1100,6 +1151,26 @@ document.getElementById('pwa-install-btn').addEventListener('click', async () =>
     document.getElementById('pwa-banner').classList.remove('show');
   }
 });
+async function submitFinalReflection() {
+  const selectedBtn = document.querySelector('.reflect-opt.selected');
+  if (!selectedBtn) { alert("請先選擇一個反思感受！"); return; }
+  
+  const finalData = {
+    心情紀錄: currentMoodText,
+    最終反思: selectedBtn.textContent,
+    目前勳章數: currentUser ? currentUser.badges : 0,
+    連續打卡天數: currentUser ? currentUser.streak : 0
+  };
+
+  // 將所有資料一次性送到後端
+  await syncToBackend("Step 5 - 最終結算送出", finalData);
+  
+  document.getElementById('finalSubmitBtn').textContent = "✅ 已同步至後台資料庫";
+  document.getElementById('finalSubmitBtn').style.background = "var(--success)";
+  document.getElementById('finalSubmitBtn').disabled = true;
+  
+  alert("紀錄已安全儲存至 Soulnav 資料庫！");
+}
 </script>
 </body>
 </html>
