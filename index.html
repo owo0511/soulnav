@@ -714,7 +714,7 @@ function switchLoginMode(mode) {
   document.getElementById('login-old-area').style.display = mode === 'old' ? 'block' : 'none';
 }
 
-function updateStreakAndLogin() {
+async function updateStreakAndLogin() {
   const today = new Date().toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
   if (currentUser.badges === undefined) currentUser.badges = 5; 
   if (currentUser.lastLogin !== today) {
@@ -733,7 +733,18 @@ function updateStreakAndLogin() {
   document.getElementById('login-overlay').style.display = 'none';
   document.getElementById('scenario-intro').style.display = 'flex';
   updateBadgeUI();
-  
+  // 把使用者資料同步到後端資料庫
+  await fetch(`${CLOUD_BASE_URL}/api/user/register`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    user_id: currentUser.id,
+    name: currentUser.name,
+    streak: currentUser.streak,
+    badges: currentUser.badges,
+    last_login: currentUser.lastLogin
+  })
+}).catch(e => console.log('使用者同步失敗:', e));
   syncToBackend("使用者登入", { 名字: currentUser.name, 連續打卡: currentUser.streak, 勳章數: currentUser.badges });
 }
 
@@ -1154,21 +1165,51 @@ document.getElementById('pwa-install-btn').addEventListener('click', async () =>
 async function submitFinalReflection() {
   const selectedBtn = document.querySelector('.reflect-opt.selected');
   if (!selectedBtn) { alert("請先選擇一個反思感受！"); return; }
-  
-  const finalData = {
+
+  const btn = document.getElementById('finalSubmitBtn');
+  btn.textContent = "⏳ 同步中...";
+  btn.disabled = true;
+
+  // Step 1：確保使用者存在於後端
+  try {
+    await fetch(`${CLOUD_BASE_URL}/api/user/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: currentUser.id,
+        name: currentUser.name,
+        streak: currentUser.streak,
+        badges: currentUser.badges,
+        last_login: currentUser.lastLogin
+      })
+    });
+  } catch(e) { console.log('使用者同步失敗:', e); }
+
+  // Step 2：寫入反思結算
+  try {
+    await fetch(`${CLOUD_BASE_URL}/api/reflection/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: currentUser.id,
+        reflect_choice: selectedBtn.textContent,
+        final_badges: currentUser.badges,
+        final_streak: currentUser.streak,
+        mood_text_snapshot: currentMoodText
+      })
+    });
+  } catch(e) { console.log('反思同步失敗:', e); }
+
+  // Step 3：寫入 action_logs（萬用備份）
+  await syncToBackend("Step 5 - 最終結算送出", {
     心情紀錄: currentMoodText,
     最終反思: selectedBtn.textContent,
-    目前勳章數: currentUser ? currentUser.badges : 0,
-    連續打卡天數: currentUser ? currentUser.streak : 0
-  };
+    目前勳章數: currentUser.badges,
+    連續打卡天數: currentUser.streak
+  });
 
-  // 將所有資料一次性送到後端
-  await syncToBackend("Step 5 - 最終結算送出", finalData);
-  
-  document.getElementById('finalSubmitBtn').textContent = "✅ 已同步至後台資料庫";
-  document.getElementById('finalSubmitBtn').style.background = "var(--success)";
-  document.getElementById('finalSubmitBtn').disabled = true;
-  
+  btn.textContent = "✅ 已同步至後台資料庫";
+  btn.style.background = "var(--success)";
   alert("紀錄已安全儲存至 Soulnav 資料庫！");
 }
 </script>
