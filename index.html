@@ -964,13 +964,13 @@ async function runGeminiAI() {
   document.getElementById('p0-loading').style.display = 'block';
 
   // 5. 呼叫 Gemini
-  const res = await syncToBackend('/api/gemini/mood', payload);
+  const res = await syncToBackend('/api/ai/mood', payload);
   
   document.getElementById('p0-loading').style.display = 'none';
   document.getElementById('p0-result').style.display = 'block';
   
-  if(res && res.analysis) {
-    document.getElementById('gemini-result-text').innerText = res.analysis;
+  if(res && res.html) {
+    document.getElementById('gemini-result-text').innerHTML = res.html;
   } else {
     document.getElementById('gemini-result-text').innerHTML = `(模擬 AI 回覆) 根據您的描述「${textDesc}」，看來現在感到${currentMoodText}。<br>您的壓力源明確，建議別急著自責，接受現在的狀態，跟著系統進行調節即可。`;
   }
@@ -1114,7 +1114,7 @@ async function startBreakdown() {
 
   // 11 & 12. 呼叫 Gemini API
   const payload = { task: task, time_left: timeLeft, state: state };
-  const res = await syncToBackend('/api/gemini/task_breakdown', payload);
+  const res = await syncToBackend('/api/ai/task', payload);
   
   document.getElementById('task-loading').style.display = 'none';
   document.getElementById('task-result').style.display = 'block';
@@ -1126,9 +1126,10 @@ async function startBreakdown() {
   const list = document.getElementById('stepList');
   list.innerHTML = '';
   
-  if(res && res.breakdown_text) {
-    const steps = res.breakdown_text.split('\n').filter(s => s.trim().length > 0);
-    aiSteps = steps.map(s => ({ title: s.replace(/'/g,""), done: false }));
+  if(res && res.steps && res.steps.length > 0) {
+    aiSteps = res.steps.map(s => ({ title: s.title + (s.duration ? ' (' + s.duration + ')' : ''), done: false }));
+    if(res.naviTip) document.getElementById('naviTip').textContent = res.naviTip;
+    if(res.summary) document.getElementById('taskSummary').textContent = res.summary;
   } else {
     aiSteps = [
       { title: '準備好書桌環境 (5分鐘)', done: false },
@@ -1195,7 +1196,7 @@ function toggleRealTask(el, listNum, taskName) {
 
 function submitReport() {
   const reportText = document.getElementById('reportText').value.trim();
-  syncToBackend('/api/gemini/insight', { 
+  syncToBackend('/api/ai/insights', { 
     type: "report", text: reportText 
   });
   goPage(4);
@@ -1241,7 +1242,7 @@ async function fetchInsight() {
   document.getElementById('insight-loading').style.display = 'block';
   document.getElementById('dynamic-insight-container').innerHTML = '';
   
-  const res = await syncToBackend('/api/gemini/insight', {
+  const res = await syncToBackend('/api/ai/insights', {
     tasks_completed: currentUser.tasksCompleted,
     streak: currentUser.streak,
     recent_actions: currentUser.recentActions
@@ -1264,11 +1265,11 @@ async function fetchInsight() {
 // ==========================================
 // 21. 個人化分析
 async function loadFinalNaviAnalysis() {
-  const res = await syncToBackend('/api/gemini/insight', { 
+  const res = await syncToBackend('/api/ai/insights', { 
     type: "final_summary", tasks: currentUser.tasksCompleted, streak: currentUser.streak 
   });
-  if(res && res.insight) {
-    document.getElementById('final-navi-analysis').innerHTML = res.insight;
+  if(res && res.navi_msgs && res.navi_msgs.length > 0) {
+    document.getElementById('final-navi-analysis').innerHTML = res.navi_msgs.join('<br><br>');
   } else {
     document.getElementById('final-navi-analysis').innerHTML = `今天你真的很棒！成功拆解任務並實踐了步驟。記住，每 5 個任務就是一枚勳章，這不僅是獎勵，更是你戰勝拖延的證明！`;
   }
