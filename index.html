@@ -48,7 +48,7 @@
 /* 滑桿樣式 */
 .stress-item { margin-bottom: 18px; }
 .stress-slider {
-  -webkit-appearance: none; width: 100%; height: 8px; border-radius: 999px;
+  -webkit-appearance: none; appearance: none; width: 100%; height: 8px; border-radius: 999px;
   background: var(--line); outline: none; margin: 8px 0;
 }
 .stress-slider::-webkit-slider-thumb {
@@ -198,7 +198,7 @@
   <div class="top-bar">
     <div class="logo"><i class="ti ti-brain"></i> Soul<em>Nav</em></div>
     <div class="flow-indicator">
-      <span class="flow-step active" data-page="0">情緒評估</span>
+      <span class="flow-step active" data-page="0">Dashboard</span>
       <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
       <span class="flow-step" data-page="1">課程學習</span>
       <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
@@ -215,7 +215,7 @@
   <div class="body-wrap">
     <div class="sidebar">
       <div class="nav-section">主要功能</div>
-      <div class="nav-item active" data-page="0" onclick="goPage(0)"><i class="ti ti-mood-smile"></i>情緒評估</div>
+      <div class="nav-item active" data-page="0" onclick="goPage(0)"><i class="ti ti-mood-smile"></i>Dashboard</div>
       <div class="nav-item" data-page="1" onclick="goPage(1)"><i class="ti ti-book"></i>課程學習</div>
       <div class="nav-item" data-page="2" onclick="goPage(2)"><i class="ti ti-player-play"></i>情境練習<span class="nav-badge">核心</span></div>
       <div class="nav-item" data-page="3" onclick="goPage(3)"><i class="ti ti-sword"></i>現實挑戰</div>
@@ -238,79 +238,179 @@
     <div class="main">
 
       <div class="page active" id="page0">
-        <div id="p0-input">
-          <span class="chip chip-info"><i class="ti ti-sun"></i> 今日情緒評估</span>
-          <div class="page-title" id="greeting-title">今天感覺怎樣，阿明？</div>
-          <div class="page-sub">每日打卡，AI 即時分析你的情緒狀態，推薦最適合今天的練習。</div>
+        <!-- Dashboard landing（mobile-first 入口） -->
+        <div id="dashboard-view">
+          <span class="chip chip-info"><i class="ti ti-mood-smile"></i> Dashboard</span>
+          <div class="page-title" id="dash-title">你的今天儀表板</div>
+          <div class="page-sub" id="dash-sub">用最輕鬆的方式，看看你今天的情緒狀態與下一步。</div>
 
-          <div class="navi-intro-row mb-10">
-            <div class="navi-ava-sm"><i class="ti ti-robot"></i></div>
-            <div class="navi-speech">嗨！先告訴我你現在的心情，我幫你分析今天最適合的練習路徑。誠實填，沒有標準答案！</div>
+          <div class="card mb-10">
+            <div class="section-label"><i class="ti ti-mood-smile"></i> emotional summary</div>
+            <div class="ai-insight" style="font-weight:900; margin-bottom:10px;">
+              今日狀態：<span id="dash-mood-text">普普</span>
+            </div>
+            <div class="ai-insight" id="dash-mood-standard">等待你的情緒評估更新…</div>
+            <div class="chip-row mt-10" style="margin-top:12px;">
+              <span class="chip chip-info">學業 <b id="dash-val-study">40%</b></span>
+              <span class="chip chip-info">社交 <b id="dash-val-social">20%</b></span>
+              <span class="chip chip-info">睡眠 <b id="dash-val-sleep">60%</b></span>
+            </div>
+            <button class="btn-ghost mt-10" onclick="openEmotionAssessment()"><i class="ti ti-robot"></i> 情緒評估</button>
           </div>
 
           <div class="card mb-10">
-            <div class="section-label"><i class="ti ti-mood-smile"></i> 選擇你現在的心情 (單選)</div>
-            <div class="mood-emojis">
-              <button class="mood-btn" data-score="5" onclick="selectMood(this)">😰<span>超焦慮</span></button>
-              <button class="mood-btn" data-score="4" onclick="selectMood(this)">😟<span>有點怕</span></button>
-              <button class="mood-btn sel" data-score="3" onclick="selectMood(this)">😐<span>普普</span></button>
-              <button class="mood-btn" data-score="2" onclick="selectMood(this)">🙂<span>還不錯</span></button>
-              <button class="mood-btn" data-score="1" onclick="selectMood(this)">😄<span>很開心</span></button>
+            <div class="section-label"><i class="ti ti-sparkles"></i> AI recommended topics</div>
+            <div id="dash-reco-list" class="dash-reco-list"></div>
+            <div class="ai-insight" id="dash-reco-hint" style="margin-top:10px;">
+              正在向 AI 取得今日推薦主題…
             </div>
-            <div class="mood-behavior-standard-box" id="moodStandardDesc">
-              中度焦慮：心有點靜不下來，手一直想去拿手機滑社群、看通知。
-            </div>
-            <div class="section-label mt-10"><i class="ti ti-writing"></i> 說說發生了什麼</div>
-            <textarea class="mood-textarea" id="moodText" placeholder="隨便說，越具體越好...">明天模考，書還沒讀完，一直想滑手機逃避...</textarea>
           </div>
 
           <div class="card mb-10">
-            <div class="section-label"><i class="ti ti-list-check"></i> 壓力來源快速評估</div>
-            <div class="stress-item">
-              <div class="bar-lbl"><span>學業壓力</span><span id="val-study">40%</span></div>
-              <input type="range" class="stress-slider" id="slider-study" min="0" max="100" step="20" value="40" oninput="updateStress('study', this.value)">
-              <div class="stress-desc" id="desc-study">學業狀況穩定。</div>
+            <div class="section-label"><i class="ti ti-sword"></i> active adaptive challenges</div>
+
+            <div id="dash-chal-list">
+              <div class="rec-row" id="dash-chal-1" style="margin-top:6px;">
+                <div class="lesson-num" style="background:rgba(90,174,255,.12);color:var(--info)"><i class="ti ti-wind"></i></div>
+                <div>
+                  <div class="rec-title" id="dash-chal-1-title">情緒調節挑戰</div>
+                  <div class="rec-meta" id="dash-chal-1-meta">今日 3 項任務</div>
+                </div>
+                <span class="chip chip-success" id="dash-chal-1-pct">0%</span>
+              </div>
+
+              <div class="rec-row" id="dash-chal-2" style="margin-top:10px;">
+                <div class="lesson-num" style="background:rgba(242,165,26,.12);color:var(--warning)"><i class="ti ti-clock"></i></div>
+                <div>
+                  <div class="rec-title" id="dash-chal-2-title">拖延症行為重塑挑戰</div>
+                  <div class="rec-meta" id="dash-chal-2-meta">今日 3 項任務</div>
+                </div>
+                <span class="chip chip-warning" id="dash-chal-2-pct">0%</span>
+              </div>
             </div>
-            <div class="stress-item">
-              <div class="bar-lbl"><span>社交壓力</span><span id="val-social">20%</span></div>
-              <input type="range" class="stress-slider" id="slider-social" min="0" max="100" step="20" value="20" oninput="updateStress('social', this.value)">
-              <div class="stress-desc" id="desc-social">社交狀態輕鬆自在。</div>
+
+            <button class="btn-primary mt-10" style="background:var(--warning)" onclick="goPage(3)"><i class="ti ti-sword"></i> 去完成今日挑戰</button>
+          </div>
+
+          <div class="card mb-10">
+            <div class="section-label"><i class="ti ti-chart-line"></i> learning progress overview</div>
+
+            <div class="three-col mb-12" style="gap:10px;">
+              <div class="stat-card"><div class="stat-num" style="color:var(--warning)" id="dash-stat-streak">1</div><div class="stat-lbl">連續打卡</div></div>
+              <div class="stat-card"><div class="stat-num" style="color:var(--success)" id="dash-stat-tasks">0</div><div class="stat-lbl">總完成任務</div></div>
+              <div class="stat-card"><div class="stat-num" style="color:var(--info)" id="dash-stat-badges">0</div><div class="stat-lbl">累計勳章</div></div>
             </div>
-            <div class="stress-item">
-              <div class="bar-lbl"><span>睡眠狀態</span><span id="val-sleep">60%</span></div>
-              <input type="range" class="stress-slider" id="slider-sleep" min="0" max="100" step="20" value="60" oninput="updateStress('sleep', this.value)">
-              <div class="stress-desc" id="desc-sleep">睡眠品質不佳，今晚提早放下手機入睡吧。</div>
+
+            <div class="section-label" style="margin-top:14px;"><i class="ti ti-chart-bar"></i> 情緒趨勢（最近）</div>
+            <div class="chart-wrap" id="dash-cloudChartWrapper" style="height:140px;"></div>
+            <div style="text-align:center;font-size:12px;color:var(--muted);margin-top:8px;">有打卡紀錄才會顯示</div>
+
+            <div class="section-label" style="margin-top:14px;"><i class="ti ti-history"></i> 最近行為</div>
+            <div class="behavior-list" id="dash-recent-actions-container">
+              <div style="color:var(--muted); font-size:14px;">目前尚未完成任務。</div>
             </div>
           </div>
 
-          <button class="btn-primary" onclick="runGeminiAI()"><i class="ti ti-robot"></i> 送出，AI 開始分析</button>
-          <div class="streak-row">
-            <div class="streak-card"><div class="streak-num" id="ui-streak">1</div><div class="streak-lbl">連續打卡天數</div></div>
-            <div class="streak-card"><div class="streak-num" id="badgeNum" style="color:var(--warning)">0</div><div class="streak-lbl">目前勳章數</div></div>
+          <div class="card mb-10">
+            <div class="section-label"><i class="ti ti-messages"></i> daily emotional insights</div>
+            <div id="dash-daily-insight-container" class="insight-list">
+              <div class="insight-item mb-7">
+                <div class="insight-dot" style="background:var(--info)"></div>
+                <div class="insight-text">點一下「更新洞察」，我會用你的最新狀態整理出一句可行建議。</div>
+              </div>
+            </div>
+            <button class="btn-primary mt-10" style="background:var(--info)" onclick="fetchInsight()"><i class="ti ti-refresh"></i> 更新洞察</button>
+          </div>
+
+          <div class="card mb-10">
+            <div class="section-label"><i class="ti ti-compass"></i> quick access</div>
+            <div class="dash-quick-grid">
+              <button class="btn-ghost" onclick="openEmotionAssessment()"><i class="ti ti-robot"></i> 情緒評估</button>
+              <button class="btn-ghost" onclick="goPage(1)"><i class="ti ti-book"></i> 課程學習</button>
+              <button class="btn-ghost" onclick="goPage(2)"><i class="ti ti-player-play"></i> 情境練習</button>
+              <button class="btn-ghost" onclick="goPage(3)"><i class="ti ti-sword"></i> 今日挑戰</button>
+              <button class="btn-ghost" onclick="goPage(4)"><i class="ti ti-chart-line"></i> 進度追蹤</button>
+              <button class="btn-ghost" onclick="goPage(5)"><i class="ti ti-robot"></i> AI 回饋</button>
+            </div>
           </div>
         </div>
 
-        <div id="p0-loading" style="display:none">
-          <div class="card"><div class="ai-loading"><div class="spinner"></div><span>呼叫 Gemini 模型進行綜合分析中...</span></div></div>
-        </div>
+        <!-- 情緒評估（Dashboard quick access 展開的內容） -->
+        <div id="emotion-assessment-view" style="display:none">
+          <div id="p0-input">
+            <span class="chip chip-info"><i class="ti ti-sun"></i> 今日情緒評估</span>
+            <div class="page-title" id="greeting-title">今天感覺怎樣，阿明？</div>
+            <div class="page-sub">每日打卡，AI 即時分析你的情緒狀態，推薦最適合今天的練習。</div>
 
-        <div id="p0-result" style="display:none" class="fade-in">
-          <div class="ai-result-header">
-            <div class="ai-ava"><i class="ti ti-robot"></i></div>
-            <div><div class="result-title">AI 情緒分析完成</div><div class="result-sub" id="p0-result-sub">資料已存入雲端資料庫</div></div>
-            <button class="link-btn" onclick="resetAI()">重新填寫</button>
-          </div>
-          <div class="card mb-10">
-            <div class="gemini-box">
-              <div class="gemini-title"><i class="ti ti-sparkles"></i> Gemini AI 深度分析</div>
-              <div class="gemini-content" id="gemini-result-text">載入中...</div>
+            <div class="navi-intro-row mb-10">
+              <div class="navi-ava-sm"><i class="ti ti-robot"></i></div>
+              <div class="navi-speech">嗨！先告訴我你現在的心情，我幫你分析今天最適合的練習路徑。誠實填，沒有標準答案！</div>
             </div>
-            <div style="margin-top:20px; padding:15px; background:#f0fdf4; border-radius:12px; border-left:4px solid var(--success)">
-              <strong style="color:#166534; display:block; margin-bottom:5px;"><i class="ti ti-target"></i> Gemini 核心評估與推薦：</strong>
-              <span style="color:#15803d; font-size:14px;">偵測到您的壓力與逃避模式，目前最適合您的練習路徑是：<strong>情緒調節 + 拖延症重塑</strong>。</span>
+
+            <div class="card mb-10">
+              <div class="section-label"><i class="ti ti-mood-smile"></i> 選擇你現在的心情 (單選)</div>
+              <div class="mood-emojis">
+                <button class="mood-btn" data-score="5" onclick="selectMood(this)">😰<span>超焦慮</span></button>
+                <button class="mood-btn" data-score="4" onclick="selectMood(this)">😟<span>有點怕</span></button>
+                <button class="mood-btn sel" data-score="3" onclick="selectMood(this)">😐<span>普普</span></button>
+                <button class="mood-btn" data-score="2" onclick="selectMood(this)">🙂<span>還不錯</span></button>
+                <button class="mood-btn" data-score="1" onclick="selectMood(this)">😄<span>很開心</span></button>
+              </div>
+              <div class="mood-behavior-standard-box" id="moodStandardDesc">
+                中度焦慮：心有點靜不下來，手一直想去拿手機滑社群、看通知。
+              </div>
+              <div class="section-label mt-10"><i class="ti ti-writing"></i> 說說發生了什麼</div>
+              <textarea class="mood-textarea" id="moodText" placeholder="隨便說，越具體越好...">明天模考，書還沒讀完，一直想滑手機逃避...</textarea>
+            </div>
+
+            <div class="card mb-10">
+              <div class="section-label"><i class="ti ti-list-check"></i> 壓力來源快速評估</div>
+              <div class="stress-item">
+                <div class="bar-lbl"><span>學業壓力</span><span id="val-study">40%</span></div>
+                <input type="range" class="stress-slider" id="slider-study" min="0" max="100" step="20" value="40" oninput="updateStress('study', this.value)">
+                <div class="stress-desc" id="desc-study">學業狀況穩定。</div>
+              </div>
+              <div class="stress-item">
+                <div class="bar-lbl"><span>社交壓力</span><span id="val-social">20%</span></div>
+                <input type="range" class="stress-slider" id="slider-social" min="0" max="100" step="20" value="20" oninput="updateStress('social', this.value)">
+                <div class="stress-desc" id="desc-social">社交狀態輕鬆自在。</div>
+              </div>
+              <div class="stress-item">
+                <div class="bar-lbl"><span>睡眠狀態</span><span id="val-sleep">60%</span></div>
+                <input type="range" class="stress-slider" id="slider-sleep" min="0" max="100" step="20" value="60" oninput="updateStress('sleep', this.value)">
+                <div class="stress-desc" id="desc-sleep">睡眠品質不佳，今晚提早放下手機入睡吧。</div>
+              </div>
+            </div>
+
+            <button class="btn-primary" onclick="runGeminiAI()"><i class="ti ti-robot"></i> 送出，AI 開始分析</button>
+            <div class="streak-row">
+              <div class="streak-card"><div class="streak-num" id="ui-streak">1</div><div class="streak-lbl">連續打卡天數</div></div>
+              <div class="streak-card"><div class="streak-num" id="badgeNum" style="color:var(--warning)">0</div><div class="streak-lbl">目前勳章數</div></div>
             </div>
           </div>
-          <button class="btn-primary mt-10" onclick="goPage(1)"><i class="ti ti-book"></i> 前往課程學習</button>
+
+          <div id="p0-loading" style="display:none">
+            <div class="card"><div class="ai-loading"><div class="spinner"></div><span>呼叫 Gemini 模型進行綜合分析中...</span></div></div>
+          </div>
+
+          <div id="p0-result" style="display:none" class="fade-in">
+            <div class="ai-result-header">
+              <div class="ai-ava"><i class="ti ti-robot"></i></div>
+              <div><div class="result-title">AI 情緒分析完成</div><div class="result-sub" id="p0-result-sub">資料已存入雲端資料庫</div></div>
+              <button class="link-btn" onclick="resetAI()">重新填寫</button>
+            </div>
+            <div class="card mb-10">
+              <div class="gemini-box">
+                <div class="gemini-title"><i class="ti ti-sparkles"></i> Gemini AI 深度分析</div>
+                <div class="gemini-content" id="gemini-result-text">載入中...</div>
+              </div>
+              <div style="margin-top:20px; padding:15px; background:#f0fdf4; border-radius:12px; border-left:4px solid var(--success)">
+                <strong style="color:#166534; display:block; margin-bottom:5px;"><i class="ti ti-target"></i> Gemini 核心評估與推薦：</strong>
+                <span style="color:#15803d; font-size:14px;">偵測到您的壓力與逃避模式，目前最適合您的練習路徑是：<strong>情緒調節 + 拖延症重塑</strong>。</span>
+              </div>
+            </div>
+            <button class="btn-primary mt-10" onclick="goPage(1)"><i class="ti ti-book"></i> 前往課程學習</button>
+          </div>
         </div>
       </div>
 
@@ -320,32 +420,18 @@
         <div class="page-sub">漫畫對話 + 翻牌知識 + 情境小測驗，每單元不超過 3 分鐘。</div>
 
         <div id="p1-overview">
-          <div class="lesson-card done">
-            <div class="lesson-num done"><i class="ti ti-check"></i></div>
-            <div class="lesson-info"><div class="lesson-title">什麼是逃避心理？</div><div class="lesson-sub">已完成 · 1 分鐘</div></div>
-            <span class="chip chip-success">完成</span>
-          </div>
-          <div class="lesson-card cur" onclick="openLesson()">
-            <div class="lesson-num cur">2</div>
-            <div class="lesson-info"><div class="lesson-title">多巴胺陷阱與番茄鐘策略</div><div class="lesson-sub">進行中 · 2 分鐘</div></div>
-            <span class="chip chip-info">進行中 ›</span>
-          </div>
-          <div class="lesson-card">
-            <div class="lesson-num"><i class="ti ti-lock"></i></div>
-            <div class="lesson-info"><div class="lesson-title">建立你的微計畫習慣</div><div class="lesson-sub">尚未解鎖 · 2 分鐘</div></div>
-            <span class="chip">鎖定</span>
-          </div>
-          <button class="btn-primary mt-10" onclick="openLesson()">繼續學習 <i class="ti ti-arrow-right"></i></button>
+          <div id="adaptive-lesson-list"></div>
+          <button class="btn-primary mt-10" onclick="openLesson()">開始推薦課程 <i class="ti ti-arrow-right"></i></button>
         </div>
 
         <div id="p1-lesson" style="display:none" class="fade-in">
           <div class="lesson-nav">
             <button class="ghost-sm" onclick="closeLesson()"><i class="ti ti-arrow-left"></i> 返回</button>
-            <span class="chip chip-info">單元 2 / 3</span>
+            <span class="chip chip-info" id="lesson-detail-badge">推薦單元</span>
           </div>
           <div class="scenario-opener mb-10">
-            <div class="opener-q">滑完手機，你是不是反而更焦慮？</div>
-            <div style="color:var(--muted);font-size:14px;line-height:1.65">這不是你的問題——是多巴胺在作怪。我們來看看為什麼。</div>
+            <div class="opener-q" id="lesson-detail-title">滑完手機，你是不是反而更焦慮？</div>
+            <div id="lesson-detail-desc" style="color:var(--muted);font-size:14px;line-height:1.65">這不是你的問題——是多巴胺在作怪。我們來看看為什麼。</div>
           </div>
           <div class="manga-row">
             <div class="char-wrap"><div class="char-icon"><i class="ti ti-robot"></i></div><span class="char-name">Navi</span></div>
@@ -653,6 +739,30 @@
   </div>
 </div>
 
+<!-- Mobile Bottom Navigation（取代 mobile sidebar） -->
+<div class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Mobile navigation">
+  <button class="bottom-nav-item active" data-page="0" onclick="goPage(0)">
+    <i class="ti ti-mood-smile"></i>
+    <span>Dashboard</span>
+  </button>
+  <button class="bottom-nav-item" data-page="1" onclick="goPage(1)">
+    <i class="ti ti-book"></i>
+    <span>學習</span>
+  </button>
+  <button class="bottom-nav-item" data-page="3" onclick="goPage(3)">
+    <i class="ti ti-sword"></i>
+    <span>挑戰</span>
+  </button>
+  <button class="bottom-nav-item" data-page="4" onclick="goPage(4)">
+    <i class="ti ti-chart-line"></i>
+    <span>進度</span>
+  </button>
+  <button class="bottom-nav-item" data-page="5" onclick="goPage(5)">
+    <i class="ti ti-robot"></i>
+    <span>個人</span>
+  </button>
+</div>
+
 <script>
 // 這個函數綁定在您的「確認送出」按鈕上
 async function submitFinalReflection() {
@@ -703,8 +813,10 @@ async function submitFinalReflection() {
 // ==========================================
 // 核心變數與資料庫
 // ==========================================
-// ★ 請在此填入您的 Colab Ngrok 網址 ★
+// ★ 請在此填入後端網址（本機 Flask 例：http://127.0.0.1:5000）★
 const CLOUD_BASE_URL = "https://overnight-circular-pony.ngrok-free.dev";
+// 後端若只實作 /api/track 處理 AI（無獨立 /api/ai/* 路由），保持 true
+const AI_VIA_TRACK_ONLY = true;
 
 let usersDB = JSON.parse(localStorage.getItem('soulnav_users')) || {};
 let currentUser = null;
@@ -713,11 +825,16 @@ let currentMoodText = "普普";
 let aiSteps = [];
 
 // ==========================================
-// 🚀 全新核心：萬用背景資料同步函數
+// API：行為追蹤 + AI 端點（直連失敗時 fallback 至 /api/track）
 // ==========================================
-async function syncToBackend(actionType, detailsObj) {
+function persistCurrentUser() {
+  if (!currentUser?.id) return;
+  usersDB[currentUser.id] = currentUser;
+  localStorage.setItem('soulnav_users', JSON.stringify(usersDB));
+}
+
+async function trackAction(actionType, detailsObj) {
   if (!currentUser || !currentUser.id) return null;
-  
   try {
     const response = await fetch(`${CLOUD_BASE_URL}/api/track`, {
       method: 'POST',
@@ -725,14 +842,162 @@ async function syncToBackend(actionType, detailsObj) {
       body: JSON.stringify({
         user_id: currentUser.id,
         action_type: actionType,
-        action_details: detailsObj
+        action_details: detailsObj || {}
       })
     });
+    if (!response.ok) return null;
     return await response.json();
   } catch (error) {
-    console.warn("API 同步失敗 (可忽略，若使用在地測試):", error);
+    console.warn("行為追蹤同步失敗:", error);
     return null;
   }
+}
+
+async function syncToBackend(actionType, detailsObj) {
+  if (!currentUser || !currentUser.id) return null;
+  const details = detailsObj || {};
+
+  if (typeof actionType === 'string' && actionType.startsWith('/api/ai/')) {
+    if (AI_VIA_TRACK_ONLY) {
+      return trackAction(actionType, details);
+    }
+    try {
+      const response = await fetch(`${CLOUD_BASE_URL}${actionType}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: currentUser.id, ...details })
+      });
+      if (response.ok) return await response.json();
+    } catch (error) {
+      console.warn(`AI API ${actionType} 直連失敗，改用 track:`, error);
+    }
+    return trackAction(actionType, details);
+  }
+
+  return trackAction(actionType, details);
+}
+
+function buildAiContextPayload() {
+  return {
+    mood: currentMoodText,
+    mood_score: currentMoodScore,
+    desc: document.getElementById('moodText')?.value?.trim() || '',
+    study_stress: document.getElementById('slider-study')?.value,
+    social_stress: document.getElementById('slider-social')?.value,
+    sleep_stress: document.getElementById('slider-sleep')?.value,
+    tasks_completed: currentUser?.tasksCompleted || 0,
+    streak: currentUser?.streak || 0,
+    recent_actions: currentUser?.recentActions || []
+  };
+}
+
+function buildAiContextKey(payload = buildAiContextPayload()) {
+  return [
+    payload.mood,
+    payload.mood_score,
+    payload.desc,
+    payload.study_stress,
+    payload.social_stress,
+    payload.sleep_stress
+  ].join('|');
+}
+
+function escapeHtml(text) {
+  return String(text ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function topicIconByTitle(title) {
+  const t = String(title || '');
+  if (t.includes('呼吸') || t.includes('情緒調節')) return 'ti ti-wind';
+  if (t.includes('拖延') || t.includes('番茄')) return 'ti ti-clock';
+  if (t.includes('挑戰') || t.includes('行為')) return 'ti ti-sword';
+  if (t.includes('社交') || t.includes('溝通')) return 'ti ti-messages';
+  return 'ti ti-book';
+}
+
+function difficultyToTone(difficulty) {
+  const d = String(difficulty || '');
+  if (d.includes('進階') || d.includes('高')) return 'warning';
+  if (d.includes('入門') || d.includes('低')) return 'success';
+  return 'info';
+}
+
+function normalizeTopicItem(raw) {
+  if (!raw) return null;
+  if (typeof raw === 'string') {
+    return {
+      icon: topicIconByTitle(raw),
+      title: raw,
+      reason: '',
+      difficulty: '推薦',
+      tone: 'info',
+      tags: []
+    };
+  }
+  const title = raw.title || raw.name || raw.topic || '';
+  if (!title) return null;
+  const difficulty = raw.difficulty || raw.level || raw.difficulty_level || '推薦';
+  return {
+    icon: raw.icon || topicIconByTitle(title),
+    title,
+    reason: raw.reason || raw.recommendation_reason || raw.why || raw.desc || '',
+    difficulty,
+    tone: raw.tone || difficultyToTone(difficulty),
+    tags: raw.emotional_tags || raw.emotion_tags || raw.tags || []
+  };
+}
+
+function parseTopicsFromResponse(res) {
+  if (!res) return [];
+  const raw = res.topics
+    || res.recommended_topics
+    || res.topic_cards
+    || res.recommendations
+    || res.data?.topics
+    || res.result?.topics
+    || res.action_details?.topics
+    || [];
+  if (!Array.isArray(raw)) return [];
+  const topics = raw.map(normalizeTopicItem).filter(Boolean);
+  if (topics.length) return topics;
+  if (res.insight && typeof res.insight === 'string') {
+    return [{
+      icon: 'ti ti-sparkles',
+      title: 'AI 今日建議',
+      reason: res.insight,
+      difficulty: '推薦',
+      tone: 'info',
+      tags: []
+    }];
+  }
+  return [];
+}
+
+function saveRecommendedTopics(topics, contextPayload = buildAiContextPayload()) {
+  if (!currentUser || !topics?.length) return;
+  currentUser.recommendedTopics = topics;
+  currentUser.recommendedTopicsAt = new Date().toISOString();
+  currentUser.recommendationContextKey = buildAiContextKey(contextPayload);
+  persistCurrentUser();
+  renderAdaptiveLessonList();
+}
+
+function applyEmotionAnalysisFromApi(res) {
+  if (!res || !currentUser) return;
+  if (res.emotional_state) currentUser.emotionalState = res.emotional_state;
+  if (res.mood_state) currentUser.emotionalState = res.mood_state;
+  if (res.emotion_summary) currentUser.emotionSummary = res.emotion_summary;
+  if (res.emotional_summary) currentUser.emotionSummary = res.emotional_summary;
+  if (res.summary && typeof res.summary === 'string' && !res.html) {
+    currentUser.emotionSummary = res.summary;
+  }
+  const topics = parseTopicsFromResponse(res);
+  if (topics.length) saveRecommendedTopics(topics);
+  persistCurrentUser();
 }
 
 // ==========================================
@@ -766,7 +1031,9 @@ function registerUser() {
     badges: 0, 
     tasksCompleted: 0,
     moodHistory: [],
-    recentActions: []
+    recentActions: [],
+    recommendedTopics: [],
+    recommendationContextKey: null
   };
   
   usersDB[newId] = currentUser;
@@ -803,6 +1070,8 @@ async function updateStreakAndLogin() {
   // 確保陣列存在
   if (!currentUser.recentActions) currentUser.recentActions = [];
   if (!currentUser.moodHistory) currentUser.moodHistory = [];
+  if (!currentUser.recommendedTopics) currentUser.recommendedTopics = [];
+  if (!('recommendationContextKey' in currentUser)) currentUser.recommendationContextKey = null;
 
   document.getElementById('login-overlay').style.display = 'none';
   document.getElementById('scenario-intro').style.display = 'flex';
@@ -841,6 +1110,346 @@ function updateUI() {
     const stuNameEls = document.querySelectorAll('#stu-name-chat');
     if(stuNameEls.length) stuNameEls.forEach(el => el.textContent = currentUser.name);
   }
+
+  // Dashboard landing UI（卡片式彙整）
+  updateDashboardLanding();
+}
+
+// Dashboard 視圖切換（page0 內部兩個子視圖）
+function showDashboardLanding() {
+  const dash = document.getElementById('dashboard-view');
+  const emo = document.getElementById('emotion-assessment-view');
+  if (dash) dash.style.display = 'block';
+  if (emo) emo.style.display = 'none';
+  fetchAiRecommendedTopics();
+}
+
+function openEmotionAssessment() {
+  const dash = document.getElementById('dashboard-view');
+  const emo = document.getElementById('emotion-assessment-view');
+  if (dash) dash.style.display = 'none';
+  if (emo) emo.style.display = 'block';
+
+  // 確保呈現情緒評估表單狀態
+  const input = document.getElementById('p0-input');
+  const loading = document.getElementById('p0-loading');
+  const result = document.getElementById('p0-result');
+  if (input) input.style.display = 'block';
+  if (loading) loading.style.display = 'none';
+  if (result) result.style.display = 'none';
+
+  document.querySelector('.main').scrollTop = 0;
+}
+
+function updateDashboardLanding() {
+  // 依據目前狀態更新 Dashboard 卡片內容；即使目前不是在 dashboard 顯示，也能保持正確。
+  updateDashboardEmotionalSummary();
+  updateDashboardRecommendedTopics();
+  renderAdaptiveLessonList();
+  updateDashboardChallengesPreview();
+  updateDashboardProgressOverview();
+  updateDashboardDailyInsights();
+}
+
+function updateDashboardEmotionalSummary() {
+  const dashMoodText = document.getElementById('dash-mood-text');
+  const dashStandard = document.getElementById('dash-mood-standard');
+  if (dashMoodText) {
+    const label = currentUser?.emotionalState || currentMoodText || '普普';
+    dashMoodText.textContent = label;
+  }
+
+  if (dashStandard) {
+    if (currentUser?.emotionSummary) {
+      dashStandard.textContent = currentUser.emotionSummary;
+    } else if (typeof moodStandardMap === 'object') {
+      dashStandard.textContent = moodStandardMap[currentMoodScore] || '等待你的情緒評估更新…';
+    }
+  }
+
+  const vStudy = document.getElementById('val-study');
+  const vSocial = document.getElementById('val-social');
+  const vSleep = document.getElementById('val-sleep');
+  const dashStudy = document.getElementById('dash-val-study');
+  const dashSocial = document.getElementById('dash-val-social');
+  const dashSleep = document.getElementById('dash-val-sleep');
+  if (dashStudy && vStudy) dashStudy.textContent = vStudy.textContent;
+  if (dashSocial && vSocial) dashSocial.textContent = vSocial.textContent;
+  if (dashSleep && vSleep) dashSleep.textContent = vSleep.textContent;
+}
+
+function computeAiRecommendedTopicsFallback() {
+  const lvl = currentMoodScore;
+  if (lvl >= 4) {
+    return [
+      { icon: 'ti ti-wind', title: '情緒調節：4-7-8 呼吸', reason: '先讓身體穩住，焦慮比較不會把你帶跑。', difficulty: '中階', tone: 'success', tags: ['焦慮'] },
+      { icon: 'ti ti-player-play', title: '拖延症重塑：番茄鐘微承諾', reason: '只承諾 25 分鐘，把「太多」縮小成「做得到」。', difficulty: '入門', tone: 'info', tags: ['拖延'] }
+    ];
+  }
+  if (lvl === 3) {
+    return [
+      { icon: 'ti ti-wind', title: '情緒調節：先放鬆 30 秒', reason: '降低身體警報，再把注意力拉回任務。', difficulty: '入門', tone: 'success', tags: ['焦慮'] },
+      { icon: 'ti ti-book', title: '拖延症重塑：學習一小段', reason: '從「先做一點點」開始，你的動力會慢慢回來。', difficulty: '中階', tone: 'info', tags: ['動機'] }
+    ];
+  }
+  return [
+    { icon: 'ti ti-sun', title: '維持專注：保持節奏', reason: '你狀態很不錯，今天用短步驟把事情收尾。', difficulty: '入門', tone: 'success', tags: ['穩定'] },
+    { icon: 'ti ti-sword', title: '自我挑戰：把任務切小', reason: '設定更短的完成目標，讓成功更容易發生。', difficulty: '進階', tone: 'warning', tags: ['行為'] }
+  ];
+}
+
+function difficultyToneToChip(tone) {
+  if (tone === 'warning') return 'chip-warning';
+  if (tone === 'success') return 'chip-success';
+  return 'chip-info';
+}
+
+function toNumberValue(id, fallback = 0) {
+  const value = parseInt(document.getElementById(id)?.value ?? fallback, 10);
+  return Number.isFinite(value) ? value : fallback;
+}
+
+function buildAdaptiveLessonItems() {
+  const topics = currentUser?.recommendedTopics?.length
+    && currentUser.recommendationContextKey === buildAiContextKey()
+      ? currentUser.recommendedTopics
+      : computeAiRecommendedTopicsFallback();
+
+  const lessons = topics.slice(0, 3).map((topic, index) => ({
+    title: topic.title,
+    sub: `${topic.difficulty || '推薦'} · ${topic.reason || '依照目前狀態推薦'}`,
+    icon: topic.icon || 'ti ti-book',
+    tone: topic.tone || 'info',
+    tags: topic.tags || [],
+    reason: topic.reason || '這堂課會跟著你目前的情緒與壓力來源調整。',
+    status: index === 0 ? '進行中' : '推薦'
+  }));
+
+  const study = toNumberValue('slider-study', 40);
+  const social = toNumberValue('slider-social', 20);
+  const sleep = toNumberValue('slider-sleep', 60);
+
+  if (study >= 60 && !lessons.some(item => item.title.includes('番茄鐘') || item.title.includes('微計畫'))) {
+    lessons.push({
+      title: '學業壓力：番茄鐘微計畫',
+      sub: '入門 · 把讀書焦慮拆成今天能開始的一小步',
+      icon: 'ti ti-clock',
+      tone: 'warning',
+      tags: ['學業壓力', '拖延'],
+      reason: '學業壓力偏高時，先降低啟動門檻比要求自己一次完成更有效。',
+      status: '推薦'
+    });
+  }
+
+  if (social >= 60 && !lessons.some(item => item.title.includes('社交'))) {
+    lessons.push({
+      title: '社交壓力：安全表達練習',
+      sub: '中階 · 練習把壓力說清楚，而不是全部悶住',
+      icon: 'ti ti-messages',
+      tone: 'info',
+      tags: ['社交壓力'],
+      reason: '社交壓力偏高時，先練習低風險表達，可以減少反覆猜測與內耗。',
+      status: '推薦'
+    });
+  }
+
+  if (sleep >= 60 && !lessons.some(item => item.title.includes('呼吸') || item.title.includes('睡眠'))) {
+    lessons.push({
+      title: '睡眠壓力：4-7-8 呼吸放鬆',
+      sub: '入門 · 先把身體訊號降下來',
+      icon: 'ti ti-wind',
+      tone: 'success',
+      tags: ['睡眠', '放鬆'],
+      reason: '睡眠狀況不穩時，身體放鬆練習會比硬逼自己專注更適合當第一步。',
+      status: '推薦'
+    });
+  }
+
+  return lessons.slice(0, 4);
+}
+
+function renderAdaptiveLessonList() {
+  const list = document.getElementById('adaptive-lesson-list');
+  if (!list) return;
+
+  const lessons = buildAdaptiveLessonItems();
+  if (!lessons.length) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:14px;">完成情緒評估後，這裡會顯示推薦課程。</div>';
+    return;
+  }
+
+  list.innerHTML = lessons.map((lesson, index) => {
+    const isCurrent = index === 0;
+    const tagsHtml = lesson.tags?.length
+      ? `<div class="chip-row mt-4">${lesson.tags.map(tag => `<span class="chip chip-info">${escapeHtml(tag)}</span>`).join('')}</div>`
+      : '';
+
+    return `
+      <div class="lesson-card ${isCurrent ? 'cur' : ''}" onclick="openLesson(${index})">
+        <div class="lesson-num ${isCurrent ? 'cur' : ''}"><i class="${escapeHtml(lesson.icon)}"></i></div>
+        <div class="lesson-info">
+          <div class="lesson-title">${escapeHtml(lesson.title)}</div>
+          <div class="lesson-sub">${escapeHtml(lesson.sub)}</div>
+          ${tagsHtml}
+        </div>
+        <span class="chip ${difficultyToneToChip(lesson.tone)}">${escapeHtml(lesson.status)}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function applyLessonDetail(index = 0) {
+  const lesson = buildAdaptiveLessonItems()[index] || buildAdaptiveLessonItems()[0];
+  if (!lesson) return;
+
+  const badge = document.getElementById('lesson-detail-badge');
+  const title = document.getElementById('lesson-detail-title');
+  const desc = document.getElementById('lesson-detail-desc');
+
+  if (badge) badge.textContent = `推薦單元 ${index + 1}`;
+  if (title) title.textContent = lesson.title;
+  if (desc) desc.textContent = lesson.reason;
+}
+
+function renderRecommendedTopics(topics) {
+  const list = document.getElementById('dash-reco-list');
+  if (!list) return;
+  if (!topics?.length) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:14px;">目前尚無推薦主題，請先完成情緒評估。</div>';
+    return;
+  }
+  list.innerHTML = topics.map(t => {
+    const tagsHtml = (t.tags || []).length
+      ? `<div class="chip-row mt-4">${t.tags.map(tag => `<span class="chip chip-info">${escapeHtml(tag)}</span>`).join('')}</div>`
+      : '';
+    return `
+      <div class="rec-row">
+        <div class="lesson-num" style="background:var(--panel-soft); color:var(--brand)"><i class="${escapeHtml(t.icon)}"></i></div>
+        <div>
+          <div class="rec-title">${escapeHtml(t.title)}</div>
+          <div class="rec-meta">${escapeHtml(t.reason || 'AI 推薦給你今天的學習方向')}</div>
+          ${tagsHtml}
+        </div>
+        <span class="chip ${difficultyToneToChip(t.tone)}">${escapeHtml(t.difficulty)}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateDashboardRecommendedTopics() {
+  const cached = currentUser?.recommendedTopics;
+  const cacheMatchesCurrentEmotion = currentUser?.recommendationContextKey === buildAiContextKey();
+  if (cached?.length && cacheMatchesCurrentEmotion) renderRecommendedTopics(cached);
+  else renderRecommendedTopics(computeAiRecommendedTopicsFallback());
+}
+
+let topicsFetchInFlight = null;
+async function fetchAiRecommendedTopics() {
+  if (!currentUser?.id) return [];
+  if (topicsFetchInFlight) return topicsFetchInFlight;
+
+  const payload = buildAiContextPayload();
+  const contextKey = buildAiContextKey(payload);
+  if (currentUser.recommendedTopics?.length && currentUser.recommendationContextKey === contextKey) {
+    renderRecommendedTopics(currentUser.recommendedTopics);
+    renderAdaptiveLessonList();
+    return currentUser.recommendedTopics;
+  }
+
+  const list = document.getElementById('dash-reco-list');
+  const hint = document.getElementById('dash-reco-hint');
+  if (list) {
+    list.innerHTML = '<div class="ai-loading" style="min-height:90px"><div class="spinner"></div><span>AI 正在整理推薦主題...</span></div>';
+  }
+
+  topicsFetchInFlight = (async () => {
+    const res = await syncToBackend('/api/ai/topics', payload);
+    const topics = parseTopicsFromResponse(res);
+    if (topics.length) {
+      console.log('TOPICS SUCCESS', topics);
+      saveRecommendedTopics(topics, payload);
+      renderRecommendedTopics(topics);
+      renderAdaptiveLessonList();
+      if (hint) hint.textContent = '以下為 AI 依你目前狀態整理的學習主題。';
+      return topics;
+    }
+
+    if (currentUser.recommendedTopics?.length && currentUser.recommendationContextKey === contextKey) {
+      renderRecommendedTopics(currentUser.recommendedTopics);
+      renderAdaptiveLessonList();
+      if (hint) hint.textContent = '顯示上次 AI 推薦結果（本次未取得新資料）。';
+      return currentUser.recommendedTopics;
+    }
+
+    const fallback = computeAiRecommendedTopicsFallback();
+    renderRecommendedTopics(fallback);
+    renderAdaptiveLessonList();
+    if (hint) {
+      hint.textContent = '後端已連線，但回應中沒有 topics 陣列；目前顯示參考主題。請在 /api/track 處理 action_type="/api/ai/topics" 並回傳 topics。';
+    }
+    return fallback;
+  })();
+
+  try {
+    return await topicsFetchInFlight;
+  } finally {
+    topicsFetchInFlight = null;
+  }
+}
+
+function updateDashboardChallengesPreview() {
+  const list1 = document.getElementById('realList1');
+  const list2 = document.getElementById('realList2');
+
+  const chal1Total = list1 ? list1.querySelectorAll('.task-item').length : 0;
+  const chal1Done = list1 ? list1.querySelectorAll('.task-item.done').length : 0;
+  const pct1 = chal1Total ? Math.round(chal1Done / chal1Total * 100) : 0;
+
+  const chal2Total = list2 ? list2.querySelectorAll('.task-item').length : 0;
+  const chal2Done = list2 ? list2.querySelectorAll('.task-item.done').length : 0;
+  const pct2 = chal2Total ? Math.round(chal2Done / chal2Total * 100) : 0;
+
+  const pct1El = document.getElementById('dash-chal-1-pct');
+  const pct2El = document.getElementById('dash-chal-2-pct');
+  if (pct1El) pct1El.textContent = `${pct1}%`;
+  if (pct2El) pct2El.textContent = `${pct2}%`;
+
+  const meta1 = document.getElementById('dash-chal-1-meta');
+  const meta2 = document.getElementById('dash-chal-2-meta');
+  if (meta1) meta1.textContent = `今日 ${chal1Total || 3} 項任務`;
+  if (meta2) meta2.textContent = `今日 ${chal2Total || 3} 項任務`;
+}
+
+function updateDashboardProgressOverview() {
+  const st = document.getElementById('dash-stat-streak');
+  const tk = document.getElementById('dash-stat-tasks');
+  const bd = document.getElementById('dash-stat-badges');
+  if (st) st.textContent = currentUser.streak ?? 0;
+  if (tk) tk.textContent = currentUser.tasksCompleted ?? 0;
+  if (bd) bd.textContent = currentUser.badges ?? 0;
+
+  const dashRecent = document.getElementById('dash-recent-actions-container');
+  if (!dashRecent) return;
+
+  const acts = currentUser.recentActions || [];
+  if (acts.length === 0) {
+    dashRecent.innerHTML = "<div style='color:var(--muted); font-size:14px;'>目前尚未完成任務。</div>";
+    return;
+  }
+
+  const displayActs = [...acts].reverse().slice(0, 6);
+  dashRecent.innerHTML = displayActs.map(act => `
+    <div class="behavior-item"><i class="ti ti-circle-check" style="color:var(--success)"></i><span>${act}</span></div>
+  `).join('');
+}
+
+function updateDashboardDailyInsights() {
+  const dash = document.getElementById('dash-daily-insight-container');
+  const page4Insight = document.getElementById('dynamic-insight-container');
+  if (!dash || !page4Insight) return;
+  if (page4Insight.innerHTML && page4Insight.innerHTML.trim().length > 0) {
+    dash.innerHTML = page4Insight.innerHTML;
+  }
 }
 
 // 13. 任務計算邏輯：5個任務 = 1勳章
@@ -868,6 +1477,9 @@ function goPage(idx) {
   document.querySelectorAll('.nav-item[data-page]').forEach(n => {
     if (n.dataset.page !== undefined) n.classList.toggle('active', parseInt(n.dataset.page) === idx);
   });
+  document.querySelectorAll('.bottom-nav-item[data-page]').forEach(n => {
+    if (n.dataset.page !== undefined) n.classList.toggle('active', parseInt(n.dataset.page) === idx);
+  });
   document.querySelectorAll('.flow-step[data-page]').forEach(s => {
     const p = parseInt(s.dataset.page);
     s.classList.remove('done', 'active');
@@ -876,6 +1488,8 @@ function goPage(idx) {
   });
   document.querySelector('.main').scrollTop = 0;
   
+  if (idx === 0) showDashboardLanding();
+  if (idx === 1) renderAdaptiveLessonList();
   if (idx === 5) loadFinalNaviAnalysis();
 }
 
@@ -924,6 +1538,12 @@ function selectMood(btn) {
   currentMoodScore = parseInt(btn.dataset.score);
   currentMoodText = btn.querySelector('span').textContent;
   document.getElementById('moodStandardDesc').textContent = moodStandardMap[currentMoodScore];
+  if (currentUser) {
+    currentUser.recommendationContextKey = null;
+    persistCurrentUser();
+    updateDashboardRecommendedTopics();
+    renderAdaptiveLessonList();
+  }
 }
 
 // 4. 不重複的壓力提示字
@@ -937,6 +1557,13 @@ function updateStress(type, value) {
   } else if(type === 'sleep') {
     desc.textContent = value > 50 ? "昨晚沒睡好吧？今晚提早放下手機入睡吧。" : "精神飽滿，充滿能量！";
   }
+
+  if (currentUser) {
+    currentUser.recommendationContextKey = null;
+    persistCurrentUser();
+    updateDashboardRecommendedTopics();
+    renderAdaptiveLessonList();
+  }
 }
 
 // ==========================================
@@ -948,6 +1575,7 @@ async function runGeminiAI() {
   
   const payload = {
     mood: currentMoodText, desc: textDesc,
+    mood_score: currentMoodScore,
     study_stress: document.getElementById('slider-study').value,
     social_stress: document.getElementById('slider-social').value,
     sleep_stress: document.getElementById('slider-sleep').value
@@ -963,7 +1591,6 @@ async function runGeminiAI() {
   document.getElementById('p0-input').style.display = 'none';
   document.getElementById('p0-loading').style.display = 'block';
 
-  // 5. 呼叫 Gemini
   const res = await syncToBackend('/api/ai/mood', payload);
   
   document.getElementById('p0-loading').style.display = 'none';
@@ -974,20 +1601,26 @@ async function runGeminiAI() {
   } else {
     document.getElementById('gemini-result-text').innerHTML = `(模擬 AI 回覆) 根據您的描述「${textDesc}」，看來現在感到${currentMoodText}。<br>您的壓力源明確，建議別急著自責，接受現在的狀態，跟著系統進行調節即可。`;
   }
+
+  applyEmotionAnalysisFromApi(res);
+  await fetchAiRecommendedTopics();
+  updateDashboardLanding();
 }
 
 function resetAI() {
-  document.getElementById('p0-result').style.display = 'none';
-  document.getElementById('p0-input').style.display = 'block';
+  openEmotionAssessment();
+  updateDashboardLanding();
 }
 
 // ==========================================
 // Step 1: 課程學習
 // ==========================================
-function openLesson() {
+function openLesson(index = 0) {
+  applyLessonDetail(index);
   document.getElementById('p1-overview').style.display = 'none';
   document.getElementById('p1-lesson').style.display = 'block';
-  syncToBackend("課程學習", { 動作: "開始閱讀" });
+  const lesson = buildAdaptiveLessonItems()[index] || buildAdaptiveLessonItems()[0];
+  syncToBackend("課程學習", { 動作: "開始閱讀", 推薦課程: lesson?.title || '' });
 }
 function closeLesson() {
   document.getElementById('p1-lesson').style.display = 'none';
@@ -1207,18 +1840,23 @@ function submitReport() {
 // ==========================================
 // 18. 圖表生成
 function updateMoodChart() {
-  const chart = document.getElementById('cloudChartWrapper');
-  if (!chart || !currentUser.moodHistory) return;
-  chart.innerHTML = '';
-  currentUser.moodHistory.forEach(record => {
-    const height = (record.score / 5) * 100;
-    const color = height > 60 ? 'var(--success)' : (height > 40 ? 'var(--info)' : 'var(--danger)');
-    chart.innerHTML += `
-      <div class="chart-col">
-        <div class="chart-bar-outer"><div class="chart-bar-inner" style="height:${height}%;background:${color}"></div></div>
-        <div class="chart-day">${record.date}</div>
-      </div>
-    `;
+  const wrappers = ['cloudChartWrapper', 'dash-cloudChartWrapper']
+    .map(id => document.getElementById(id))
+    .filter(Boolean);
+  if (wrappers.length === 0 || !currentUser.moodHistory) return;
+
+  wrappers.forEach(chart => {
+    chart.innerHTML = '';
+    currentUser.moodHistory.forEach(record => {
+      const height = (record.score / 5) * 100;
+      const color = height > 60 ? 'var(--success)' : (height > 40 ? 'var(--info)' : 'var(--danger)');
+      chart.innerHTML += `
+        <div class="chart-col">
+          <div class="chart-bar-outer"><div class="chart-bar-inner" style="height:${height}%;background:${color}"></div></div>
+          <div class="chart-day">${record.date}</div>
+        </div>
+      `;
+    });
   });
 }
 
@@ -1249,15 +1887,15 @@ async function fetchInsight() {
   });
   
   document.getElementById('insight-loading').style.display = 'none';
-  if(res && res.insight) {
-    document.getElementById('dynamic-insight-container').innerHTML = `
-      <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--success)"></div><div class="insight-text">${res.insight}</div></div>
-    `;
-  } else {
-    document.getElementById('dynamic-insight-container').innerHTML = `
-      <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--success)"></div><div class="insight-text">觀察到你完成了多項微步驟！這是克服拖延最棒的開始。</div></div>
-    `;
-  }
+  const insightHtml = (res && res.insight) ? `
+    <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--success)"></div><div class="insight-text">${res.insight}</div></div>
+  ` : `
+    <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--success)"></div><div class="insight-text">觀察到你完成了多項微步驟！這是克服拖延最棒的開始。</div></div>
+  `;
+
+  document.getElementById('dynamic-insight-container').innerHTML = insightHtml;
+  const dashInsight = document.getElementById('dash-daily-insight-container');
+  if (dashInsight) dashInsight.innerHTML = insightHtml;
 }
 
 // ==========================================
@@ -1350,6 +1988,7 @@ function startNewCycle() {
   document.querySelectorAll('.reflect-opt').forEach(b => b.classList.remove('selected'));
 
   goPage(0);
+  openEmotionAssessment();
 }
 
 // ==========================================

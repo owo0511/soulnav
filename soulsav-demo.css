@@ -883,19 +883,15 @@ button { cursor: pointer; }
   }
   .top-bar { align-items: flex-start; flex-direction: column; }
   .body-wrap { grid-template-columns: 1fr; }
-  .sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
-  .nav-section, .nav-user, .nav-divider { display: none; }
-  .sidebar { padding: 12px; }
-  .nav-item { min-width: 126px; }
-  .sidebar {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: max-content;
-    overflow-x: auto;
-  }
-  .page { max-height: none; padding: 18px; }
+  .flow-indicator { display: none; }
+  .sidebar { display: none; }
+  .page { max-height: none; padding: 18px; padding-bottom: 96px; }
   .two-col, .three-col, .flip-grid { grid-template-columns: 1fr; }
   .mood-emojis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+  .mobile-bottom-nav {
+    display: flex;
+  }
 }
 
 @media (max-width: 560px) {
@@ -904,4 +900,67 @@ button { cursor: pointer; }
   .lesson-card, .rec-row { grid-template-columns: auto 1fr; }
   .lesson-card .chip, .rec-arrow { grid-column: 1 / -1; justify-self: start; }
   .flow-indicator { width: 100%; }
+}
+
+/* Dashboard：卡片式 mobile 佈局 */
+.dash-reco-list .rec-row + .rec-row { margin-top: 10px; }
+.dash-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.dash-quick-grid .btn-ghost { width: 100%; }
+
+/* Mobile Bottom Navigation */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  padding: 10px 12px;
+  background: rgba(255,255,255,.78);
+  border-top: 1px solid var(--line);
+  backdrop-filter: blur(18px);
+}
+
+.bottom-nav-item {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  border-radius: 18px;
+  padding: 10px 6px;
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--muted);
+  font-weight: 900;
+  font-size: 12px;
+  transition: .18s ease;
+}
+
+.mobile-bottom-nav {
+  gap: 8px;
+}
+
+.bottom-nav-item i {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--panel-soft);
+  color: var(--brand);
+}
+
+.bottom-nav-item.active {
+  color: #fff;
+}
+.bottom-nav-item.active i {
+  background: var(--brand);
+  color: #fff;
 }
