@@ -705,6 +705,50 @@ button { cursor: pointer; }
   background: var(--panel-soft);
 }
 
+.practice-module-head {
+  margin-bottom: 10px;
+}
+
+.emotion-scale {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.calm-count, .focus-timer {
+  width: 136px;
+  height: 136px;
+  margin: 8px auto 12px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 34px;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--brand), var(--info));
+  box-shadow: 0 20px 42px rgba(31,156,141,.18);
+}
+
+.today-task-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--panel-soft);
+  border: 1px solid var(--line);
+}
+.today-task-card i {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  color: var(--brand);
+  background: #fff;
+  font-size: 22px;
+}
+
 .meta-col { flex: 1; min-width: 160px; }
 .meta-label {
   display: block;

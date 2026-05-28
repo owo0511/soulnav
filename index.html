@@ -524,59 +524,10 @@
         <button class="ghost-sm page-home-btn" onclick="goPage(0)"><i class="ti ti-home"></i> 回首頁</button>
         <div class="page-title">系統內練習</div>
         <div class="page-sub" id="practice-page-sub">先在安全環境中練習，再把技巧帶到現實生活。</div>
-        <div class="practice-tabs">
-          <button class="ptab active" id="btn-tab-breath" onclick="switchTab(this,'ptab-breath')"><i class="ti ti-wind"></i> 呼吸引導</button>
-          <button class="ptab" id="btn-tab-scen" onclick="switchTab(this,'ptab-scen')"><i class="ti ti-map"></i> 情境決策</button>
-          <button class="ptab" id="btn-tab-task" onclick="switchTab(this,'ptab-task')"><i class="ti ti-puzzle"></i> 任務拆解</button>
-        </div>
+        <div class="practice-tabs" id="practice-tabs"></div>
+        <div id="practice-module-panels"></div>
 
-        <div class="practice-panel active" id="ptab-breath">
-          <div class="card mb-10 text-center">
-            <div class="section-label jc" id="practice-breath-title"><i class="ti ti-wind"></i> 4-7-8 呼吸法 — 快速降低焦慮</div>
-            <div class="breath-circle" id="breathCircle">
-              <div class="breath-text" id="breathText">準備好了嗎？</div>
-            </div>
-            <div class="breath-count" id="breathCount">—</div>
-            <div class="breath-phase" id="breathPhase">點下方開始練習</div>
-            <div class="btn-row mt-12">
-              <button class="btn-ghost btn-auto" onclick="startBreath()"><i class="ti ti-player-play"></i> 開始練習</button>
-              <button class="btn-ghost btn-auto" onclick="stopBreath()"><i class="ti ti-player-stop"></i> 停止</button>
-            </div>
-          </div>
-          <div class="card">
-            <div class="section-label"><i class="ti ti-info-circle"></i> 為什麼有效？</div>
-            <p class="body-text" id="practice-breath-body">7 秒屏氣能激活副交感神經，讓心跳放慢、皮質醇下降。重複練習能有效切換大腦的防禦狀態，讓你從「想逃跑」變成「可以開始」。</p>
-            <div id="practice-primary-interaction" class="mt-10"></div>
-            <button class="btn-primary mt-10" onclick="switchTab(document.getElementById('btn-tab-scen'),'ptab-scen')">下一階段：情境決策 <i class="ti ti-arrow-right"></i></button>
-          </div>
-        </div>
-
-        <div class="practice-panel" id="ptab-scen">
-          <div class="card mb-10">
-            <div class="scene-place" id="practice-scene-place"><i class="ti ti-map-pin"></i> 晚上 9 點，書房</div>
-            <div class="scene-story" id="practice-scene-story">「你打開課本，看到還剩 30 頁。胸口悶悶的，手不自覺地伸向手機...」</div>
-            <div class="dopamine-meter">
-              <div class="dopamine-label">目前多巴胺</div>
-              <div class="dopamine-track"><div class="dopamine-fill" id="dopamineFill" style="width:55%"></div></div>
-              <div style="font-size:12px;font-weight:800;color:var(--muted)" id="dopamineVal">中</div>
-            </div>
-            <div class="scene-q" id="practice-scene-question">運用剛學到的策略，你會怎麼做？</div>
-            <div id="practice-scene-interaction"></div>
-            <button class="choice-btn" id="sc0" onclick="pickChoice(0, false)"><span class="choice-key">A</span>先滑 10 分鐘 IG 冷靜一下</button>
-            <button class="choice-btn" id="sc1" onclick="pickChoice(1, true)"><span class="choice-key">B</span>設 25 分鐘番茄鐘，只讀前 8 頁</button>
-            <button class="choice-btn" id="sc2" onclick="pickChoice(2, false)"><span class="choice-key">C</span>30 頁太多，今晚直接放棄</button>
-            
-            <div class="fb-box mt-10" id="scenFB" style="display:none">
-              <div class="fb-title" id="fbTitle"></div>
-              <div class="fb-body" id="fbBody"></div>
-              <div id="scen-next" class="mt-8">
-                <button class="btn-primary" onclick="switchTab(document.getElementById('btn-tab-task'),'ptab-task')">下一階段：AI 任務拆解 <i class="ti ti-arrow-right"></i></button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="practice-panel" id="ptab-task">
+        <template id="task-breakdown-template">
           <div id="task-input-area">
             <div class="navi-intro-row mb-10">
               <div class="navi-ava-sm"><i class="ti ti-robot"></i></div>
@@ -639,7 +590,7 @@
           <div id="task-to-challenge" style="display:none" class="mt-10">
             <button class="btn-primary" onclick="goPage(3)"><i class="ti ti-sword"></i> 練習完成，去現實挑戰！</button>
           </div>
-        </div>
+        </template>
       </div>
 
       <div class="page" id="page3">
@@ -2187,6 +2138,7 @@ async function runGeminiAI() {
   };
   currentUser.lastAssessment = { ...payload, assessed_at: new Date().toISOString() };
   currentUser.recommendationContextKey = null;
+  currentPracticeSelectionCache = null;
 
   // 紀錄圖表資料
   currentUser.moodHistory.push({ date: new Date().toLocaleDateString('zh-TW').slice(5), score: 6 - currentMoodScore });
@@ -2755,6 +2707,433 @@ function toggleMiniCheck(el) {
   if (check) check.innerHTML = el.classList.contains('done') ? '<i class="ti ti-check"></i>' : '';
 }
 
+let currentPracticeModules = [];
+let currentPracticeModuleById = {};
+let currentPracticeSelectionCache = null;
+
+function getPracticeContext() {
+  const payload = currentUser?.lastAssessment || buildAiContextPayload();
+  const profile = getAssessmentProfile(payload);
+  const desc = `${payload.desc || ''} ${payload.mood || ''}`;
+  return { payload, profile, desc };
+}
+
+function moduleMatchesContext(module, ctx, kinds) {
+  if (module.when && !module.when(ctx, kinds)) return false;
+  if (module.kinds?.some(kind => kinds.includes(kind))) return true;
+  return false;
+}
+
+function getPracticeModuleDefinitions() {
+  return [
+    { id: 'emotion-awareness', kind: 'emotion', kinds: ['emotion'], role: 'course', icon: 'ti ti-heart-rate-monitor', title: '情緒覺察練習', goal: '辨識現在的情緒、身體感受、強度與來源。', priority: 10, type: 'emotion-awareness' },
+    { id: 'emotion-breath', kind: 'emotion', kinds: ['emotion'], role: 'regulation', icon: 'ti ti-wind', title: '呼吸引導互動', goal: '依照情緒強度做 4-7-8 或慢節奏呼吸。', priority: 20, type: 'breath' },
+    { id: 'emotion-calm', kind: 'emotion', kinds: ['emotion'], role: 'regulation', icon: 'ti ti-hourglass-low', title: '30 秒冷靜倒數', goal: '高情緒壓力時先啟動冷靜與 Grounding。', priority: 30, type: 'calm', when: ctx => ctx.profile.moodScore >= 4 },
+    { id: 'study-source', kind: 'study', kinds: ['study'], role: 'course', icon: 'ti ti-list-details', title: '壓力來源分析', goal: '分辨壓力來源、可控制與不可控制問題。', priority: 10, type: 'stress-source' },
+    { id: 'study-priority', kind: 'study', kinds: ['study'], role: 'course', icon: 'ti ti-sort-ascending', title: '優先順序排序', goal: '把混在一起的壓力排成今天可以處理的順序。', priority: 20, type: 'priority' },
+    { id: 'study-today-task', kind: 'study', kinds: ['study'], role: 'action', icon: 'ti ti-calendar-check', title: '今日小任務', goal: '依壓力程度產生 10 分鐘小目標。', priority: 30, type: 'today-task', when: ctx => ctx.profile.study >= 50 },
+    { id: 'social-dialogue', kind: 'social', kinds: ['social'], role: 'course', icon: 'ti ti-messages', title: '對話模擬', goal: '模擬小組討論、回覆訊息或發表意見。', priority: 10, type: 'choice-social' },
+    { id: 'social-opener', kind: 'social', kinds: ['social'], role: 'course', icon: 'ti ti-message-circle', title: '安全開場練習', goal: '先準備一句低風險開場，降低開口阻力。', priority: 20, type: 'safe-opener' },
+    { id: 'social-reflection', kind: 'social', kinds: ['social'], role: 'reflection', icon: 'ti ti-notes', title: '完成後反思', goal: '比較想像中的糟糕結果與實際結果。', priority: 35, type: 'reflection' },
+    { id: 'procrastination-five', kind: 'procrastination', kinds: ['procrastination'], role: 'course', icon: 'ti ti-player-play', title: '五分鐘開始法', goal: '先做五分鐘就好，降低啟動阻力。', priority: 10, type: 'five-start' },
+    { id: 'procrastination-focus', kind: 'procrastination', kinds: ['procrastination', 'focus'], role: 'action', icon: 'ti ti-clock', title: '專注模式', goal: '用專注倒數與干擾降低模式進入行動。', priority: 20, type: 'focus-mode' },
+    { id: 'behavior-tracking', kind: 'procrastination', kinds: ['procrastination'], role: 'reflection', icon: 'ti ti-checkbox', title: '每日行為追蹤', goal: '記錄是否開始作業、提前準備與完成小任務。', priority: 40, type: 'tracking' },
+    { id: 'sleep-slowdown', kind: 'sleep', kinds: ['sleep'], role: 'regulation', icon: 'ti ti-moon', title: '睡前降速練習', goal: '降低螢幕刺激、慢吐氣並卸載明日小任務。', priority: 10, type: 'sleep' },
+    { id: 'focus-rhythm', kind: 'focus', kinds: ['focus'], role: 'course', icon: 'ti ti-target-arrow', title: '專注節奏維持', goal: '狀態穩定時設定專注回合與休息節奏。', priority: 10, type: 'focus-rhythm' },
+    { id: 'task-breakdown-ai', kind: 'study', kinds: ['study', 'procrastination'], role: 'action', icon: 'ti ti-robot', title: 'AI 任務拆解', goal: '由 AI 依課程與狀態拆成 5 到 7 個可執行步驟。', priority: 60, type: 'task-breakdown', when: ctx => ctx.profile.study >= 50 || ctx.profile.procrastination }
+  ];
+}
+
+function getPracticeKindsForCurrentPath() {
+  const lessons = getCurrentPathLessons();
+  const completedPath = lessons.filter(lesson => isCourseCompleted(lesson.title));
+  const source = completedPath.length ? completedPath : (currentActiveLesson ? [currentActiveLesson] : lessons);
+  const kinds = [];
+  source.forEach(lesson => {
+    const kind = lesson.kind || getCourseKind(lesson);
+    if (!kinds.includes(kind)) kinds.push(kind);
+  });
+
+  const { profile } = getPracticeContext();
+  if (profile.moodScore >= 4 && !kinds.includes('emotion')) kinds.push('emotion');
+  if (profile.study >= 60 && !kinds.includes('study')) kinds.push('study');
+  if (profile.social >= 60 && !kinds.includes('social')) kinds.push('social');
+  if (profile.sleep >= 60 && !kinds.includes('sleep')) kinds.push('sleep');
+  if (profile.procrastination && !kinds.includes('procrastination')) kinds.push('procrastination');
+  return kinds.length ? kinds : ['emotion'];
+}
+
+function getPracticeSelectionKey(ctx = getPracticeContext()) {
+  const contextKey = currentUser?.recommendationContextKey || buildAiContextKey(ctx.payload);
+  return `${getPracticeCourseKey()}::${contextKey}`;
+}
+
+function getPracticeCourseKey() {
+  return currentActiveLesson?.title
+    || currentUser?.inProgressCourse?.title
+    || getCurrentPathLessons().map(lesson => lesson.title).join('|')
+    || 'general';
+}
+
+function getPracticeModuleLimit(ctx = getPracticeContext()) {
+  const p = ctx.profile;
+  const needsExtraSupport = p.moodScore >= 4 || p.study >= 75 || p.social >= 75 || p.sleep >= 75 || p.procrastination;
+  return needsExtraSupport ? 3 : 2;
+}
+
+function getRecentlyUsedPracticeModuleIds(selectionKey) {
+  const history = currentUser?.practiceHistory || [];
+  const courseKey = getPracticeCourseKey();
+  return history
+    .filter(record => record.selectionKey === selectionKey || record.courseTitle === courseKey)
+    .slice(-6)
+    .flatMap(record => record.moduleIds || []);
+}
+
+function rememberPracticeSelection(selectionKey, modules) {
+  if (!currentUser || !modules.length) return;
+  if (!currentUser.practiceHistory) currentUser.practiceHistory = [];
+  const moduleIds = modules.map(module => module.id);
+  const last = currentUser.practiceHistory[currentUser.practiceHistory.length - 1];
+  if (last?.selectionKey === selectionKey && JSON.stringify(last.moduleIds) === JSON.stringify(moduleIds)) return;
+  currentUser.practiceHistory.push({
+    selectionKey,
+    courseTitle: currentActiveLesson?.title || currentUser.inProgressCourse?.title || '',
+    moduleIds,
+    moduleTitles: modules.map(module => module.title),
+    selectedAt: new Date().toISOString()
+  });
+  currentUser.practiceHistory = currentUser.practiceHistory.slice(-30);
+  persistCurrentUser();
+}
+
+function pickPracticeModule(candidates, selected, usedIds, role) {
+  const pool = candidates
+    .filter(module => !selected.some(item => item.id === module.id))
+    .filter(module => !role || module.role === role)
+    .sort((a, b) => {
+      const usedScore = (usedIds.includes(a.id) ? 100 : 0) - (usedIds.includes(b.id) ? 100 : 0);
+      return usedScore || a.priority - b.priority;
+    });
+  return pool[0] || null;
+}
+
+function getPracticeModulesForCurrentPath() {
+  const ctx = getPracticeContext();
+  const kinds = getPracticeKindsForCurrentPath();
+  const selectionKey = getPracticeSelectionKey(ctx);
+  if (currentPracticeSelectionCache?.key === selectionKey) {
+    const defs = getPracticeModuleDefinitions();
+    return currentPracticeSelectionCache.moduleIds
+      .map(id => defs.find(module => module.id === id))
+      .filter(Boolean);
+  }
+  const limit = getPracticeModuleLimit(ctx);
+  const usedIds = getRecentlyUsedPracticeModuleIds(selectionKey);
+  const modules = getPracticeModuleDefinitions()
+    .filter(module => moduleMatchesContext(module, ctx, kinds))
+    .sort((a, b) => {
+      const ak = kinds.indexOf(a.kind);
+      const bk = kinds.indexOf(b.kind);
+      const usedScore = (usedIds.includes(a.id) ? 100 : 0) - (usedIds.includes(b.id) ? 100 : 0);
+      return usedScore || (ak === -1 ? 99 : ak) - (bk === -1 ? 99 : bk) || a.priority - b.priority;
+    });
+
+  const unique = [];
+  modules.forEach(module => {
+    if (!unique.some(item => item.id === module.id)) unique.push(module);
+  });
+
+  const selected = [];
+  const highStateModule = pickPracticeModule(unique, selected, usedIds, 'regulation');
+  if (highStateModule && (ctx.profile.moodScore >= 4 || ctx.profile.sleep >= 70)) selected.push(highStateModule);
+
+  const courseModule = pickPracticeModule(unique, selected, usedIds, 'course');
+  if (courseModule) selected.push(courseModule);
+
+  const actionModule = pickPracticeModule(unique, selected, usedIds, 'action');
+  if (selected.length < limit && actionModule) selected.push(actionModule);
+
+  const reflectionModule = pickPracticeModule(unique, selected, usedIds, 'reflection');
+  if (selected.length < limit && reflectionModule && usedIds.length) selected.push(reflectionModule);
+
+  unique.forEach(module => {
+    if (selected.length < limit && !selected.some(item => item.id === module.id)) selected.push(module);
+  });
+
+  const result = selected.slice(0, limit);
+  currentPracticeSelectionCache = { key: selectionKey, moduleIds: result.map(module => module.id) };
+  return result;
+}
+
+function getPracticeConfigForLesson(lesson = currentActiveLesson) {
+  const kind = lesson?.kind || getCourseKind(lesson);
+  const module = getPracticeModuleDefinitions().find(item => item.kind === kind);
+  return {
+    sub: module?.goal || '依照目前課程與狀態生成練習。',
+    success: '很好，這個選擇符合本模組的練習目標。',
+    danger: '再調整一下，先回到這個模組的核心步驟。'
+  };
+}
+
+function applyPracticeForCurrentCourse() {
+  stopBreath();
+  currentPracticeModules = getPracticeModulesForCurrentPath();
+  currentPracticeModuleById = Object.fromEntries(currentPracticeModules.map(module => [module.id, module]));
+  rememberPracticeSelection(getPracticeSelectionKey(), currentPracticeModules);
+  const tabs = document.getElementById('practice-tabs');
+  const panels = document.getElementById('practice-module-panels');
+  const sub = document.getElementById('practice-page-sub');
+  if (!tabs || !panels) return;
+  if (sub) {
+    sub.textContent = `依今天的狀態精選 ${currentPracticeModules.length} 個練習模組：${currentPracticeModules.map(module => module.title).join('、')}。同課程下次會優先調整為不同練習。`;
+  }
+  tabs.innerHTML = currentPracticeModules.map((module, index) => `
+    <button class="ptab ${index === 0 ? 'active' : ''}" onclick="activatePracticeModule('${module.id}')">
+      <i class="${module.icon}"></i> ${escapeHtml(module.title)}
+    </button>
+  `).join('');
+  panels.innerHTML = currentPracticeModules.map((module, index) => `
+    <div class="practice-panel ${index === 0 ? 'active' : ''}" id="practice-panel-${module.id}">
+      ${renderPracticeModule(module)}
+    </div>
+  `).join('');
+  resetTask();
+}
+
+function activatePracticeModule(moduleId) {
+  document.querySelectorAll('.ptab').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('onclick')?.includes(`'${moduleId}'`));
+  });
+  document.querySelectorAll('.practice-panel').forEach(panel => {
+    panel.classList.toggle('active', panel.id === `practice-panel-${moduleId}`);
+  });
+}
+
+function switchTab(btn, panelId) {
+  if (panelId?.startsWith('practice-panel-')) {
+    activatePracticeModule(panelId.replace('practice-panel-', ''));
+    return;
+  }
+  if (!btn || !document.getElementById(panelId)) return;
+  document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.practice-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(panelId).classList.add('active');
+}
+
+function renderPracticeModule(module) {
+  const ctx = getPracticeContext();
+  const header = `
+    <div class="practice-module-head">
+      <div class="section-label"><i class="${module.icon}"></i> ${escapeHtml(module.title)}</div>
+      <p class="body-text">${escapeHtml(module.goal)}</p>
+    </div>
+  `;
+  const renderers = {
+    'breath': () => renderBreathModule(module),
+    'emotion-awareness': () => renderEmotionAwarenessModule(module),
+    'calm': () => renderCalmModule(module),
+    'stress-source': () => renderStressSourceModule(module),
+    'priority': () => renderPriorityModule(module),
+    'today-task': () => renderTodayTaskModule(module, ctx),
+    'choice-social': () => renderChoiceModule(module, {
+      place: '小組討論前',
+      story: '你想問同學一個問題，但腦中一直擔心對方會覺得你很麻煩。',
+      question: '哪個開場最能降低社交壓力？',
+      options: ['我想確認一個地方，可以問你一下嗎？', '算了，我不要問了', '如果你覺得我很奇怪就不用回我'],
+      correctIndex: 0,
+      success: '很好。這句話有目的，也保留了安全感。',
+      danger: '社交練習的目標是低風險開始，不是一次完美。'
+    }),
+    'safe-opener': () => renderInputPracticeModule(module, '寫一句你敢說出口的開場，例如：我想確認一個地方...', '這句開場已經能降低互動壓力。'),
+    'reflection': () => renderInputPracticeModule(module, '寫下：我原本最怕什麼？實際結果是什麼？', '很好，反思能幫你校正腦中過度糟糕的預測。'),
+    'five-start': () => renderFiveStartModule(module),
+    'focus-mode': () => renderFocusModeModule(module),
+    'tracking': () => renderTrackingModule(module),
+    'sleep': () => renderSleepModule(module),
+    'focus-rhythm': () => renderFocusRhythmModule(module),
+    'task-breakdown': () => renderTaskBreakdownModule(module)
+  };
+  return header + (renderers[module.type] ? renderers[module.type]() : renderChecklistModule(module, ['先完成一個小步驟', '記錄完成後的狀態']));
+}
+
+function renderBreathModule(module) {
+  return `
+    <div class="card mb-10 text-center">
+      <div class="breath-circle" id="breathCircle"><div class="breath-text" id="breathText">準備好了嗎？</div></div>
+      <div class="breath-count" id="breathCount">—</div>
+      <div class="breath-phase" id="breathPhase">點下方開始練習</div>
+      <div class="btn-row mt-12">
+        <button class="btn-ghost btn-auto" onclick="startBreath()"><i class="ti ti-player-play"></i> 開始練習</button>
+        <button class="btn-ghost btn-auto" onclick="stopBreath()"><i class="ti ti-player-stop"></i> 停止</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-label"><i class="ti ti-info-circle"></i> 練習重點</div>
+      <p class="body-text">情緒升高時，先讓身體警報下降。呼吸穩定後，再進入任務或情境練習會比較有效。</p>
+    </div>
+  `;
+}
+
+function renderEmotionAwarenessModule(module) {
+  return `
+    <div class="card">
+      <div class="emotion-scale">
+        ${['低', '中', '高'].map(level => `<button class="chip" onclick="setPracticeModuleResult('${module.id}', '目前強度：${level}。下一步是寫下情緒來源，而不是急著解決全部問題。')">${level}</button>`).join('')}
+      </div>
+      <div class="meta-row mt-10">
+        <input class="task-input" placeholder="現在的情緒是什麼？例如：緊張、煩、害怕" maxlength="60">
+        <input class="task-input" placeholder="身體哪裡最明顯？例如：胸口、肩膀、胃" maxlength="60">
+      </div>
+      <div class="ai-insight mt-10" id="practice-result-${module.id}">先選情緒強度，再寫下身體感受。</div>
+    </div>
+  `;
+}
+
+function renderCalmModule(module) {
+  return `
+    <div class="card text-center">
+      <div class="calm-count" id="calm-count-${module.id}">30</div>
+      <div class="breath-phase">看見 5 個物品、感覺 4 個觸點、聽見 3 個聲音。</div>
+      <button class="btn-primary mt-10" onclick="startCalmCountdown('${module.id}')"><i class="ti ti-hourglass-low"></i> 開始 30 秒冷靜</button>
+      <div class="ai-insight mt-10" id="practice-result-${module.id}">高壓狀態先讓身體回到安全感。</div>
+    </div>
+  `;
+}
+
+function renderStressSourceModule(module) {
+  return renderChecklistModule(module, [
+    '我能控制：今天先完成一個小段落',
+    '我暫時不能控制：老師或同學的評價',
+    '我需要釐清：最急的是哪一件',
+    '下一步：選一個 10 分鐘任務'
+  ], '壓力可控分類');
+}
+
+function renderPriorityModule(module) {
+  return renderChecklistModule(module, [
+    '先處理截止時間最近的任務',
+    '先做最容易開始的小步驟',
+    '把不重要但干擾大的事情移到稍後',
+    '留下今天只需要完成的一件事'
+  ], '優先順序排序');
+}
+
+function renderTodayTaskModule(module, ctx) {
+  const task = ctx.profile.study >= 70 ? '整理報告大綱 10 分鐘' : '閱讀或複習 10 分鐘';
+  return `
+    <div class="card">
+      <div class="today-task-card">
+        <i class="ti ti-calendar-check"></i>
+        <div><div class="fb-title">今天的小任務</div><div>${escapeHtml(task)}</div></div>
+      </div>
+      <button class="btn-primary mt-10" onclick="addCompleteTask('完成今日小任務'); setPracticeModuleResult('${module.id}', '已記錄今日小任務，接下來可以進入現實挑戰。')"><i class="ti ti-check"></i> 我完成了</button>
+      <div class="ai-insight mt-10" id="practice-result-${module.id}">任務要小到現在願意開始。</div>
+    </div>
+  `;
+}
+
+function renderFiveStartModule(module) {
+  return `
+    <div class="card">
+      <div class="focus-timer">5:00</div>
+      <p class="body-text">先不用完成，只承諾開始五分鐘。目標是打開檔案、拿出材料或寫下第一句。</p>
+      <button class="btn-primary" onclick="setPracticeModuleResult('${module.id}', '五分鐘開始已啟動：現在只做第一個小動作。')"><i class="ti ti-player-play"></i> 啟動五分鐘</button>
+      <div class="ai-insight mt-10" id="practice-result-${module.id}">等待啟動。</div>
+    </div>
+  `;
+}
+
+function renderFocusModeModule(module) {
+  return renderInputPracticeModule(module, '寫下這一輪唯一目標，例如：整理英文報告大綱', '專注回合已設定：25 分鐘只做這一個目標，結束後休息 5 分鐘。');
+}
+
+function renderTrackingModule(module) {
+  return renderChecklistModule(module, ['開始作業 10 分鐘', '提早開始報告', '完成第一個小任務', '完成後記錄感受'], '每日行為追蹤');
+}
+
+function renderSleepModule(module) {
+  return renderChecklistModule(module, ['手機放到伸手拿不到的位置', '把明天第一件小事寫下來', '做 3 回合慢吐氣', '把房間光線調暗'], '睡前降速清單');
+}
+
+function renderFocusRhythmModule(module) {
+  return renderChecklistModule(module, ['寫下本輪唯一目標', '設定 25 分鐘專注', '安排 5 分鐘休息', '結束後檢查狀態'], '專注節奏設定');
+}
+
+function renderInputPracticeModule(module, placeholder, resultText) {
+  return `
+    <div class="card">
+      <input class="task-input" type="text" placeholder="${escapeHtml(placeholder)}" maxlength="100">
+      <button class="btn-primary mt-10" onclick="setPracticeModuleResult('${module.id}', '${escapeHtml(resultText)}')"><i class="ti ti-check"></i> 完成這一步</button>
+      <div class="ai-insight mt-10" id="practice-result-${module.id}">先寫下你的版本。</div>
+    </div>
+  `;
+}
+
+function renderChecklistModule(module, items, title = '練習清單') {
+  return `
+    <div class="card">
+      <div class="mini-practice-box">
+        <div class="section-label"><i class="ti ti-list-check"></i> ${escapeHtml(title)}</div>
+        <div class="task-list">
+          ${items.map(item => `<div class="task-item" onclick="toggleMiniCheck(this)"><div class="task-check"></div><span>${escapeHtml(item)}</span></div>`).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderChoiceModule(module, config) {
+  module.choiceConfig = config;
+  return `
+    <div class="card">
+      <div class="scene-place"><i class="ti ti-map-pin"></i> ${escapeHtml(config.place)}</div>
+      <div class="scene-story">${escapeHtml(config.story)}</div>
+      <div class="scene-q">${escapeHtml(config.question)}</div>
+      ${config.options.map((option, idx) => `
+        <button class="choice-btn" id="choice-${module.id}-${idx}" onclick="pickPracticeChoice('${module.id}', ${idx})">
+          <span class="choice-key">${String.fromCharCode(65 + idx)}</span>${escapeHtml(option)}
+        </button>
+      `).join('')}
+      <div class="fb-box mt-10" id="choice-fb-${module.id}" style="display:none"></div>
+    </div>
+  `;
+}
+
+function renderTaskBreakdownModule(module) {
+  const template = document.getElementById('task-breakdown-template');
+  return template ? template.innerHTML : '';
+}
+
+function setPracticeModuleResult(moduleId, text) {
+  const el = document.getElementById(`practice-result-${moduleId}`);
+  if (el) el.textContent = text;
+}
+
+function pickPracticeChoice(moduleId, idx) {
+  const module = currentPracticeModuleById[moduleId];
+  const config = module?.choiceConfig;
+  if (!config) return;
+  config.options.forEach((_, optionIdx) => {
+    const btn = document.getElementById(`choice-${moduleId}-${optionIdx}`);
+    if (btn) {
+      btn.disabled = true;
+      btn.classList.toggle('correct', optionIdx === config.correctIndex);
+      btn.classList.toggle('wrong', optionIdx === idx && idx !== config.correctIndex);
+    }
+  });
+  const correct = idx === config.correctIndex;
+  const fb = document.getElementById(`choice-fb-${moduleId}`);
+  if (fb) {
+    fb.style.display = 'block';
+    fb.className = `fb-box ${correct ? 'success' : 'danger'} mt-10`;
+    fb.innerHTML = `<div class="fb-title">${correct ? '應用成功！' : '再調整一下'}</div><div class="fb-body">${escapeHtml(correct ? config.success : config.danger)}</div>`;
+  }
+  if (correct) addCompleteTask(`${module.title}：完成情境選擇`);
+  syncToBackend('系統內練習選擇', { 模組: module.title, 選擇: config.options[idx], 正確: correct });
+}
+
 // ==========================================
 // Step 2-0: 呼吸引導 
 // ==========================================
@@ -2775,24 +3154,28 @@ function startBreath() {
 }
 
 function runBreathPhase() {
+  const text = document.getElementById('breathText');
+  const phase = document.getElementById('breathPhase');
+  const count = document.getElementById('breathCount');
+  const circle = document.getElementById('breathCircle');
+  if (!text || !phase || !count || !circle) return;
   if (breathCycleCount >= 1) {
-    document.getElementById('breathText').textContent = '完成！';
-    document.getElementById('breathPhase').textContent = '身體已成功放鬆，正在自動解鎖情境決策...';
+    text.textContent = '完成！';
+    phase.textContent = '身體已成功放鬆，可以切換到下一個練習模組。';
     addCompleteTask("完成 4-7-8 呼吸練習");
-    setTimeout(() => { switchTab(document.getElementById('btn-tab-scen'), 'ptab-scen'); }, 1400);
+    setTimeout(activateNextPracticeModule, 1400);
     return;
   }
   const ph = breathPhases[breathPhaseIdx];
-  document.getElementById('breathText').textContent = ph.name;
-  document.getElementById('breathPhase').textContent = ph.tip;
+  text.textContent = ph.name;
+  phase.textContent = ph.tip;
   let sec = ph.dur;
-  document.getElementById('breathCount').textContent = sec;
-  const c = document.getElementById('breathCircle');
-  ph.expand ? c.classList.add('expand') : c.classList.remove('expand');
+  count.textContent = sec;
+  ph.expand ? circle.classList.add('expand') : circle.classList.remove('expand');
   
   breathInterval = setInterval(() => {
     sec--;
-    document.getElementById('breathCount').textContent = sec;
+    if (count) count.textContent = sec;
     if (sec <= 0) {
       clearInterval(breathInterval);
       if (breathPhaseIdx === 2) breathCycleCount++;
@@ -2804,10 +3187,39 @@ function runBreathPhase() {
 
 function stopBreath() {
   if (breathInterval) clearInterval(breathInterval);
-  document.getElementById('breathText').textContent = '準備好了嗎？';
-  document.getElementById('breathCount').textContent = '—';
-  document.getElementById('breathPhase').textContent = '點下方開始練習';
-  document.getElementById('breathCircle').classList.remove('expand');
+  const text = document.getElementById('breathText');
+  const count = document.getElementById('breathCount');
+  const phase = document.getElementById('breathPhase');
+  const circle = document.getElementById('breathCircle');
+  if (text) text.textContent = '準備好了嗎？';
+  if (count) count.textContent = '—';
+  if (phase) phase.textContent = '點下方開始練習';
+  if (circle) circle.classList.remove('expand');
+}
+
+function activateNextPracticeModule() {
+  const active = document.querySelector('.practice-panel.active');
+  if (!active || !currentPracticeModules.length) return;
+  const activeId = active.id.replace('practice-panel-', '');
+  const idx = currentPracticeModules.findIndex(module => module.id === activeId);
+  const next = currentPracticeModules[idx + 1];
+  if (next) activatePracticeModule(next.id);
+}
+
+function startCalmCountdown(moduleId) {
+  const el = document.getElementById(`calm-count-${moduleId}`);
+  if (!el) return;
+  let seconds = 30;
+  el.textContent = seconds;
+  const timer = setInterval(() => {
+    seconds -= 1;
+    el.textContent = seconds;
+    if (seconds <= 0) {
+      clearInterval(timer);
+      setPracticeModuleResult(moduleId, '冷靜倒數完成。現在可以選擇一個最小行動，不必一次解決全部。');
+      addCompleteTask('完成 30 秒冷靜倒數');
+    }
+  }, 1000);
 }
 
 // ==========================================
@@ -2845,7 +3257,7 @@ async function startBreakdown() {
   document.getElementById('task-loading').style.display = 'block';
 
   // 11 & 12. 呼叫 Gemini API
-  const practiceModules = getPracticeModulesForCurrentPath().map(module => module.tab.replace(/<[^>]+>/g, '').trim());
+  const practiceModules = getPracticeModulesForCurrentPath().map(module => module.title || module.id);
   const payload = {
     task: task,
     time_left: timeLeft,
@@ -2929,10 +3341,14 @@ function ensureMinimumAiSteps(steps, task) {
 }
 
 function resetTask() {
-  document.getElementById('task-result').style.display = 'none';
-  document.getElementById('task-to-challenge').style.display = 'none';
-  document.getElementById('task-input-area').style.display = 'block';
-  document.getElementById('taskInput').value = '';
+  const result = document.getElementById('task-result');
+  const challenge = document.getElementById('task-to-challenge');
+  const inputArea = document.getElementById('task-input-area');
+  const taskInput = document.getElementById('taskInput');
+  if (result) result.style.display = 'none';
+  if (challenge) challenge.style.display = 'none';
+  if (inputArea) inputArea.style.display = 'block';
+  if (taskInput) taskInput.value = '';
 }
 
 // ==========================================
