@@ -669,14 +669,14 @@
 			<button class="btn-primary mt-12" id="finalSubmitBtn" onclick="submitFinalReflection()">
 				<i class="ti ti-send"></i> 確認送出總結資料
 			</button>
-		</div>
+        </div>
         <div class="next-cycle mb-10" id="next-cycle-block" style="display:none; opacity:0; transition: 0.5s ease;">
-          <div class="next-cycle-title"><i class="ti ti-refresh"></i> 下一個學習循環已解鎖</div>
-          <div class="next-item"><i class="ti ti-mood-smile"></i> 明天繼續情緒打卡</div>
-          <div class="next-item"><i class="ti ti-book"></i> 探索更多心理學課程</div>
-          <div class="next-item"><i class="ti ti-sword"></i> 持續累積任務拿滿 10 枚勳章</div>
-          <button class="btn-primary mt-10" onclick="startNewCycle()">
-            <i class="ti ti-refresh"></i> 開始新的一天循環
+          <div class="next-cycle-title"><i class="ti ti-check"></i> 今日成果已同步</div>
+          <div class="next-item"><i class="ti ti-mood-smile"></i> 情緒與行動紀錄已更新</div>
+          <div class="next-item"><i class="ti ti-book"></i> 首頁可以查看成果報告</div>
+          <div class="next-item"><i class="ti ti-sword"></i> 後續挑戰會依照成果調整</div>
+          <button class="btn-primary mt-10" onclick="goHomeWithOutcome()">
+            <i class="ti ti-home"></i> 回首頁看成果
           </button>
         </div>
         <button class="btn-ghost mt-10" onclick="goPage(0)"><i class="ti ti-home"></i> 回首頁</button>
@@ -1232,6 +1232,39 @@ function updateUI() {
 
   // Dashboard landing UI（卡片式彙整）
   updateDashboardLanding();
+}
+
+function renderOutcomeSummary(report, options = {}) {
+  const compact = !!options.compact;
+  const course = report?.course || currentActiveLesson?.title || currentUser?.inProgressCourse?.title || '本次課程';
+  const analysis = report?.analysis || 'AI 已整理你的回饋，後續會依照這次結果調整練習與挑戰。';
+  const completedCount = currentUser?.completedCourses?.length || 0;
+  const modulesCount = report?.practiceModules?.length || currentPracticeModules.length || 0;
+  const tasks = currentUser?.tasksCompleted || 0;
+  const badges = currentUser?.badges || 0;
+  return `
+    <div class="outcome-summary ${compact ? 'compact' : ''}">
+      <div class="section-label"><i class="ti ti-chart-dots"></i> 本次成果狀態</div>
+      <div class="outcome-grid">
+        <div class="outcome-stat"><strong>${completedCount}</strong><span>已完成課程</span></div>
+        <div class="outcome-stat"><strong>${modulesCount}</strong><span>系統練習模組</span></div>
+        <div class="outcome-stat"><strong>${tasks}</strong><span>累計任務</span></div>
+        <div class="outcome-stat"><strong>${badges}</strong><span>勳章</span></div>
+      </div>
+      <div class="ai-insight mt-10"><strong>${escapeHtml(course)}</strong><br>${escapeHtml(analysis)}</div>
+      ${compact ? '' : `
+        <div class="btn-row mt-12">
+          <button class="btn-primary btn-auto" onclick="goHomeWithOutcome()"><i class="ti ti-home"></i> 回首頁看成果</button>
+        </div>
+      `}
+    </div>
+  `;
+}
+
+function goHomeWithOutcome() {
+  updateDashboardLanding();
+  goPage(0);
+  showDashboardLanding();
 }
 
 // Dashboard 視圖切換（page0 內部兩個子視圖）
@@ -1929,7 +1962,17 @@ function isCourseCompleted(title) {
   return !!currentUser?.completedCourses?.some(course => course.title === title);
 }
 
+function isSelfSelectedLesson(lesson = currentActiveLesson) {
+  return lesson?.source === 'catalog'
+    || lesson?.status === '自選'
+    || currentUser?.inProgressCourse?.source === 'catalog';
+}
+
 function getCurrentPathLessons() {
+  if (isSelfSelectedLesson()) {
+    const lesson = currentActiveLesson || currentUser?.inProgressCourse?.lesson;
+    return lesson ? [lesson] : [];
+  }
   return buildAdaptiveLessonItems();
 }
 
@@ -1981,6 +2024,11 @@ function updateDashboardDailyInsights() {
   const dash = document.getElementById('dash-daily-insight-container');
   const page4Insight = document.getElementById('dynamic-insight-container');
   if (!dash || !page4Insight) return;
+  if (currentUser?.completedLearningReports?.length) {
+    const latest = currentUser.completedLearningReports[currentUser.completedLearningReports.length - 1];
+    dash.innerHTML = renderOutcomeSummary(latest, { compact: true });
+    return;
+  }
   if (page4Insight.innerHTML && page4Insight.innerHTML.trim().length > 0) {
     dash.innerHTML = page4Insight.innerHTML;
   }
@@ -2178,6 +2226,7 @@ function openLesson(index = 0, overrideLesson = null) {
   const rawLesson = overrideLesson || buildAdaptiveLessonItems()[index] || buildAdaptiveLessonItems()[0];
   const lesson = { ...rawLesson, kind: rawLesson.kind || getCourseKind(rawLesson) };
   lesson.lessonDetail = getLessonTemplate(lesson);
+  currentPracticeSelectionCache = null;
   applyLessonDetail(index, lesson);
   document.getElementById('p1-overview').style.display = 'none';
   document.getElementById('p1-lesson').style.display = 'block';
@@ -2191,6 +2240,7 @@ function openLesson(index = 0, overrideLesson = null) {
       index,
       title: lesson.title,
       lesson,
+      source: lesson.source || (lesson.status === '自選' ? 'catalog' : 'recommended'),
       stage: existingStage && existingStage !== 'completed' ? existingStage : 'lesson_started',
       updatedAt: new Date().toISOString()
     };
@@ -2217,7 +2267,7 @@ function openNextRecommendedLesson() {
 function openCourseFromCatalog(index = 0) {
   const topic = COURSE_CATALOG[index] || COURSE_CATALOG[0];
   if (!topic) return;
-  const lesson = topicToLesson(topic, index, '自選');
+  const lesson = { ...topicToLesson(topic, index, '自選'), source: 'catalog' };
   goPage(1);
   openLesson(index, lesson);
 }
@@ -2228,7 +2278,7 @@ function openRecommendedCourse(index = 0) {
     || computeAiRecommendedTopicsFallback()[index]
     || COURSE_CATALOG[0];
   if (!topic) return;
-  const lesson = topicToLesson(topic, index, '推薦');
+  const lesson = { ...topicToLesson(topic, index, '推薦'), source: 'recommended' };
   goPage(1);
   openLesson(index, lesson);
 }
@@ -2240,7 +2290,7 @@ function continueActiveCourse() {
     return;
   }
   currentActiveLesson = course.lesson || topicToLesson({ title: course.title, reason: course.reason || '' }, course.index || 0, '進行中');
-  if (course.stage === 'knowledge_complete' || areAllPathLessonsCompleted()) {
+  if (course.stage === 'knowledge_complete' || (!isSelfSelectedLesson(currentActiveLesson) && areAllPathLessonsCompleted())) {
     goPage(2);
     return;
   }
@@ -2282,6 +2332,7 @@ function markCurrentLessonCompleted(correct) {
     index: currentUser.inProgressCourse?.index || 0,
     title,
     lesson: currentActiveLesson,
+    source: currentActiveLesson.source || currentUser.inProgressCourse?.source || 'recommended',
     stage: allPathDone ? 'knowledge_complete' : 'lesson_started',
     updatedAt: new Date().toISOString()
   };
@@ -2292,7 +2343,7 @@ function markCurrentLessonCompleted(correct) {
     const nextTip = getPracticeConfigForLesson(currentActiveLesson).sub;
     const progressText = `${getCompletedPathCount()}/${getCurrentPathLessons().length}`;
     report.innerHTML = allPathDone
-      ? `<strong>課程小成果：</strong>你已完成本次 ${progressText} 堂推薦課程。AI 判斷可以進入系統內練習：${escapeHtml(nextTip)}`
+      ? `<strong>課程小成果：</strong>你已完成${isSelfSelectedLesson() ? '這堂自選課程' : `本次 ${progressText} 堂推薦課程`}。AI 判斷可以進入系統內練習：${escapeHtml(nextTip)}`
       : `<strong>課程小成果：</strong>你已完成「${escapeHtml(title)}」。目前進度 ${progressText}，請先回推薦課程清單完成剩下課程，全部完成後再進入系統內練習。`;
   }
   updateCourseNextAction();
@@ -2304,7 +2355,9 @@ function updateCourseNextAction() {
   const btn = document.getElementById('course-next-action');
   if (!btn) return;
   if (areAllPathLessonsCompleted()) {
-    btn.innerHTML = '<i class="ti ti-player-play"></i> 全部推薦課程完成，進入系統內練習';
+    btn.innerHTML = isSelfSelectedLesson()
+      ? '<i class="ti ti-player-play"></i> 課程完成，進入對應系統內練習'
+      : '<i class="ti ti-player-play"></i> 全部推薦課程完成，進入系統內練習';
   } else {
     btn.innerHTML = '<i class="ti ti-list-check"></i> 返回推薦課程，繼續下一堂';
   }
@@ -2745,6 +2798,10 @@ function getPracticeModuleDefinitions() {
 }
 
 function getPracticeKindsForCurrentPath() {
+  if (isSelfSelectedLesson()) {
+    const lesson = currentActiveLesson || currentUser?.inProgressCourse?.lesson;
+    return [lesson?.kind || getCourseKind(lesson)].filter(Boolean);
+  }
   const lessons = getCurrentPathLessons();
   const completedPath = lessons.filter(lesson => isCourseCompleted(lesson.title));
   const source = completedPath.length ? completedPath : (currentActiveLesson ? [currentActiveLesson] : lessons);
@@ -2894,7 +2951,7 @@ function applyPracticeForCurrentCourse() {
     </button>
   `).join('');
   panels.innerHTML = currentPracticeModules.map((module, index) => `
-    <div class="practice-panel ${index === 0 ? 'active' : ''}" id="practice-panel-${module.id}">
+    <div class="practice-panel practice-role-${module.role} ${index === 0 ? 'active' : ''}" id="practice-panel-${module.id}">
       ${renderPracticeModule(module)}
     </div>
   `).join('');
@@ -2955,7 +3012,8 @@ function renderPracticeModule(module) {
     'focus-rhythm': () => renderFocusRhythmModule(module),
     'task-breakdown': () => renderTaskBreakdownModule(module)
   };
-  return header + (renderers[module.type] ? renderers[module.type]() : renderChecklistModule(module, ['先完成一個小步驟', '記錄完成後的狀態']));
+  const body = renderers[module.type] ? renderers[module.type]() : renderChecklistModule(module, ['先完成一個小步驟', '記錄完成後的狀態']);
+  return header + body + renderPracticeModuleFooter(module);
 }
 
 function renderBreathModule(module) {
@@ -2978,14 +3036,15 @@ function renderBreathModule(module) {
 
 function renderEmotionAwarenessModule(module) {
   return `
-    <div class="card">
+    <div class="card practice-card-${module.role}">
       <div class="emotion-scale">
-        ${['低', '中', '高'].map(level => `<button class="chip" onclick="setPracticeModuleResult('${module.id}', '目前強度：${level}。下一步是寫下情緒來源，而不是急著解決全部問題。')">${level}</button>`).join('')}
+        ${['低', '中', '高'].map(level => `<button class="chip" onclick="setEmotionLevel('${module.id}', '${level}')">${level}</button>`).join('')}
       </div>
       <div class="meta-row mt-10">
-        <input class="task-input" placeholder="現在的情緒是什麼？例如：緊張、煩、害怕" maxlength="60">
-        <input class="task-input" placeholder="身體哪裡最明顯？例如：胸口、肩膀、胃" maxlength="60">
+        <input class="task-input" id="emotion-name-${module.id}" placeholder="現在的情緒是什麼？例如：緊張、煩、害怕" maxlength="60">
+        <input class="task-input" id="emotion-body-${module.id}" placeholder="身體哪裡最明顯？例如：胸口、肩膀、胃" maxlength="60">
       </div>
+      <button class="btn-primary mt-10" onclick="completeEmotionAwareness('${module.id}')"><i class="ti ti-check"></i> 完成覺察</button>
       <div class="ai-insight mt-10" id="practice-result-${module.id}">先選情緒強度，再寫下身體感受。</div>
     </div>
   `;
@@ -2993,7 +3052,7 @@ function renderEmotionAwarenessModule(module) {
 
 function renderCalmModule(module) {
   return `
-    <div class="card text-center">
+    <div class="card text-center practice-card-${module.role}">
       <div class="calm-count" id="calm-count-${module.id}">30</div>
       <div class="breath-phase">看見 5 個物品、感覺 4 個觸點、聽見 3 個聲音。</div>
       <button class="btn-primary mt-10" onclick="startCalmCountdown('${module.id}')"><i class="ti ti-hourglass-low"></i> 開始 30 秒冷靜</button>
@@ -3023,7 +3082,7 @@ function renderPriorityModule(module) {
 function renderTodayTaskModule(module, ctx) {
   const task = ctx.profile.study >= 70 ? '整理報告大綱 10 分鐘' : '閱讀或複習 10 分鐘';
   return `
-    <div class="card">
+    <div class="card practice-card-${module.role}">
       <div class="today-task-card">
         <i class="ti ti-calendar-check"></i>
         <div><div class="fb-title">今天的小任務</div><div>${escapeHtml(task)}</div></div>
@@ -3036,7 +3095,7 @@ function renderTodayTaskModule(module, ctx) {
 
 function renderFiveStartModule(module) {
   return `
-    <div class="card">
+    <div class="card practice-card-${module.role}">
       <div class="focus-timer">5:00</div>
       <p class="body-text">先不用完成，只承諾開始五分鐘。目標是打開檔案、拿出材料或寫下第一句。</p>
       <button class="btn-primary" onclick="setPracticeModuleResult('${module.id}', '五分鐘開始已啟動：現在只做第一個小動作。')"><i class="ti ti-player-play"></i> 啟動五分鐘</button>
@@ -3063,9 +3122,9 @@ function renderFocusRhythmModule(module) {
 
 function renderInputPracticeModule(module, placeholder, resultText) {
   return `
-    <div class="card">
-      <input class="task-input" type="text" placeholder="${escapeHtml(placeholder)}" maxlength="100">
-      <button class="btn-primary mt-10" onclick="setPracticeModuleResult('${module.id}', '${escapeHtml(resultText)}')"><i class="ti ti-check"></i> 完成這一步</button>
+    <div class="card practice-card-${module.role}">
+      <input class="task-input" id="practice-input-${module.id}" type="text" placeholder="${escapeHtml(placeholder)}" maxlength="100">
+      <button class="btn-primary mt-10" onclick="completeInputPractice('${module.id}', '${escapeHtml(resultText)}')"><i class="ti ti-check"></i> 完成這一步</button>
       <div class="ai-insight mt-10" id="practice-result-${module.id}">先寫下你的版本。</div>
     </div>
   `;
@@ -3073,8 +3132,8 @@ function renderInputPracticeModule(module, placeholder, resultText) {
 
 function renderChecklistModule(module, items, title = '練習清單') {
   return `
-    <div class="card">
-      <div class="mini-practice-box">
+    <div class="card practice-card-${module.role}">
+      <div class="mini-practice-box mini-practice-${module.role}">
         <div class="section-label"><i class="ti ti-list-check"></i> ${escapeHtml(title)}</div>
         <div class="task-list">
           ${items.map(item => `<div class="task-item" onclick="toggleMiniCheck(this)"><div class="task-check"></div><span>${escapeHtml(item)}</span></div>`).join('')}
@@ -3087,7 +3146,7 @@ function renderChecklistModule(module, items, title = '練習清單') {
 function renderChoiceModule(module, config) {
   module.choiceConfig = config;
   return `
-    <div class="card">
+    <div class="card practice-card-${module.role}">
       <div class="scene-place"><i class="ti ti-map-pin"></i> ${escapeHtml(config.place)}</div>
       <div class="scene-story">${escapeHtml(config.story)}</div>
       <div class="scene-q">${escapeHtml(config.question)}</div>
@@ -3106,9 +3165,72 @@ function renderTaskBreakdownModule(module) {
   return template ? template.innerHTML : '';
 }
 
+function renderPracticeModuleFooter(module) {
+  return `
+    <div class="practice-flow-footer">
+      <button class="btn-ghost btn-auto" onclick="completePracticeModule('${module.id}')"><i class="ti ti-check"></i> 完成此模組</button>
+      <button class="btn-primary btn-auto" onclick="goNextPracticeStep('${module.id}')"><i class="ti ti-arrow-right"></i> 下一步</button>
+    </div>
+  `;
+}
+
 function setPracticeModuleResult(moduleId, text) {
   const el = document.getElementById(`practice-result-${moduleId}`);
   if (el) el.textContent = text;
+}
+
+function setEmotionLevel(moduleId, level) {
+  const module = currentPracticeModuleById[moduleId];
+  if (module) module.selectedLevel = level;
+  setPracticeModuleResult(moduleId, `目前強度：${level}。接著寫下情緒名稱與身體感受，系統會整理下一步。`);
+}
+
+function completeEmotionAwareness(moduleId) {
+  const module = currentPracticeModuleById[moduleId];
+  const emotion = document.getElementById(`emotion-name-${moduleId}`)?.value.trim();
+  const body = document.getElementById(`emotion-body-${moduleId}`)?.value.trim();
+  const level = module?.selectedLevel || '未選';
+  if (!emotion || !body) {
+    setPracticeModuleResult(moduleId, '請先寫下情緒名稱與身體感受，覺察才會完整。');
+    return;
+  }
+  const advice = `你辨識到「${emotion}」，身體感受在「${body}」，強度是「${level}」。下一步先做一個低壓力調節：慢吐氣 3 次，然後只選一件最小任務。`;
+  setPracticeModuleResult(moduleId, advice);
+  completePracticeModule(moduleId, false);
+  syncToBackend('情緒覺察練習', { 情緒: emotion, 身體感受: body, 強度: level });
+}
+
+function completeInputPractice(moduleId, resultText) {
+  const value = document.getElementById(`practice-input-${moduleId}`)?.value.trim();
+  if (!value) {
+    setPracticeModuleResult(moduleId, '請先寫下你的版本，再完成這一步。');
+    return;
+  }
+  setPracticeModuleResult(moduleId, `${resultText} 你寫下的是：「${value}」`);
+  completePracticeModule(moduleId, false);
+}
+
+function completePracticeModule(moduleId, shouldNavigate = false) {
+  const module = currentPracticeModuleById[moduleId];
+  if (!module) return;
+  if (!module.completed) {
+    module.completed = true;
+    addCompleteTask(`系統內練習：${module.title}`);
+  }
+  const panel = document.getElementById(`practice-panel-${moduleId}`);
+  panel?.classList.add('module-completed');
+  if (shouldNavigate) goNextPracticeStep(moduleId);
+}
+
+function goNextPracticeStep(moduleId) {
+  completePracticeModule(moduleId, false);
+  const idx = currentPracticeModules.findIndex(module => module.id === moduleId);
+  const next = currentPracticeModules[idx + 1];
+  if (next) {
+    activatePracticeModule(next.id);
+    return;
+  }
+  goPage(3);
 }
 
 function pickPracticeChoice(moduleId, idx) {
@@ -3501,17 +3623,20 @@ async function submitReport() {
     recent_actions: currentUser?.recentActions || []
   });
   const analysis = res?.insight || res?.summary || res?.analysis || `AI 分析：你已經把學習內容帶到現實行動中。接下來可以先保留最容易完成的一個任務，明天再逐步增加難度。你提到的「${reportText.slice(0, 36)}${reportText.length > 36 ? '...' : ''}」會被納入下一輪任務調整。`;
-  if (result) {
-    result.innerHTML = `<strong><i class="ti ti-sparkles"></i> 完整成果報告</strong><br>${escapeHtml(analysis)}`;
-  }
+  let reportRecord = null;
   if (currentUser) {
     if (!currentUser.completedLearningReports) currentUser.completedLearningReports = [];
-    currentUser.completedLearningReports.push({
+    reportRecord = {
       course: currentActiveLesson?.title || currentUser.inProgressCourse?.title || '',
       report: reportText,
       analysis,
+      practiceModules: currentPracticeModules.map(module => module.title),
+      completedCoursesCount: currentUser.completedCourses?.length || 0,
+      tasksCompleted: currentUser.tasksCompleted || 0,
+      badges: currentUser.badges || 0,
       completed_at: new Date().toISOString()
-    });
+    };
+    currentUser.completedLearningReports.push(reportRecord);
     currentUser.completedLearningReports = currentUser.completedLearningReports.slice(-8);
     if (currentUser.inProgressCourse) {
       currentUser.inProgressCourse.stage = 'completed';
@@ -3520,11 +3645,12 @@ async function submitReport() {
     persistCurrentUser();
     updateDashboardContinueCourse();
   }
-  const insightHtml = `<div class="insight-item mb-7"><div class="insight-dot" style="background:var(--success)"></div><div class="insight-text">${escapeHtml(analysis)}</div></div>`;
+  const insightHtml = renderOutcomeSummary(reportRecord || { analysis, report: reportText });
   const dynamic = document.getElementById('dynamic-insight-container');
   const dash = document.getElementById('dash-daily-insight-container');
+  if (result) result.innerHTML = insightHtml;
   if (dynamic) dynamic.innerHTML = insightHtml;
-  if (dash) dash.innerHTML = insightHtml;
+  if (dash) dash.innerHTML = renderOutcomeSummary(reportRecord || { analysis, report: reportText }, { compact: true });
 }
 
 // ==========================================

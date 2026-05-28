@@ -705,8 +705,52 @@ button { cursor: pointer; }
   background: var(--panel-soft);
 }
 
+.practice-card-regulation {
+  background: #f4fbff;
+  border-color: rgba(90,174,255,.28);
+}
+.practice-card-course {
+  background: #fff;
+  border-color: rgba(31,156,141,.22);
+}
+.practice-card-action {
+  background: #f2fbf7;
+  border-color: rgba(47,177,118,.3);
+}
+.practice-card-reflection {
+  background: #fff8e7;
+  border-color: rgba(242,165,26,.34);
+}
+.mini-practice-regulation { background: #eef8ff; }
+.mini-practice-course { background: #f4fbf9; }
+.mini-practice-action { background: #effaf5; }
+.mini-practice-reflection { background: #fff6dc; }
+
 .practice-module-head {
   margin-bottom: 10px;
+}
+.practice-role-regulation .section-label i { color: var(--info); }
+.practice-role-course .section-label i { color: var(--brand); }
+.practice-role-action .section-label i { color: var(--success); }
+.practice-role-reflection .section-label i { color: var(--warning); }
+.module-completed .practice-module-head::after {
+  content: "已完成";
+  display: inline-flex;
+  margin-top: 8px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: #166534;
+  background: #dcfce7;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.practice-flow-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
 }
 
 .emotion-scale {
@@ -747,6 +791,44 @@ button { cursor: pointer; }
   color: var(--brand);
   background: #fff;
   font-size: 22px;
+}
+
+.outcome-summary {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
+}
+.outcome-summary.compact {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.outcome-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+.outcome-stat {
+  padding: 12px 10px;
+  border-radius: 16px;
+  background: var(--panel-soft);
+  border: 1px solid var(--line);
+}
+.outcome-stat strong {
+  display: block;
+  color: var(--brand);
+  font-size: 22px;
+  line-height: 1;
+}
+.outcome-stat span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+@media (max-width: 560px) {
+  .outcome-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 .meta-col { flex: 1; min-width: 160px; }
