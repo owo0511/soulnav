@@ -698,6 +698,13 @@ button { cursor: pointer; }
 .navi-row i { color: var(--brand); font-size: 22px; }
 .navi-text { color: var(--muted); line-height: 1.6; }
 
+.mini-practice-box {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel-soft);
+}
+
 .meta-col { flex: 1; min-width: 160px; }
 .meta-label {
   display: block;
