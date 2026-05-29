@@ -151,15 +151,18 @@
     <h2>SoulNav 登入</h2>
     <p>紀錄你的專屬情緒旅程與連續打卡天數</p>
     <div class="login-tabs">
-      <button class="login-tab active" id="tab-new" onclick="switchLoginMode('new')">第一次使用</button>
-      <button class="login-tab" id="tab-old" onclick="switchLoginMode('old')">已有專屬 ID</button>
+      <button class="login-tab active" id="tab-new" onclick="switchLoginMode('new')">註冊</button>
+      <button class="login-tab" id="tab-old" onclick="switchLoginMode('old')">登入</button>
     </div>
     <div id="login-new-area">
       <input type="text" id="reg-name" class="login-input" placeholder="請輸入你的名字或暱稱">
-      <button class="btn-primary" onclick="registerUser()"><i class="ti ti-user-plus"></i> 產生專屬 ID 並進入</button>
+      <input type="text" id="reg-account" class="login-input" placeholder="設定登入帳號">
+      <input type="password" id="reg-password" class="login-input" placeholder="設定登入密碼">
+      <button class="btn-primary" onclick="registerUser()"><i class="ti ti-user-plus"></i> 註冊並進入</button>
     </div>
     <div id="login-old-area" style="display: none;">
-      <input type="text" id="login-id-input" class="login-input" placeholder="例如：LMS0001">
+      <input type="text" id="login-account-input" class="login-input" placeholder="請輸入帳號">
+      <input type="password" id="login-password-input" class="login-input" placeholder="請輸入密碼">
       <button class="btn-primary" onclick="loginUser()"><i class="ti ti-login"></i> 登入系統</button>
     </div>
   </div>
@@ -767,6 +770,7 @@ const AI_VIA_TRACK_ONLY = false;
 
 let usersDB = JSON.parse(localStorage.getItem('soulnav_users')) || {};
 let currentUser = null;
+let userSyncTimer = null;
 let currentMoodScore = 3;
 let currentMoodText = "普普"; 
 let aiSteps = [];
@@ -835,7 +839,114 @@ function persistCurrentUser() {
   if (!currentUser?.id) return;
   usersDB[currentUser.id] = currentUser;
   localStorage.setItem('soulnav_users', JSON.stringify(usersDB));
+  scheduleUserSync();
 }
+
+function syncCurrentUserToBackend(options = {}) {
+  if (!currentUser?.id || !CLOUD_BASE_URL) return;
+  const payload = JSON.stringify(currentUser);
+  if (options.beacon && navigator.sendBeacon) {
+    const blob = new Blob([payload], { type: 'application/json' });
+    navigator.sendBeacon(`${CLOUD_BASE_URL}/api/user/register`, blob);
+    return;
+  }
+  fetch(`${CLOUD_BASE_URL}/api/user/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: payload,
+    keepalive: !!options.keepalive
+  }).catch(e => console.log('使用者進度同步失敗:', e));
+}
+
+function scheduleUserSync() {
+  if (!currentUser?.id) return;
+  if (userSyncTimer) clearTimeout(userSyncTimer);
+  userSyncTimer = setTimeout(() => {
+    userSyncTimer = null;
+    syncCurrentUserToBackend();
+  }, 400);
+}
+
+function normalizeUser(rawUser = {}) {
+  const id = rawUser.id || rawUser.user_id || '';
+  const user = {
+    id,
+    account: rawUser.account || rawUser.username || '',
+    name: rawUser.name || rawUser.nickname || rawUser.account || '使用者',
+    streak: rawUser.streak || 1,
+    lastLogin: rawUser.lastLogin || rawUser.last_login || null,
+    badges: rawUser.badges || 0,
+    tasksCompleted: rawUser.tasksCompleted || rawUser.tasks_completed || 0,
+    moodHistory: rawUser.moodHistory || rawUser.mood_history || [],
+    recentActions: rawUser.recentActions || rawUser.recent_actions || [],
+    recommendedTopics: rawUser.recommendedTopics || rawUser.recommended_topics || [],
+    recommendationSnapshot: rawUser.recommendationSnapshot || rawUser.recommendation_snapshot || null,
+    inProgressCourse: rawUser.inProgressCourse || rawUser.in_progress_course || null,
+    completedCourses: rawUser.completedCourses || rawUser.completed_courses || [],
+    completedLearningReports: rawUser.completedLearningReports || rawUser.completed_learning_reports || [],
+    recommendationContextKey: rawUser.recommendationContextKey || rawUser.recommendation_context_key || null,
+    practiceHistory: rawUser.practiceHistory || rawUser.practice_history || []
+  };
+  return { ...rawUser, ...user };
+}
+
+function getCachedUserForLogin(user = {}) {
+  if (user.id && usersDB[user.id]) return usersDB[user.id];
+  const account = String(user.account || '').toLowerCase();
+  return Object.values(usersDB).find(item => String(item.account || '').toLowerCase() === account) || null;
+}
+
+function latestObjectByTime(a, b, key = 'updatedAt') {
+  if (!a) return b || null;
+  if (!b) return a || null;
+  const at = Date.parse(a[key] || a.completed_at || a.createdAt || 0) || 0;
+  const bt = Date.parse(b[key] || b.completed_at || b.createdAt || 0) || 0;
+  return bt > at ? b : a;
+}
+
+function mergeUniqueByTitle(primary = [], secondary = []) {
+  const map = new Map();
+  [...primary, ...secondary].forEach(item => {
+    if (!item) return;
+    const key = item.title || item.course || JSON.stringify(item);
+    const existing = map.get(key);
+    map.set(key, latestObjectByTime(existing, item, 'completed_at'));
+  });
+  return Array.from(map.values());
+}
+
+function mergeUserRecords(serverUser = {}, cachedUser = {}) {
+  const server = normalizeUser(serverUser);
+  const cached = cachedUser ? normalizeUser(cachedUser) : {};
+  if (!cached?.id) return server;
+  const merged = {
+    ...server,
+    account: server.account || cached.account,
+    name: server.name || cached.name,
+    streak: Math.max(server.streak || 0, cached.streak || 0, 1),
+    badges: Math.max(server.badges || 0, cached.badges || 0),
+    tasksCompleted: Math.max(server.tasksCompleted || 0, cached.tasksCompleted || 0),
+    lastLogin: latestObjectByTime({ updatedAt: server.lastLogin }, { updatedAt: cached.lastLogin })?.updatedAt || server.lastLogin || cached.lastLogin,
+    moodHistory: (cached.moodHistory?.length || 0) > (server.moodHistory?.length || 0) ? cached.moodHistory : server.moodHistory,
+    recentActions: (cached.recentActions?.length || 0) > (server.recentActions?.length || 0) ? cached.recentActions : server.recentActions,
+    recommendedTopics: (cached.recommendedTopics?.length || 0) > (server.recommendedTopics?.length || 0) ? cached.recommendedTopics : server.recommendedTopics,
+    recommendationSnapshot: cached.recommendationSnapshot || server.recommendationSnapshot,
+    inProgressCourse: latestObjectByTime(server.inProgressCourse, cached.inProgressCourse, 'updatedAt'),
+    completedCourses: mergeUniqueByTitle(server.completedCourses, cached.completedCourses),
+    completedLearningReports: [...(server.completedLearningReports || []), ...(cached.completedLearningReports || [])]
+      .filter(Boolean)
+      .slice(-12),
+    practiceHistory: [...(server.practiceHistory || []), ...(cached.practiceHistory || [])]
+      .filter(Boolean)
+      .slice(-30),
+    recommendationContextKey: cached.recommendationContextKey || server.recommendationContextKey
+  };
+  return normalizeUser(merged);
+}
+
+window.addEventListener('beforeunload', () => {
+  syncCurrentUserToBackend({ beacon: true, keepalive: true });
+});
 
 async function fetchWithTimeout(url, options = {}, timeoutMs = 12000) {
   const controller = new AbortController();
@@ -976,10 +1087,11 @@ function escapeHtml(text) {
 function topicIconByTitle(title) {
   const t = String(title || '');
   if (t.includes('呼吸') || t.includes('情緒調節') || t.includes('焦慮')) return 'ti ti-wind';
-  if (t.includes('壓力') || t.includes('考') || t.includes('讀書')) return 'ti ti-notebook';
+  if (t.includes('社交') || t.includes('溝通') || t.includes('報告')) return 'ti ti-messages';
+  if (t.includes('睡眠') || t.includes('睡前') || t.includes('恢復')) return 'ti ti-moon';
   if (t.includes('拖延') || t.includes('番茄') || t.includes('手機')) return 'ti ti-clock';
   if (t.includes('挑戰') || t.includes('行為') || t.includes('習慣')) return 'ti ti-sword';
-  if (t.includes('社交') || t.includes('溝通') || t.includes('報告')) return 'ti ti-messages';
+  if (t.includes('壓力') || t.includes('考') || t.includes('讀書')) return 'ti ti-notebook';
   return 'ti ti-book';
 }
 
@@ -990,10 +1102,33 @@ function difficultyToTone(difficulty) {
   return 'info';
 }
 
+function canonicalCourseByKind(kind) {
+  const normalizedKind = kind || 'emotion';
+  return COURSE_CATALOG.find(course => getCourseKind(course) === normalizedKind) || COURSE_CATALOG[0];
+}
+
+function canonicalizeTopic(rawTopic) {
+  const topic = rawTopic || {};
+  const allowedKinds = ['emotion', 'study', 'social', 'procrastination', 'sleep', 'focus'];
+  const kind = allowedKinds.includes(topic.kind) ? topic.kind : getCourseKind(topic);
+  const canonical = canonicalCourseByKind(kind);
+  return {
+    ...topic,
+    icon: canonical.icon,
+    title: canonical.title,
+    reason: topic.reason || canonical.reason,
+    difficulty: topic.difficulty || canonical.difficulty || '推薦',
+    tone: topic.tone || canonical.tone || difficultyToTone(topic.difficulty),
+    tags: canonical.tags || topic.tags || [],
+    kind,
+    lessonDetail: getLessonTemplate({ ...canonical, kind })
+  };
+}
+
 function normalizeTopicItem(raw) {
   if (!raw) return null;
   if (typeof raw === 'string') {
-    return {
+    return canonicalizeTopic({
       icon: topicIconByTitle(raw),
       title: raw,
       reason: '',
@@ -1002,7 +1137,7 @@ function normalizeTopicItem(raw) {
       tags: [],
       kind: getCourseKind(raw),
       lessonDetail: null
-    };
+    });
   }
   const title = raw.title || raw.name || raw.topic || '';
   if (!title) return null;
@@ -1010,7 +1145,7 @@ function normalizeTopicItem(raw) {
   const tags = raw.emotional_tags || raw.emotion_tags || raw.tags || [];
   const normalizedTags = Array.isArray(tags) ? tags : [String(tags)];
   const reason = raw.reason || raw.recommendation_reason || raw.why || raw.desc || '';
-  return {
+  return canonicalizeTopic({
     icon: raw.icon || topicIconByTitle(title),
     title,
     reason,
@@ -1019,7 +1154,7 @@ function normalizeTopicItem(raw) {
     tags: normalizedTags,
     kind: getCourseKind({ title, reason, tags: normalizedTags, kind: raw.kind || raw.course_kind }),
     lessonDetail: raw.lessonDetail || raw.lesson_detail || raw.activity || null
-  };
+  });
 }
 
 function parseTopicsFromResponse(res) {
@@ -1053,17 +1188,18 @@ function parseTopicsFromResponse(res) {
 
 function saveRecommendedTopics(topics, contextPayload = buildAiContextPayload()) {
   if (!currentUser || !topics?.length) return;
-  currentUser.recommendedTopics = topics;
+  const normalizedTopics = topics.map(canonicalizeTopic);
+  currentUser.recommendedTopics = normalizedTopics;
   currentUser.recommendedTopicsAt = new Date().toISOString();
   currentUser.recommendationContextKey = buildAiContextKey(contextPayload);
   currentUser.recommendationSnapshot = {
-    topics,
+    topics: normalizedTopics,
     contextKey: currentUser.recommendationContextKey,
     createdAt: currentUser.recommendedTopicsAt
   };
   persistCurrentUser();
-  updateCoreRecommendationText(topics);
-  renderRecommendedTopics(topics);
+  updateCoreRecommendationText(normalizedTopics);
+  renderRecommendedTopics(normalizedTopics);
   renderAdaptiveLessonList();
 }
 
@@ -1099,46 +1235,59 @@ function switchLoginMode(mode) {
   document.getElementById('login-old-area').style.display = mode === 'old' ? 'block' : 'none';
 }
 
-function registerUser() {
+async function registerUser() {
   const name = document.getElementById('reg-name').value.trim();
+  const account = document.getElementById('reg-account').value.trim();
+  const password = document.getElementById('reg-password').value;
   if (!name) { alert("請輸入名字！"); return; }
-  
-  // 1. 防止重複 ID
-  let newNum = Object.keys(usersDB).length + 1;
-  let newId = 'LMS' + String(newNum).padStart(4, '0');
-  while(usersDB[newId]) {
-    newNum++;
-    newId = 'LMS' + String(newNum).padStart(4, '0');
-  }
+  if (!account) { alert("請設定登入帳號！"); return; }
+  if (password.length < 6) { alert("密碼至少需要 6 個字元。"); return; }
 
-  // 5-2 & 6: streak 預設 1, badges 預設 0, tasksCompleted 預設 0
-  currentUser = { 
-    id: newId, 
-    name: name, 
-    streak: 1, 
-    lastLogin: null, 
-    badges: 0, 
-    tasksCompleted: 0,
-    moodHistory: [],
-    recentActions: [],
-    recommendedTopics: [],
-    recommendationSnapshot: null,
-    inProgressCourse: null,
-    completedCourses: [],
-    completedLearningReports: [],
-    recommendationContextKey: null
-  };
-  
-  usersDB[newId] = currentUser;
-  localStorage.setItem('soulnav_users', JSON.stringify(usersDB));
-  alert(`註冊成功！\n你的專屬 ID 是：${newId}\n(請務必記住此 ID 供日後登入)`);
-  updateStreakAndLogin();
+  try {
+    const res = await fetchWithTimeout(`${CLOUD_BASE_URL}/api/user/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, account, password })
+    }, 15000);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.status === 'error') {
+      throw new Error(data.message || '註冊失敗');
+    }
+
+    currentUser = normalizeUser(data.user || data);
+    persistCurrentUser();
+    alert(`註冊成功！\n你的帳號是：${currentUser.account || account}\n系統 ID：${currentUser.id}`);
+    updateStreakAndLogin();
+  } catch (e) {
+    alert(`註冊失敗：${e.message || '請確認後端已啟動'}`);
+  }
 }
 
-function loginUser() {
-  const id = document.getElementById('login-id-input').value.trim().toUpperCase();
-  if (usersDB[id]) { currentUser = usersDB[id]; updateStreakAndLogin(); } 
-  else { alert("找不到這個 ID 喔！"); }
+async function loginUser() {
+  const account = document.getElementById('login-account-input').value.trim();
+  const password = document.getElementById('login-password-input').value;
+  if (!account) { alert("請輸入帳號！"); return; }
+  if (!password) { alert("請輸入密碼！"); return; }
+
+  try {
+    const res = await fetchWithTimeout(`${CLOUD_BASE_URL}/api/user/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ account, password })
+    }, 15000);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.status === 'error') {
+      throw new Error(data.message || '登入失敗');
+    }
+
+    const serverUser = normalizeUser(data.user || data);
+    const cachedUser = getCachedUserForLogin(serverUser);
+    currentUser = mergeUserRecords(serverUser, cachedUser);
+    persistCurrentUser();
+    updateStreakAndLogin();
+  } catch (e) {
+    alert(`登入失敗：${e.message || '請確認帳號密碼或後端連線'}`);
+  }
 }
 
 async function updateStreakAndLogin() {
@@ -1156,8 +1305,7 @@ async function updateStreakAndLogin() {
       currentUser.streak = 1;
     }
     currentUser.lastLogin = today;
-    usersDB[currentUser.id] = currentUser;
-    localStorage.setItem('soulnav_users', JSON.stringify(usersDB));
+    persistCurrentUser();
   }
   
   // 確保陣列存在
@@ -1467,17 +1615,18 @@ function difficultyToneToChip(tone) {
 }
 
 function topicToLesson(topic, index = 0, status = '推薦') {
-  const kind = getCourseKind(topic);
+  const normalizedTopic = canonicalizeTopic(topic);
+  const kind = getCourseKind(normalizedTopic);
   return {
-    title: topic.title,
-    sub: `${topic.difficulty || status} · ${topic.reason || '依照目前狀態推薦'}`,
-    icon: topic.icon || 'ti ti-book',
-    tone: topic.tone || 'info',
-    tags: topic.tags || [],
-    reason: topic.reason || '這堂課會跟著你目前的情緒與壓力來源調整。',
+    title: normalizedTopic.title,
+    sub: `${normalizedTopic.difficulty || status} · ${normalizedTopic.reason || '依照目前狀態推薦'}`,
+    icon: normalizedTopic.icon || 'ti ti-book',
+    tone: normalizedTopic.tone || 'info',
+    tags: normalizedTopic.tags || [],
+    reason: normalizedTopic.reason || '這堂課會跟著你目前的情緒與壓力來源調整。',
     kind,
     status: index === 0 && status === '推薦' ? '進行中' : status,
-    lessonDetail: topic.lessonDetail || getLessonTemplate({ ...topic, kind }),
+    lessonDetail: normalizedTopic.lessonDetail || getLessonTemplate({ ...normalizedTopic, kind }),
     sourceTopic: topic
   };
 }
@@ -1509,7 +1658,24 @@ function getLessonTemplate(topic = {}) {
         quizOptions: ['A. 先做一輪慢吸慢吐，讓身體降速', 'B. 逼自己立刻讀完整個章節', 'C. 一邊自責一邊繼續滑手機'],
         correctIndex: 0,
         success: '正確！先穩住身體，才比較能回到可行的行動。',
-        danger: '焦慮高時，第一步應該先降低身體警報。'
+        danger: '焦慮高時，第一步應該先降低身體警報。',
+        quizBank: [
+          {
+            question: '考前焦慮升高時，最適合先做什麼？',
+            options: ['做一輪 4-7-8 呼吸，讓身體降速', '立刻要求自己讀完整章', '責怪自己為什麼又緊張'],
+            correctIndex: 0
+          },
+          {
+            question: '情緒調節的主要目的比較接近哪一個？',
+            options: ['把身體警報降到可以開始行動', '強迫自己不能有負面情緒', '完全避開所有壓力來源'],
+            correctIndex: 0
+          },
+          {
+            question: '讀書前身體很緊繃時，哪個順序較合適？',
+            options: ['先穩定呼吸，再選一個小範圍開始', '直接硬讀到情緒消失', '先滑手機等自己變冷靜'],
+            correctIndex: 0
+          }
+        ]
       }
     },
     {
@@ -1529,7 +1695,24 @@ function getLessonTemplate(topic = {}) {
         quizOptions: ['A. 我想先說一個重點，講慢一點可以嗎？', 'B. 如果大家不喜歡，我就直接不講了', 'C. 一直猜同學會不會覺得我很怪'],
         correctIndex: 0,
         success: '正確！先講出可掌控的開場，能降低社交壓力。',
-        danger: '這題的重點是先找到低風險、可掌控的表達方式。'
+        danger: '這題的重點是先找到低風險、可掌控的表達方式。',
+        quizBank: [
+          {
+            question: '社交焦慮時，哪一句最像安全開場？',
+            options: ['我想先確認一個地方，可以問你一下嗎？', '算了我不要講，反正一定很怪', '如果你不喜歡就當我沒說'],
+            correctIndex: 0
+          },
+          {
+            question: '安全表達練習的重點是什麼？',
+            options: ['先用低風險方式開始，不追求一次完美', '完全猜出別人心裡在想什麼', '只要緊張就立刻逃開'],
+            correctIndex: 0
+          },
+          {
+            question: '上台前最能降低開口阻力的方法是？',
+            options: ['先寫好第一句話並放慢速度', '一直想像大家批評的畫面', '等到完全不緊張才開始'],
+            correctIndex: 0
+          }
+        ]
       }
     },
     {
@@ -1549,7 +1732,24 @@ function getLessonTemplate(topic = {}) {
         quizOptions: ['A. 先整理今天只讀 10 分鐘的範圍', 'B. 要求自己今晚讀完整章', 'C. 想到讀不完就先滑手機'],
         correctIndex: 0,
         success: '正確！把任務切小，能讓壓力從「威脅」變成「可開始」。',
-        danger: '這題要找的是最小可行步驟，不是一次把所有壓力扛完。'
+        danger: '這題要找的是最小可行步驟，不是一次把所有壓力扛完。',
+        quizBank: [
+          {
+            question: '學業壓力很大時，哪個做法最能幫助開始？',
+            options: ['把今天目標縮成 10 分鐘可以完成的一小段', '要求自己一次補完全部進度', '先不要看任務，等壓力自己消失'],
+            correctIndex: 0
+          },
+          {
+            question: '微計畫的第一步應該長什麼樣子？',
+            options: ['小到現在願意開始，而且很具體', '越大越好，才有成就感', '只寫「我要努力」就好'],
+            correctIndex: 0
+          },
+          {
+            question: '看到很多要讀的內容時，哪個反應比較符合壓力因應？',
+            options: ['先分出可控制的一小塊', '把所有內容同時打開逼自己看', '滑手機讓自己暫時忘記'],
+            correctIndex: 0
+          }
+        ]
       }
     },
     {
@@ -1569,7 +1769,24 @@ function getLessonTemplate(topic = {}) {
         quizOptions: ['A. 睡前 20 分鐘放下手機，做 3 回合慢吐氣', 'B. 熬夜補完所有進度', 'C. 越焦慮越一直刷新訊息'],
         correctIndex: 0,
         success: '正確！先讓身體降速，明天的專注才有機會回來。',
-        danger: '睡眠壓力高時，先恢復身體狀態，比硬撐更適合。'
+        danger: '睡眠壓力高時，先恢復身體狀態，比硬撐更適合。',
+        quizBank: [
+          {
+            question: '睡眠壓力高時，今晚最適合先做什麼？',
+            options: ['睡前放遠手機，做幾回合慢吐氣', '熬夜把所有事情做完', '一直刷新訊息直到想睡'],
+            correctIndex: 0
+          },
+          {
+            question: '睡前降速練習想處理的是什麼？',
+            options: ['降低身體與螢幕刺激，讓恢復模式啟動', '讓自己立刻完成更多任務', '把焦慮完全壓下去不去感覺'],
+            correctIndex: 0
+          },
+          {
+            question: '睡不好隔天讀書時，哪個策略比較合適？',
+            options: ['用短回合和高休息密度恢復專注', '排滿三小時不休息', '因為睡不好所以完全放棄'],
+            correctIndex: 0
+          }
+        ]
       }
     },
     {
@@ -1589,7 +1806,24 @@ function getLessonTemplate(topic = {}) {
         quizOptions: ['A. 作業還沒開始，先滑 10 分鐘 IG「冷靜一下」', 'B. 寫不出來，先去散步 5 分鐘再回來', 'C. 先做最簡單的第一題暖身'],
         correctIndex: 0,
         success: '正確！這就是多巴胺陷阱的核心。',
-        danger: '這其實是多巴胺陷阱喔！大腦只是想逃避壓力。'
+        danger: '這其實是多巴胺陷阱喔！大腦只是想逃避壓力。',
+        quizBank: [
+          {
+            question: '哪個行為最像多巴胺陷阱式拖延？',
+            options: ['作業還沒開始，先滑短影音冷靜一下', '先打開檔案做五分鐘', '先整理第一個小步驟'],
+            correctIndex: 0
+          },
+          {
+            question: '番茄鐘微承諾的重點是什麼？',
+            options: ['先承諾一小段時間，降低啟動阻力', '一次完成整份作業才算開始', '等到很有動力再行動'],
+            correctIndex: 0
+          },
+          {
+            question: '拖延當下最適合的開始方式是？',
+            options: ['只做五分鐘，先碰到任務本身', '先滑手機找靈感', '先想像如果做不好會怎樣'],
+            correctIndex: 0
+          }
+        ]
       }
     },
     {
@@ -1609,7 +1843,24 @@ function getLessonTemplate(topic = {}) {
         quizOptions: ['A. 設定一輪明確目標與休息時間', 'B. 一次排滿三小時不休息', 'C. 沒有計畫，想到什麼做什麼'],
         correctIndex: 0,
         success: '正確！穩定狀態適合用節奏延續，而不是靠硬撐。',
-        danger: '穩定時也需要節奏，才不容易用力過猛。'
+        danger: '穩定時也需要節奏，才不容易用力過猛。',
+        quizBank: [
+          {
+            question: '狀態穩定時，最適合怎麼維持專注？',
+            options: ['設定專注回合與休息時間', '一路硬撐到累了為止', '完全不安排，想到什麼做什麼'],
+            correctIndex: 0
+          },
+          {
+            question: '專注節奏維持最想避免哪件事？',
+            options: ['過度用力後反彈', '有休息時間', '目標太清楚'],
+            correctIndex: 0
+          },
+          {
+            question: '一輪專注開始前，最適合先確認什麼？',
+            options: ['本輪唯一目標', '今天所有還沒做完的事', '自己會不會永遠做不好'],
+            correctIndex: 0
+          }
+        ]
       }
     }
   ];
@@ -1742,11 +1993,45 @@ function renderAdaptiveLessonList() {
   }).join('');
 }
 
+function stripQuizLabel(option) {
+  return String(option || '').replace(/^[A-ZＡ-Ｚ][.．、]\s*/, '').trim();
+}
+
+function shuffleItems(items = []) {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function pickLessonQuiz(detail = {}) {
+  const fallbackQuiz = {
+    question: detail.quizQuestion || '今天最適合的學習策略是什麼？',
+    options: detail.quizOptions || ['先用小步驟開始，再依狀態調整', '一次要求自己完成所有事情', '不舒服時完全忽略情緒'],
+    correctIndex: detail.correctIndex ?? 0
+  };
+  const bank = Array.isArray(detail.quizBank) && detail.quizBank.length ? detail.quizBank : [fallbackQuiz];
+  const quiz = bank[Math.floor(Math.random() * bank.length)] || fallbackQuiz;
+  const options = (quiz.options || fallbackQuiz.options).map((option, idx) => ({
+    text: stripQuizLabel(option),
+    correct: idx === (quiz.correctIndex ?? 0)
+  }));
+  const shuffled = shuffleItems(options).slice(0, 3);
+  return {
+    question: quiz.question || fallbackQuiz.question,
+    options: shuffled.map((option, idx) => `${String.fromCharCode(65 + idx)}. ${option.text}`),
+    correctIndex: shuffled.findIndex(option => option.correct)
+  };
+}
+
 function applyLessonDetail(index = 0, overrideLesson = null) {
   const rawLesson = overrideLesson || buildAdaptiveLessonItems()[index] || buildAdaptiveLessonItems()[0];
   const lesson = rawLesson ? { ...rawLesson, kind: rawLesson.kind || getCourseKind(rawLesson) } : null;
   if (!lesson) return;
   const detail = getLessonTemplate(lesson);
+  const activeQuiz = pickLessonQuiz(detail);
   currentActiveLesson = lesson;
 
   const pageTitle = document.getElementById('lesson-page-title');
@@ -1766,7 +2051,7 @@ function applyLessonDetail(index = 0, overrideLesson = null) {
   if (desc) desc.textContent = lesson.reason;
   if (prompt) prompt.innerHTML = detail.prompt || '';
   if (solution) solution.innerHTML = detail.solution || lesson.reason;
-  if (quizQuestion) quizQuestion.textContent = detail.quizQuestion || '今天最適合的學習策略是什麼？';
+  if (quizQuestion) quizQuestion.textContent = activeQuiz.question;
 
   (detail.choices || []).slice(0, 3).forEach((choice, i) => {
     const btn = document.getElementById(`lesson-choice-${i}`);
@@ -1780,13 +2065,14 @@ function applyLessonDetail(index = 0, overrideLesson = null) {
     if (a) a.innerHTML = card[1];
   });
 
-  (detail.quizOptions || []).slice(0, 3).forEach((option, i) => {
+  activeQuiz.options.forEach((option, i) => {
     const btn = document.getElementById(`lesson-quiz-${i}`);
     if (btn) {
       btn.textContent = option;
       btn.disabled = false;
       btn.classList.remove('correct', 'wrong');
-      btn.setAttribute('onclick', `ansQ(this,${i === (detail.correctIndex ?? 0)},'q1')`);
+      btn.dataset.correct = String(i === activeQuiz.correctIndex);
+      btn.setAttribute('onclick', `ansQ(this,${i === activeQuiz.correctIndex},'q1')`);
     }
   });
 
@@ -1841,7 +2127,8 @@ function renderTopicCards(targetId, topics, options = {}) {
 }
 
 function renderRecommendedTopics(topics) {
-  renderTopicCards('emotion-reco-list', topics, {
+  const normalizedTopics = (topics || []).map(canonicalizeTopic);
+  renderTopicCards('emotion-reco-list', normalizedTopics, {
     emptyText: '目前尚無推薦主題，請先完成情緒評估。',
     clickable: true,
     clickHandler: 'openRecommendedCourse',
@@ -2056,8 +2343,7 @@ function addCompleteTask(taskName) {
     alert(`🎉 太棒了！你完成了 5 個任務，獲得 1 枚新勳章！\n目前勳章數：${currentUser.badges} / 10`);
   }
   
-  usersDB[currentUser.id] = currentUser;
-  localStorage.setItem('soulnav_users', JSON.stringify(usersDB));
+  persistCurrentUser();
   updateUI();
   updateBehaviorList();
   syncToBackend("完成任務", { 項目: taskName });
@@ -2191,8 +2477,7 @@ async function runGeminiAI() {
   // 紀錄圖表資料
   currentUser.moodHistory.push({ date: new Date().toLocaleDateString('zh-TW').slice(5), score: 6 - currentMoodScore });
   if(currentUser.moodHistory.length > 7) currentUser.moodHistory.shift();
-  usersDB[currentUser.id] = currentUser;
-  localStorage.setItem('soulnav_users', JSON.stringify(usersDB));
+  persistCurrentUser();
   updateMoodChart();
 
   document.getElementById('p0-input').style.display = 'none';
@@ -2374,7 +2659,10 @@ function handleCourseNextAction() {
 function ansQ(btn, correct, qid) {
   btn.closest('.card').querySelectorAll('.quiz-opt').forEach(b => b.disabled = true);
   btn.classList.add(correct ? 'correct' : 'wrong');
-  if (!correct) btn.closest('.card').querySelectorAll('.quiz-opt')[0].classList.add('correct');
+  if (!correct) {
+    const correctBtn = btn.closest('.card').querySelector('.quiz-opt[data-correct="true"]');
+    if (correctBtn) correctBtn.classList.add('correct');
+  }
   
   const r = document.getElementById(qid + 'res');
   r.style.display = 'block';
@@ -2405,10 +2693,10 @@ function getCourseKind(input = currentActiveLesson || '') {
   const fullText = `${titleText} ${reason || ''} ${tags}`;
 
   if (hasAnyKeyword(titleText, ['情緒調節', '情緒覺察', '4-7-8', '呼吸放鬆', '冷靜'])) return 'emotion';
-  if (hasAnyKeyword(titleText, ['學業壓力', '壓力因應', '壓力應對', '微計畫', '讀書', '考試', '報告壓力'])) return 'study';
-  if (hasAnyKeyword(titleText, ['社交', '溝通', '人際', '上台', '發表', '安全表達', '對話'])) return 'social';
+  if (hasAnyKeyword(titleText, ['睡眠', '睡前', '失眠', '恢復', '休息', '優質睡眠'])) return 'sleep';
   if (hasAnyKeyword(titleText, ['拖延', '番茄', '手機', '行動啟動', '五分鐘'])) return 'procrastination';
-  if (hasAnyKeyword(titleText, ['睡眠', '睡前', '失眠', '恢復', '休息'])) return 'sleep';
+  if (hasAnyKeyword(titleText, ['社交', '溝通', '人際', '上台', '發表', '安全表達', '對話'])) return 'social';
+  if (hasAnyKeyword(titleText, ['學業壓力', '壓力因應', '壓力應對', '微計畫', '讀書', '考試', '報告壓力'])) return 'study';
   if (hasAnyKeyword(titleText, ['專注節奏', '穩定', '進階', '維持', '節奏'])) return 'focus';
 
   if (hasAnyKeyword(fullText, ['睡眠', '睡前', '失眠', '恢復', '休息'])) return 'sleep';
@@ -3096,9 +3384,9 @@ function renderTodayTaskModule(module, ctx) {
 function renderFiveStartModule(module) {
   return `
     <div class="card practice-card-${module.role}">
-      <div class="focus-timer">5:00</div>
+      <div class="focus-timer" id="five-start-timer-${module.id}">5:00</div>
       <p class="body-text">先不用完成，只承諾開始五分鐘。目標是打開檔案、拿出材料或寫下第一句。</p>
-      <button class="btn-primary" onclick="setPracticeModuleResult('${module.id}', '五分鐘開始已啟動：現在只做第一個小動作。')"><i class="ti ti-player-play"></i> 啟動五分鐘</button>
+      <button class="btn-primary" id="five-start-btn-${module.id}" onclick="startFiveMinuteCountdown('${module.id}')"><i class="ti ti-player-play"></i> 啟動五分鐘</button>
       <div class="ai-insight mt-10" id="practice-result-${module.id}">等待啟動。</div>
     </div>
   `;
@@ -3260,6 +3548,7 @@ function pickPracticeChoice(moduleId, idx) {
 // Step 2-0: 呼吸引導 
 // ==========================================
 let breathInterval = null;
+let fiveStartTimers = {};
 let breathPhaseIdx = 0;
 let breathCycleCount = 0;
 const breathPhases = [
@@ -3326,6 +3615,75 @@ function activateNextPracticeModule() {
   const idx = currentPracticeModules.findIndex(module => module.id === activeId);
   const next = currentPracticeModules[idx + 1];
   if (next) activatePracticeModule(next.id);
+}
+
+function formatMinuteCountdown(seconds) {
+  const min = Math.floor(seconds / 60);
+  const sec = String(seconds % 60).padStart(2, '0');
+  return `${min}:${sec}`;
+}
+
+function playCompletionSound() {
+  try {
+    if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const notes = [
+      { frequency: 660, start: 0, duration: 0.16 },
+      { frequency: 880, start: 0.18, duration: 0.2 }
+    ];
+    notes.forEach(note => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = note.frequency;
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime + note.start);
+      gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + note.start + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + note.start + note.duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + note.start);
+      osc.stop(ctx.currentTime + note.start + note.duration + 0.03);
+    });
+    setTimeout(() => ctx.close?.(), 900);
+  } catch (e) {
+    console.log('提醒音播放失敗:', e);
+  }
+}
+
+function startFiveMinuteCountdown(moduleId) {
+  const timerEl = document.getElementById(`five-start-timer-${moduleId}`);
+  const btn = document.getElementById(`five-start-btn-${moduleId}`);
+  if (!timerEl) return;
+
+  if (fiveStartTimers[moduleId]) clearInterval(fiveStartTimers[moduleId]);
+
+  let seconds = 5 * 60;
+  timerEl.textContent = formatMinuteCountdown(seconds);
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-clock-play"></i> 倒數中';
+  }
+  setPracticeModuleResult(moduleId, '五分鐘開始已啟動：現在只做第一個小動作。');
+
+  fiveStartTimers[moduleId] = setInterval(() => {
+    seconds -= 1;
+    timerEl.textContent = formatMinuteCountdown(seconds);
+    if (seconds <= 0) {
+      clearInterval(fiveStartTimers[moduleId]);
+      delete fiveStartTimers[moduleId];
+      timerEl.textContent = '完成';
+      playCompletionSound();
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ti ti-check"></i> 已完成五分鐘';
+      }
+      setPracticeModuleResult(moduleId, '五分鐘完成。你已經跨過最難的啟動點，可以選擇休息一下或進入下一步。');
+      addCompleteTask('完成五分鐘開始法');
+      completePracticeModule(moduleId, false);
+    }
+  }, 1000);
 }
 
 function startCalmCountdown(moduleId) {
