@@ -571,6 +571,8 @@ button { cursor: pointer; }
 .flip-back { transform: rotateY(180deg); }
 .danger-back { background: #fff0f2; color: #ad3340; }
 .success-back { background: #effaf5; color: #168257; }
+.warning-back { background: #fff8e7; color: #8a6200; }
+.info-back { background: #edf7ff; color: #176fb3; }
 .flip-hint { color: var(--muted); font-size: 12px; font-weight: 800; }
 .flip-q, .flip-a { font-weight: 900; line-height: 1.5; }
 

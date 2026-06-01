@@ -367,10 +367,10 @@
                 <button class="mood-btn" data-score="1" onclick="selectMood(this)">😄<span>很開心</span></button>
               </div>
               <div class="mood-behavior-standard-box" id="moodStandardDesc">
-                中度焦慮：心有點靜不下來，手一直想去拿手機滑社群、看通知。
+                普通狀態：情緒沒有特別高低起伏，適合先觀察今天的壓力來源與可行步驟。
               </div>
               <div class="section-label mt-10"><i class="ti ti-writing"></i> 說說發生了什麼</div>
-              <textarea class="mood-textarea" id="moodText" placeholder="隨便說，越具體越好...">明天模考，書還沒讀完，一直想滑手機逃避...</textarea>
+              <textarea class="mood-textarea" id="moodText" placeholder="例如：明天要報告，還沒準備完，有點緊張；或今天心情不錯，想安排一個小目標。"></textarea>
             </div>
 
             <div class="card mb-10">
@@ -1328,7 +1328,7 @@ async function updateStreakAndLogin() {
     const moodDesc = document.getElementById('moodStandardDesc');
     if (moodDesc) moodDesc.textContent = moodStandardMap[currentMoodScore] || moodDesc.textContent;
     const moodText = document.getElementById('moodText');
-    if (moodText && currentUser.lastAssessment.desc) moodText.value = currentUser.lastAssessment.desc;
+    if (moodText) moodText.value = '';
     ['study', 'social', 'sleep'].forEach(type => {
       const key = `${type}_stress`;
       const slider = document.getElementById(`slider-${type}`);
@@ -2415,11 +2415,11 @@ function closeIntro() {
 }
 
 const moodStandardMap = {
-  5: "嚴重逃避：胸口極度沉悶、完全讀不下去，產生強烈的躺平逃避心理。",
-  4: "高度拖延：感到明顯的抗拒與焦慮，已經滑手機磨蹭超過 30 分鐘。",
-  3: "中度焦慮：心有點靜不下來，手一直想去拿手機滑社群、看通知。",
-  2: "輕度干擾：雖然有點掛心，但依然能正常專心處理事物。",
-  1: "極度放鬆：心情很好，沒有任何壓力干擾，可以非常專注。"
+  5: "強烈焦慮：身體可能明顯緊繃、腦中反覆擔心，適合先降低警報感再處理事情。",
+  4: "不安害怕：心裡有明確擔心或壓力，可能需要先釐清來源，再選一個小步驟。",
+  3: "普通狀態：情緒沒有特別高低起伏，適合先觀察今天的壓力來源與可行步驟。",
+  2: "狀態尚可：有一些事情在心上，但仍有餘裕整理節奏、穩定完成任務。",
+  1: "心情愉快：能量與安全感較高，適合延續好狀態或挑戰稍微進階的目標。"
 };
 
 function selectMood(btn) {
