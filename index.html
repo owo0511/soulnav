@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SoulNav 心靈導航 — AI 情緒與心理健康學習系統</title>
+<title>心靈導航 — 人工智慧情緒與心理健康學習系統</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
@@ -148,7 +148,7 @@
 <div id="login-overlay">
   <div class="login-card">
     <div style="font-size: 42px; margin-bottom: 10px;">🌌</div>
-    <h2>SoulNav 登入</h2>
+    <h2>心靈導航登入</h2>
     <p>紀錄你的專屬情緒旅程與連續打卡天數</p>
     <div class="login-tabs">
       <button class="login-tab active" id="tab-new" onclick="switchLoginMode('new')">註冊</button>
@@ -157,7 +157,7 @@
     <div id="login-new-area">
       <input type="text" id="reg-name" class="login-input" placeholder="請輸入你的名字或暱稱">
       <input type="text" id="reg-account" class="login-input" placeholder="設定登入帳號">
-      <input type="password" id="reg-password" class="login-input" placeholder="設定登入密碼">
+      <input type="password" id="reg-password" class="login-input" placeholder="設定登入密碼（至少 6 個字元）" minlength="6">
       <button class="btn-primary" onclick="registerUser()"><i class="ti ti-user-plus"></i> 註冊並進入</button>
     </div>
     <div id="login-old-area" style="display: none;">
@@ -170,7 +170,7 @@
 
 <div id="pwa-banner">
   <i class="ti ti-device-mobile" style="color:var(--brand);font-size:18px"></i>
-  <span>將 SoulNav 加到手機主畫面，使用更方便！</span>
+  <span>將心靈導航加到手機主畫面，使用更方便！</span>
   <button class="pwa-btn" id="pwa-install-btn">加入主畫面</button>
   <button onclick="document.getElementById('pwa-banner').classList.remove('show')" style="border:0;background:transparent;color:var(--muted);padding:4px;cursor:pointer"><i class="ti ti-x"></i></button>
 </div>
@@ -191,7 +191,7 @@
       <div class="navi-speech" id="intro-navi-text"></div>
     </div>
     <button class="btn-primary" id="intro-continue-btn" style="display:none" onclick="closeIntro()">
-      <i class="ti ti-arrow-right"></i> 進入 SoulNav，一起改變
+      <i class="ti ti-arrow-right"></i> 進入心靈導航，一起改變
     </button>
   </div>
 </div>
@@ -201,7 +201,7 @@
   <div class="top-bar">
     <div class="logo"><i class="ti ti-brain"></i> Soul<em>Nav</em></div>
     <div class="flow-indicator">
-      <span class="flow-step active" data-page="0">Dashboard</span>
+      <span class="flow-step active" data-page="0">儀表板</span>
       <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
       <span class="flow-step" data-page="1">課程學習</span>
       <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
@@ -209,28 +209,28 @@
       <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
       <span class="flow-step" data-page="3">現實挑戰</span>
       <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
-      <span class="flow-step" data-page="4">追蹤</span>
+      <span class="flow-step" data-page="4">情緒追蹤</span>
       <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
-      <span class="flow-step" data-page="5">AI 回饋</span>
+      <span class="flow-step" data-page="5">AI回饋</span>
     </div>
   </div>
 
   <div class="body-wrap">
     <div class="sidebar">
       <div class="nav-section">主要功能</div>
-      <div class="nav-item active" data-page="0" onclick="goPage(0)"><i class="ti ti-mood-smile"></i>Dashboard</div>
+      <div class="nav-item active" data-page="0" onclick="goPage(0)"><i class="ti ti-mood-smile"></i>儀表板</div>
       <div class="nav-item" data-page="1" onclick="goPage(1)"><i class="ti ti-book"></i>課程學習</div>
       <div class="nav-item" data-page="2" onclick="goPage(2)"><i class="ti ti-player-play"></i>情境練習<span class="nav-badge">核心</span></div>
       <div class="nav-item" data-page="3" onclick="goPage(3)"><i class="ti ti-sword"></i>現實挑戰</div>
       <div class="nav-item" data-page="4" onclick="goPage(4)"><i class="ti ti-chart-line"></i>情緒追蹤</div>
-      <div class="nav-item" data-page="5" onclick="goPage(5)"><i class="ti ti-robot"></i>AI 回饋反思</div>
+      <div class="nav-item" data-page="5" onclick="goPage(5)"><i class="ti ti-robot"></i>AI回饋</div>
       <div class="nav-divider"></div>
       <div class="nav-item" onclick="openBadgeCollection()"><i class="ti ti-trophy"></i>勳章收藏</div>
       <div class="nav-user">
         <div class="user-ava" id="user-ava-letter">明</div>
         <div style="flex:1;min-width:0">
           <div class="user-name" id="display-user-name">阿明同學</div>
-          <div class="user-lv" id="display-user-id" style="font-size:11px;color:var(--muted);margin-bottom:4px;">ID: ------</div>
+          <div class="user-lv" id="display-user-id" style="font-size:11px;color:var(--muted);margin-bottom:4px;">編號：------</div>
           <div class="user-lv" id="task-badge-display">✅ 任務: 0 | 🏅 勳章: 0</div>
           <div style="font-size:10px; color:#aaa; margin-top:2px;">(每 5 個任務 = 1 勳章)</div>
           <div class="energy-bar-wrap"><div class="energy-bar-fill" id="badge-bar" style="width:0%"></div></div>
@@ -241,14 +241,14 @@
     <div class="main">
 
       <div class="page active" id="page0">
-        <!-- Dashboard landing（mobile-first 入口） -->
+        <!-- 儀表板入口 -->
         <div id="dashboard-view">
-          <span class="chip chip-info"><i class="ti ti-mood-smile"></i> Dashboard</span>
+          <span class="chip chip-info"><i class="ti ti-mood-smile"></i> 儀表板</span>
           <div class="page-title" id="dash-title">你的今天儀表板</div>
           <div class="page-sub" id="dash-sub">用最輕鬆的方式，看看你今天的情緒狀態與下一步。</div>
 
           <div class="card mb-10">
-            <div class="section-label"><i class="ti ti-mood-smile"></i> emotional summary</div>
+            <div class="section-label"><i class="ti ti-mood-smile"></i> 情緒摘要</div>
             <div class="ai-insight" style="font-weight:900; margin-bottom:10px;">
               今日狀態：<span id="dash-mood-text">普普</span>
             </div>
@@ -276,7 +276,7 @@
           </div>
 
           <div class="card mb-10">
-            <div class="section-label"><i class="ti ti-sword"></i> active adaptive challenges</div>
+            <div class="section-label"><i class="ti ti-sword"></i> 進行中的適應挑戰</div>
 
             <div id="dash-chal-list">
               <div class="rec-row clickable" id="dash-chal-1" style="margin-top:6px;" onclick="openDashboardChallenge(0)">
@@ -302,7 +302,7 @@
           </div>
 
           <div class="card mb-10">
-            <div class="section-label"><i class="ti ti-chart-line"></i> learning progress overview</div>
+            <div class="section-label"><i class="ti ti-chart-line"></i> 學習進度總覽</div>
 
             <div class="three-col mb-12" style="gap:10px;">
               <div class="stat-card"><div class="stat-num" style="color:var(--warning)" id="dash-stat-streak">1</div><div class="stat-lbl">連續打卡</div></div>
@@ -310,7 +310,7 @@
               <div class="stat-card"><div class="stat-num" style="color:var(--info)" id="dash-stat-badges">0</div><div class="stat-lbl">累計勳章</div></div>
             </div>
 
-            <div class="section-label" style="margin-top:14px;"><i class="ti ti-chart-bar"></i> 情緒趨勢（最近）</div>
+            <div class="section-label" style="margin-top:14px;"><i class="ti ti-chart-bar"></i> 情緒趨勢（一週）</div>
             <div class="chart-wrap" id="dash-cloudChartWrapper" style="height:140px;"></div>
             <div style="text-align:center;font-size:12px;color:var(--muted);margin-top:8px;">有打卡紀錄才會顯示</div>
 
@@ -321,7 +321,7 @@
           </div>
 
           <div class="card mb-10">
-            <div class="section-label"><i class="ti ti-messages"></i> daily emotional insights</div>
+            <div class="section-label"><i class="ti ti-messages"></i> 每日情緒洞察</div>
             <div id="dash-daily-insight-container" class="insight-list">
               <div class="insight-item mb-7">
                 <div class="insight-dot" style="background:var(--info)"></div>
@@ -332,14 +332,14 @@
           </div>
 
           <div class="card mb-10">
-            <div class="section-label"><i class="ti ti-compass"></i> quick access</div>
+            <div class="section-label"><i class="ti ti-compass"></i> 快速入口</div>
             <div class="dash-quick-grid">
               <button class="btn-ghost" onclick="openEmotionAssessment()"><i class="ti ti-robot"></i> 情緒評估</button>
               <button class="btn-ghost" onclick="goPage(1)"><i class="ti ti-book"></i> 課程學習</button>
               <button class="btn-ghost" onclick="goPage(2)"><i class="ti ti-player-play"></i> 情境練習</button>
               <button class="btn-ghost" onclick="goPage(3)"><i class="ti ti-sword"></i> 現實挑戰</button>
-              <button class="btn-ghost" onclick="goPage(4)"><i class="ti ti-chart-line"></i> 進度追蹤</button>
-              <button class="btn-ghost" onclick="goPage(5)"><i class="ti ti-robot"></i> AI 回饋</button>
+              <button class="btn-ghost" onclick="goPage(4)"><i class="ti ti-chart-line"></i> 情緒追蹤</button>
+              <button class="btn-ghost" onclick="goPage(5)"><i class="ti ti-robot"></i> AI回饋</button>
             </div>
           </div>
         </div>
@@ -350,7 +350,7 @@
             <span class="chip chip-info"><i class="ti ti-sun"></i> 今日情緒評估</span>
             <button class="ghost-sm page-home-btn" onclick="goPage(0)"><i class="ti ti-home"></i> 回首頁</button>
             <div class="page-title" id="greeting-title">今天感覺怎樣，阿明？</div>
-            <div class="page-sub">每日打卡，AI 即時分析你的情緒狀態，推薦最適合今天的練習。</div>
+            <div class="page-sub">每日打卡，AI即時分析你的情緒狀態，推薦最適合今天的練習。</div>
 
             <div class="navi-intro-row mb-10">
               <div class="navi-ava-sm"><i class="ti ti-robot"></i></div>
@@ -378,7 +378,7 @@
               <div class="stress-item">
                 <div class="bar-lbl"><span>學業壓力</span><span id="val-study">40%</span></div>
                 <input type="range" class="stress-slider" id="slider-study" min="0" max="100" step="20" value="40" oninput="updateStress('study', this.value)">
-                <div class="stress-desc" id="desc-study">學業狀況穩定。</div>
+                <div class="stress-desc" id="desc-study">有一點待辦壓力，先挑一件最小任務開始。</div>
               </div>
               <div class="stress-item">
                 <div class="bar-lbl"><span>社交壓力</span><span id="val-social">20%</span></div>
@@ -388,11 +388,11 @@
               <div class="stress-item">
                 <div class="bar-lbl"><span>睡眠狀態</span><span id="val-sleep">60%</span></div>
                 <input type="range" class="stress-slider" id="slider-sleep" min="0" max="100" step="20" value="60" oninput="updateStress('sleep', this.value)">
-                <div class="stress-desc" id="desc-sleep">睡眠品質不佳，今晚提早放下手機入睡吧。</div>
+                <div class="stress-desc" id="desc-sleep">睡眠品質不太穩，今晚可以提早降速。</div>
               </div>
             </div>
 
-            <button class="btn-primary" onclick="runGeminiAI()"><i class="ti ti-robot"></i> 送出，AI 開始分析</button>
+            <button class="btn-primary" onclick="runGeminiAI()"><i class="ti ti-robot"></i> 送出，開始AI分析</button>
             <div class="streak-row">
               <div class="streak-card"><div class="streak-num" id="ui-streak">1</div><div class="streak-lbl">連續打卡天數</div></div>
               <div class="streak-card"><div class="streak-num" id="badgeNum" style="color:var(--warning)">0</div><div class="streak-lbl">目前勳章數</div></div>
@@ -400,27 +400,27 @@
           </div>
 
           <div id="p0-loading" style="display:none">
-            <div class="card"><div class="ai-loading"><div class="spinner"></div><span>呼叫 Gemini 模型進行綜合分析中...</span></div></div>
+            <div class="card"><div class="ai-loading"><div class="spinner"></div><span>正在呼叫AI模型進行綜合分析...</span></div></div>
           </div>
 
           <div id="p0-result" style="display:none" class="fade-in">
             <div class="ai-result-header">
               <div class="ai-ava"><i class="ti ti-robot"></i></div>
-              <div><div class="result-title">AI 情緒分析完成</div><div class="result-sub" id="p0-result-sub">資料已存入雲端資料庫</div></div>
+              <div><div class="result-title">AI情緒分析完成</div><div class="result-sub" id="p0-result-sub">資料已存入雲端資料庫</div></div>
               <button class="link-btn" onclick="resetAI()">重新填寫</button>
             </div>
             <div class="card mb-10">
               <div class="gemini-box">
-                <div class="gemini-title"><i class="ti ti-sparkles"></i> Gemini AI 深度分析</div>
+                <div class="gemini-title"><i class="ti ti-sparkles"></i> AI深度分析</div>
                 <div class="gemini-content" id="gemini-result-text">載入中...</div>
               </div>
               <div style="margin-top:20px; padding:15px; background:#f0fdf4; border-radius:12px; border-left:4px solid var(--success)">
-                <strong style="color:#166534; display:block; margin-bottom:5px;"><i class="ti ti-target"></i> Gemini 核心評估與推薦：</strong>
+                <strong style="color:#166534; display:block; margin-bottom:5px;"><i class="ti ti-target"></i> 核心評估與推薦：</strong>
                 <span style="color:#15803d; font-size:14px;" id="core-recommendation-text">偵測到您的壓力與逃避模式，目前最適合您的練習路徑是：<strong>情緒調節 + 拖延症重塑</strong>。</span>
               </div>
             </div>
             <div class="card mb-10">
-              <div class="section-label"><i class="ti ti-sparkles"></i> 本次 AI 推薦課程</div>
+              <div class="section-label"><i class="ti ti-sparkles"></i> 本次AI推薦課程</div>
               <div class="ai-insight mb-10">以下是依照本次情緒評估產生的推薦課程。完成這組課程後，系統內練習會依照這些主題動態調整。</div>
               <div id="emotion-reco-list" class="dash-reco-list">
                 <div class="ai-loading" style="min-height:90px"><div class="spinner"></div><span>正在產生推薦課程...</span></div>
@@ -453,7 +453,7 @@
             <div id="lesson-detail-desc" style="color:var(--muted);font-size:14px;line-height:1.65">這不是你的問題——是多巴胺在作怪。我們來看看為什麼。</div>
           </div>
           <div class="manga-row">
-            <div class="char-wrap"><div class="char-icon"><i class="ti ti-robot"></i></div><span class="char-name">Navi</span></div>
+            <div class="char-wrap"><div class="char-icon"><i class="ti ti-robot"></i></div><span class="char-name">導航員</span></div>
             <div class="bubble navi" id="lesson-dialogue-prompt">滑完手機，反而<strong>更焦慮</strong>——你有這種感覺嗎？</div>
           </div>
           
@@ -472,7 +472,7 @@
           </div>
 
           <div class="manga-row" id="navi-solution" style="display:none;">
-            <div class="char-wrap"><div class="char-icon"><i class="ti ti-robot"></i></div><span class="char-name">Navi</span></div>
+            <div class="char-wrap"><div class="char-icon"><i class="ti ti-robot"></i></div><span class="char-name">導航員</span></div>
             <div class="bubble navi" id="lesson-solution-text">這是<strong>「多巴胺陷阱」</strong>！破解方法是番茄鐘：只承諾 25 分鐘，大腦就不怕了！</div>
           </div>
 
@@ -506,16 +506,16 @@
 
           <div class="card mt-10">
             <span class="chip chip-info mb-8"><i class="ti ti-map-pin"></i> 情境判斷</span>
-            <div class="quiz-q" id="lesson-quiz-question">下面哪個更像「多巴胺陷阱」式的逃避拖延？</div>
-            <button class="quiz-opt" id="lesson-quiz-0" onclick="ansQ(this,true,'q1')">A. 作業還沒開始，先滑 10 分鐘 IG「冷靜一下」</button>
-            <button class="quiz-opt" id="lesson-quiz-1" onclick="ansQ(this,false,'q1')">B. 寫不出來，先去散步 5 分鐘再回來</button>
-            <button class="quiz-opt" id="lesson-quiz-2" onclick="ansQ(this,false,'q1')">C. 先做最簡單的第一題暖身</button>
+            <div class="quiz-q" id="lesson-quiz-question">題目載入中...</div>
+            <button class="quiz-opt" id="lesson-quiz-0" onclick="ansQ(this,true,'q1')">A. 選項載入中...</button>
+            <button class="quiz-opt" id="lesson-quiz-1" onclick="ansQ(this,false,'q1')">B. 選項載入中...</button>
+            <button class="quiz-opt" id="lesson-quiz-2" onclick="ansQ(this,false,'q1')">C. 選項載入中...</button>
             <div class="quiz-result" id="q1res"></div>
           </div>
           <div id="p1-next" style="display:none" class="mt-10">
             <div class="card mb-10" id="course-report-card">
               <div class="section-label"><i class="ti ti-chart-dots"></i> 本課程成果報告</div>
-              <div class="ai-insight" id="course-report-text">完成測驗後，AI 會依照這堂課整理你的學習重點與下一步。</div>
+              <div class="ai-insight" id="course-report-text">完成測驗後，AI會依照這堂課整理你的學習重點與下一步。</div>
             </div>
             <button class="btn-primary" id="course-next-action" onclick="handleCourseNextAction()"><i class="ti ti-arrow-right"></i> 繼續下一步</button>
           </div>
@@ -557,19 +557,19 @@
                   </select>
                 </div>
               </div>
-              <button class="btn-primary mt-10" onclick="startBreakdown()"><i class="ti ti-robot"></i> AI 幫我拆解任務</button>
+              <button class="btn-primary mt-10" onclick="startBreakdown()"><i class="ti ti-robot"></i> 人工智慧幫我拆解任務</button>
             </div>
           </div>
 
           <div id="task-loading" style="display:none">
-            <div class="card"><div class="ai-loading"><div class="spinner"></div><span>Gemini 正在分析你的任務，規劃最適合的微步驟...</span></div></div>
+            <div class="card"><div class="ai-loading"><div class="spinner"></div><span>AI正在分析你的任務，規劃最適合的微步驟...</span></div></div>
           </div>
 
           <div id="task-result" style="display:none" class="fade-in">
             <div class="card">
               <div class="ai-result-header">
                 <div class="ai-ava"><i class="ti ti-robot"></i></div>
-                <div><div class="result-title">AI 任務拆解完成</div><div class="result-sub" id="taskSummary">化整為零，解鎖動力</div></div>
+                <div><div class="result-title">AI任務拆解完成</div><div class="result-sub" id="taskSummary">化整為零，解鎖動力</div></div>
                 <button class="link-btn" onclick="resetTask()">重新輸入</button>
               </div>
               <div class="big-task-box">
@@ -578,7 +578,7 @@
               </div>
               <div class="arrow-row">
                 <div class="arrow-line"></div>
-                <div class="arrow-label"><i class="ti ti-arrow-down"></i> AI 拆解成今天能做的步驟</div>
+                <div class="arrow-label"><i class="ti ti-arrow-down"></i> AI拆解成今天能做的步驟</div>
                 <div class="arrow-line"></div>
               </div>
               <div class="step-list" id="stepList"></div>
@@ -591,7 +591,6 @@
             </div>
           </div>
           <div id="task-to-challenge" style="display:none" class="mt-10">
-            <button class="btn-primary" onclick="goPage(3)"><i class="ti ti-sword"></i> 練習完成，去現實挑戰！</button>
           </div>
         </template>
       </div>
@@ -605,9 +604,9 @@
         <div id="dynamic-challenge-list"></div>
 
         <div class="card">
-          <div class="section-label"><i class="ti ti-writing"></i> 完成後回報給 AI</div>
+          <div class="section-label"><i class="ti ti-writing"></i> 完成後回報給AI</div>
           <textarea class="report-textarea" id="reportText" placeholder="這次有做到哪些挑戰？遇到什麼困難？隨便說都可以..."></textarea>
-          <button class="btn-primary mt-8" onclick="submitReport()"><i class="ti ti-robot"></i> 送出給 AI 分析</button>
+          <button class="btn-primary mt-8" onclick="submitReport()"><i class="ti ti-robot"></i> 送出給AI分析</button>
           <div class="ai-insight mt-10" id="report-ai-result" style="display:none;"></div>
         </div>
       </div>
@@ -624,10 +623,10 @@
         </div>
         
         <div class="card mb-10">
-          <div class="section-label"><i class="ti ti-chart-bar"></i> 每日情緒值（最近紀錄）</div>
+          <div class="section-label"><i class="ti ti-chart-bar"></i> 每日情緒值（一週）</div>
           <div class="chart-wrap" id="cloudChartWrapper">
             </div>
-          <div style="text-align:center;font-size:12px;color:var(--muted);margin-top:8px;">無紀錄的日子將不會顯示</div>
+          <div style="text-align:center;font-size:12px;color:var(--muted);margin-top:8px;">同一天多次評估會合併為一日平均，滑鼠靠近可查看情緒次數</div>
         </div>
         
         <div class="card mb-10">
@@ -637,31 +636,31 @@
           </div>
         </div>
 
-        <div class="section-label"><i class="ti ti-sparkles"></i> Gemini AI 行為洞察</div>
+        <div class="section-label"><i class="ti ti-sparkles"></i> AI行為洞察</div>
         <div id="insight-loading" style="display:none; color:var(--brand); font-weight:bold; margin-bottom:10px;">洞察生成中...</div>
         <div id="dynamic-insight-container">
           <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--info)"></div><div class="insight-text">點擊下方按鈕獲取深度洞察。</div></div>
         </div>
         <button class="btn-primary" style="margin-bottom:15px; background:var(--info)" onclick="fetchInsight()"><i class="ti ti-refresh"></i> 產生最新洞察</button>
         
-        <button class="btn-primary" onclick="goPage(5)"><i class="ti ti-robot"></i> 看 AI 個人化回饋</button>
+        <button class="btn-primary" onclick="goPage(5)"><i class="ti ti-robot"></i> 看AI個人化回饋</button>
       </div>
 
       <div class="page" id="page5">
-        <span class="chip chip-info"><i class="ti ti-robot"></i> AI 回饋與反思引導</span>
+        <span class="chip chip-info"><i class="ti ti-robot"></i> AI回饋與反思引導</span>
         <button class="ghost-sm page-home-btn" onclick="goPage(0)"><i class="ti ti-home"></i> 回首頁</button>
-        <div class="page-title">Navi 的個人化分析</div>
-        <div class="page-sub">根據你這週的情緒、行為紀錄，AI 給你專屬的回饋與下一步建議。</div>
+        <div class="page-title">導航員的個人化分析</div>
+        <div class="page-sub">根據你今日的情緒、行為紀錄，AI給你專屬的回饋與下一步建議。</div>
         <div class="ai-chat mb-10">
           <div class="ai-msg">
-            <div class="ai-msg-header"><div class="ai-ava sm"><i class="ti ti-robot"></i></div><div class="ai-msg-name">Navi</div><div class="ai-msg-time">剛剛</div></div>
-            <div class="ai-msg-body" id="final-navi-analysis">系統正在彙整您今日的所有行動軌跡，呼叫 Gemini 生成專屬建議...</div>
+            <div class="ai-msg-header"><div class="ai-ava sm"><i class="ti ti-robot"></i></div><div class="ai-msg-name">導航員</div><div class="ai-msg-time">剛剛</div></div>
+            <div class="ai-msg-body" id="final-navi-analysis">系統正在彙整您今日的所有行動軌跡，呼叫AI生成專屬建議...</div>
           </div>
         </div>
         
 		<div class="card mb-10">
 			<div class="section-label"><i class="ti ti-messages"></i> 反思引導</div>
-			<div class="reflect-q">這週達成了目標、贏得新勳章之後，你心裡感覺是什麼？</div>
+			<div class="reflect-q">今天完成任務、累積進展之後，你心裡感覺是什麼？</div>
 			<div class="reflect-opts">
 				<button class="reflect-opt" onclick="selReflect(this)">有成就感，但還是覺得不夠</button>
 				<button class="reflect-opt" onclick="selReflect(this)">鬆了一口氣，比預期容易</button>
@@ -670,7 +669,7 @@
 			<div id="reflectResult" class="reflect-result" style="display:none"></div>
   
 			<button class="btn-primary mt-12" id="finalSubmitBtn" onclick="submitFinalReflection()">
-				<i class="ti ti-send"></i> 確認送出總結資料
+				<i class="ti ti-send"></i> 送出今日反思
 			</button>
         </div>
         <div class="next-cycle mb-10" id="next-cycle-block" style="display:none; opacity:0; transition: 0.5s ease;">
@@ -689,11 +688,11 @@
   </div>
 </div>
 
-<!-- Mobile Bottom Navigation（取代 mobile sidebar） -->
-<div class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Mobile navigation">
+<!-- 行動版底部導覽 -->
+<div class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="行動版導覽">
   <button class="bottom-nav-item active" data-page="0" onclick="goPage(0)">
     <i class="ti ti-mood-smile"></i>
-    <span>Dashboard</span>
+    <span>儀表板</span>
   </button>
   <button class="bottom-nav-item" data-page="1" onclick="goPage(1)">
     <i class="ti ti-book"></i>
@@ -776,15 +775,16 @@ let currentMoodText = "普普";
 let aiSteps = [];
 let currentActiveLesson = null;
 let currentPracticeScenario = null;
-let currentLessonFeedback = {
+const DEFAULT_LESSON_FEEDBACK = {
   success: '正確！這就是今天課程的核心策略。',
   danger: '再想一下：今天最適合的是先降低壓力，再用小步驟開始。'
 };
+let currentLessonFeedback = { ...DEFAULT_LESSON_FEEDBACK };
 
 const COURSE_CATALOG = [
   {
     icon: 'ti ti-wind',
-    title: '情緒調節技能：考前 4-7-8 呼吸',
+    title: '情緒調節技能： 4-7-8 呼吸',
     reason: '學會先讓身體警報降下來，再回到讀書或任務。',
     difficulty: '入門',
     tone: 'success',
@@ -814,22 +814,6 @@ const COURSE_CATALOG = [
     tone: 'info',
     tags: ['社交壓力', '溝通']
   },
-  {
-    icon: 'ti ti-moon',
-    title: '睡眠壓力修復：睡前降速練習',
-    reason: '建立睡前降速流程，讓身體從緊繃模式回到可恢復狀態。',
-    difficulty: '入門',
-    tone: 'success',
-    tags: ['睡眠', '恢復']
-  },
-  {
-    icon: 'ti ti-target-arrow',
-    title: '穩定狀態進階：專注節奏維持',
-    reason: '狀態穩定時，用更清楚的節奏維持學習表現。',
-    difficulty: '進階',
-    tone: 'warning',
-    tags: ['穩定', '進階']
-  }
 ];
 
 // ==========================================
@@ -885,7 +869,9 @@ function normalizeUser(rawUser = {}) {
     completedCourses: rawUser.completedCourses || rawUser.completed_courses || [],
     completedLearningReports: rawUser.completedLearningReports || rawUser.completed_learning_reports || [],
     recommendationContextKey: rawUser.recommendationContextKey || rawUser.recommendation_context_key || null,
-    practiceHistory: rawUser.practiceHistory || rawUser.practice_history || []
+    practiceHistory: rawUser.practiceHistory || rawUser.practice_history || [],
+    dailyReflections: rawUser.dailyReflections || rawUser.daily_reflections || [],
+    challengeProgress: rawUser.challengeProgress || rawUser.challenge_progress || {}
   };
   return { ...rawUser, ...user };
 }
@@ -939,6 +925,13 @@ function mergeUserRecords(serverUser = {}, cachedUser = {}) {
     practiceHistory: [...(server.practiceHistory || []), ...(cached.practiceHistory || [])]
       .filter(Boolean)
       .slice(-30),
+    dailyReflections: [...(server.dailyReflections || []), ...(cached.dailyReflections || [])]
+      .filter(Boolean)
+      .slice(-30),
+    challengeProgress: {
+      ...(server.challengeProgress || {}),
+      ...(cached.challengeProgress || {})
+    },
     recommendationContextKey: cached.recommendationContextKey || server.recommendationContextKey
   };
   return normalizeUser(merged);
@@ -1061,7 +1054,8 @@ function buildAiContextPayload() {
     sleep_stress: document.getElementById('slider-sleep')?.value,
     tasks_completed: currentUser?.tasksCompleted || 0,
     streak: currentUser?.streak || 0,
-    recent_actions: currentUser?.recentActions || []
+    recent_actions: currentUser?.recentActions || [],
+    challenge_progress: currentUser?.challengeProgress || {}
   };
 }
 
@@ -1082,6 +1076,13 @@ function escapeHtml(text) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+function escapeJsString(text) {
+  return String(text ?? '')
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/\r?\n/g, ' ');
 }
 
 function topicIconByTitle(title) {
@@ -1109,16 +1110,20 @@ function canonicalCourseByKind(kind) {
 
 function canonicalizeTopic(rawTopic) {
   const topic = rawTopic || {};
-  const allowedKinds = ['emotion', 'study', 'social', 'procrastination', 'sleep', 'focus'];
-  const kind = allowedKinds.includes(topic.kind) ? topic.kind : getCourseKind(topic);
+  const allowedKinds = ['emotion', 'study', 'social', 'procrastination'];
+  const rawKind = String(topic.kind || '');
+  const redirectedKind = rawKind === 'focus' ? 'procrastination' : (rawKind === 'sleep' ? 'emotion' : rawKind);
+  const kind = allowedKinds.includes(redirectedKind) ? redirectedKind : getCourseKind(topic);
   const canonical = canonicalCourseByKind(kind);
+  const sourceDifficulty = topic.difficulty || canonical.difficulty || '入門';
+  const difficulty = getAdaptiveDifficulty(buildAiContextPayload(), { kind, baseDifficulty: sourceDifficulty });
   return {
     ...topic,
     icon: canonical.icon,
     title: canonical.title,
     reason: topic.reason || canonical.reason,
-    difficulty: topic.difficulty || canonical.difficulty || '推薦',
-    tone: topic.tone || canonical.tone || difficultyToTone(topic.difficulty),
+    difficulty,
+    tone: topic.tone || canonical.tone || difficultyToTone(difficulty),
     tags: canonical.tags || topic.tags || [],
     kind,
     lessonDetail: getLessonTemplate({ ...canonical, kind })
@@ -1194,6 +1199,7 @@ function saveRecommendedTopics(topics, contextPayload = buildAiContextPayload())
   currentUser.recommendationContextKey = buildAiContextKey(contextPayload);
   currentUser.recommendationSnapshot = {
     topics: normalizedTopics,
+    completedLessons: {},
     contextKey: currentUser.recommendationContextKey,
     createdAt: currentUser.recommendedTopicsAt
   };
@@ -1314,6 +1320,7 @@ async function updateStreakAndLogin() {
   if (!currentUser.recommendedTopics) currentUser.recommendedTopics = [];
   if (!currentUser.completedCourses) currentUser.completedCourses = [];
   if (!currentUser.completedLearningReports) currentUser.completedLearningReports = [];
+  if (!currentUser.challengeProgress) currentUser.challengeProgress = {};
   if (!('recommendationSnapshot' in currentUser)) currentUser.recommendationSnapshot = null;
   if (!('inProgressCourse' in currentUser)) currentUser.inProgressCourse = null;
   if (!('recommendationContextKey' in currentUser)) currentUser.recommendationContextKey = null;
@@ -1502,6 +1509,39 @@ function hasAnyKeyword(text, words) {
   return words.some(word => source.includes(String(word).toLowerCase()));
 }
 
+function validateMoodInput(text) {
+  const value = String(text || '').trim();
+  const compact = value.replace(/\s+/g, '');
+  const relatedWords = [
+    '情緒', '心情', '焦慮', '緊張', '壓力', '煩', '累', '害怕', '難過', '生氣', '崩潰', '不安', '低落', '開心',
+    '讀書', '考試', '報告', '作業', '成績', '上課', '學校', '老師', '同學', '社交', '朋友', '訊息', '上台',
+    '睡', '失眠', '疲勞', '拖延', '逃避', '手機', '滑', '任務', '目標', '不想做', '沒動力', '身體', '胸口', '胃', '肩膀',
+    'stress', 'anxiety', 'tired', 'exam', 'homework', 'sleep', 'sad', 'angry', 'nervous'
+  ];
+  const unrelatedExamples = ['吃什麼', '天氣', '電影', '遊戲', '漂亮', '好看', '測試', 'hello', 'hi'];
+  const hasCjk = /[\u4e00-\u9fff]/.test(compact);
+  const hasLetters = /[a-zA-Z]/.test(compact);
+  const onlySymbolsOrNumbers = !hasCjk && !hasLetters;
+  const repeatedChar = compact.length >= 5 && /^(.)\1+$/.test(compact);
+  const keyboardMash = /^[a-zA-Z]{6,}$/.test(compact) && !hasAnyKeyword(compact, relatedWords);
+  const hasRelatedWord = hasAnyKeyword(compact, relatedWords);
+  const hasUnrelatedOnly = hasAnyKeyword(compact, unrelatedExamples) && !hasRelatedWord;
+
+  if (compact.length < 4) {
+    return { valid: false, message: '請再補充一點內容，例如今天的情緒、壓力來源或想完成的任務。' };
+  }
+  if (onlySymbolsOrNumbers || repeatedChar || keyboardMash || (!hasCjk && !hasLetters)) {
+    return { valid: false, message: '目前內容看起來不像有效描述，請簡單寫下今天的情緒或遇到的事情。' };
+  }
+  if (!hasRelatedWord || hasUnrelatedOnly) {
+    return {
+      valid: false,
+      message: '這段內容和情緒或學習狀態比較不相關，請補充：現在的情緒、壓力來源、身體感受或想完成的任務。'
+    };
+  }
+  return { valid: true };
+}
+
 function getAssessmentProfile(payload = buildAiContextPayload()) {
   const desc = payload.desc || '';
   const moodScore = parseInt(payload.mood_score ?? currentMoodScore, 10) || currentMoodScore;
@@ -1523,6 +1563,56 @@ function getAssessmentProfile(payload = buildAiContextPayload()) {
   };
 }
 
+function normalizeDifficultyLabel(value = '') {
+  const text = String(value || '');
+  if (text.includes('進階') || text.includes('高')) return '進階';
+  if (text.includes('中階') || text.includes('中')) return '中階';
+  if (text.includes('入門') || text.includes('初階') || text.includes('低')) return '入門';
+  return '';
+}
+
+function countCompletedChallengeTasks() {
+  const progress = currentUser?.challengeProgress || {};
+  return Object.values(progress).reduce((sum, tasks) => sum + (Array.isArray(tasks) ? tasks.length : 0), 0);
+}
+
+function getLearningProgressStats() {
+  const completedCourses = currentUser?.completedCourses?.length || 0;
+  const tasksCompleted = currentUser?.tasksCompleted || 0;
+  const recentActions = currentUser?.recentActions?.length || 0;
+  const practiceRuns = currentUser?.practiceHistory?.length || 0;
+  const challengeTasks = countCompletedChallengeTasks();
+  return {
+    completedCourses,
+    tasksCompleted,
+    recentActions,
+    practiceRuns,
+    challengeTasks,
+    badges: currentUser?.badges || 0,
+    progressScore: completedCourses * 2 + tasksCompleted + challengeTasks + Math.min(recentActions, 8) * 0.5 + Math.min(practiceRuns, 6)
+  };
+}
+
+function getAdaptiveDifficulty(payload = buildAiContextPayload(), options = {}) {
+  const profile = getAssessmentProfile(payload);
+  const stats = getLearningProgressStats();
+  const base = normalizeDifficultyLabel(options.baseDifficulty) || '入門';
+  const pressure = Math.max(profile.study, profile.social, profile.sleep, (profile.moodScore - 1) * 25);
+  const highPressure = profile.moodScore >= 4 || pressure >= 75 || profile.lowMotivation;
+  const veryHighPressure = profile.moodScore >= 5 || pressure >= 85;
+  const expectedTasks = Math.max(3, stats.completedCourses * 2);
+  const lowCompletion = stats.completedCourses === 0 || stats.tasksCompleted < expectedTasks;
+  const stableEmotion = profile.moodScore <= 2 && pressure < 60 && !profile.lowMotivation && !profile.procrastination;
+  const steadyPerformance = stats.completedCourses >= 2 && stats.tasksCompleted >= 5;
+  const strongPerformance = steadyPerformance || stats.tasksCompleted >= 8 || stats.badges >= 1 || stats.progressScore >= 12;
+
+  if (veryHighPressure || (highPressure && lowCompletion)) return '入門';
+  if (highPressure) return base === '進階' ? '中階' : '入門';
+  if (stableEmotion && strongPerformance) return '進階';
+  if (strongPerformance || stats.completedCourses >= 1 || stats.tasksCompleted >= 3) return '中階';
+  return base === '進階' ? '中階' : base;
+}
+
 function localTopic(title, reason, difficulty, tone, tags, extra = {}) {
   return {
     icon: extra.icon || topicIconByTitle(title),
@@ -1538,13 +1628,14 @@ function localTopic(title, reason, difficulty, tone, tags, extra = {}) {
 
 function computeAiRecommendedTopicsFallback(payload = buildAiContextPayload()) {
   const p = getAssessmentProfile(payload);
+  const difficultyFor = (kind, baseDifficulty = '入門') => getAdaptiveDifficulty(payload, { kind, baseDifficulty });
   const candidates = [
     {
       score: (p.moodScore >= 4 ? 45 : 0) + (p.exam ? 35 : 0) + Math.round(p.study * 0.25) + Math.round(p.sleep * 0.1),
       topic: localTopic(
         '情緒調節技能：考前 4-7-8 呼吸',
         '你的焦慮或考前壓力偏高，先把身體警報降下來，再開始讀書會更穩。',
-        p.moodScore >= 4 ? '入門' : '中階',
+        difficultyFor('emotion', p.moodScore >= 4 ? '入門' : '中階'),
         'success',
         ['焦慮', '考試壓力']
       )
@@ -1554,7 +1645,7 @@ function computeAiRecommendedTopicsFallback(payload = buildAiContextPayload()) {
       topic: localTopic(
         '壓力因應策略：學業壓力微計畫',
         '學業壓力正在占用注意力，這堂課會把大任務切成今天能完成的短步驟。',
-        p.study >= 80 ? '入門' : '中階',
+        difficultyFor('study', p.study >= 80 ? '入門' : '中階'),
         'warning',
         ['學業壓力', '任務拆解']
       )
@@ -1564,7 +1655,7 @@ function computeAiRecommendedTopicsFallback(payload = buildAiContextPayload()) {
       topic: localTopic(
         '社交焦慮管理：安全表達練習',
         '社交或上台壓力較明顯，先練習低風險表達，減少腦中反覆預演的消耗。',
-        p.social >= 80 ? '入門' : '中階',
+        difficultyFor('social', p.social >= 80 ? '入門' : '中階'),
         'info',
         ['社交壓力', '溝通']
       )
@@ -1574,31 +1665,11 @@ function computeAiRecommendedTopicsFallback(payload = buildAiContextPayload()) {
       topic: localTopic(
         '拖延行為重塑：番茄鐘微承諾',
         '你提到的逃避或手機慣性很適合用「只做一小段」降低啟動阻力。',
-        '入門',
+        difficultyFor('procrastination', '入門'),
         'info',
         ['拖延', '手機習慣']
       )
     },
-    {
-      score: Math.round(p.sleep * 0.65) + (p.lowMotivation ? 12 : 0),
-      topic: localTopic(
-        '睡眠壓力修復：睡前降速練習',
-        '睡眠狀態會直接影響情緒與專注，先把今晚的恢復感補回來。',
-        '入門',
-        'success',
-        ['睡眠', '恢復']
-      )
-    },
-    {
-      score: p.moodScore <= 2 && p.study < 60 && p.social < 60 && p.sleep < 60 ? 90 : 12,
-      topic: localTopic(
-        '穩定狀態進階：專注節奏維持',
-        '你目前狀態相對穩定，適合用更進階的節奏安排延續好狀態。',
-        '進階',
-        'warning',
-        ['穩定', '進階']
-      )
-    }
   ];
 
   return candidates
@@ -1622,6 +1693,7 @@ function topicToLesson(topic, index = 0, status = '推薦') {
     sub: `${normalizedTopic.difficulty || status} · ${normalizedTopic.reason || '依照目前狀態推薦'}`,
     icon: normalizedTopic.icon || 'ti ti-book',
     tone: normalizedTopic.tone || 'info',
+    difficulty: normalizedTopic.difficulty || status,
     tags: normalizedTopic.tags || [],
     reason: normalizedTopic.reason || '這堂課會跟著你目前的情緒與壓力來源調整。',
     kind,
@@ -1674,6 +1746,21 @@ function getLessonTemplate(topic = {}) {
             question: '讀書前身體很緊繃時，哪個順序較合適？',
             options: ['先穩定呼吸，再選一個小範圍開始', '直接硬讀到情緒消失', '先滑手機等自己變冷靜'],
             correctIndex: 0
+          },
+          {
+            question: '焦慮讓心跳變快時，哪個做法比較能先穩住自己？',
+            options: ['放慢吐氣，讓身體先降速', '立刻檢討自己為什麼焦慮', '打開所有待辦事項逼自己面對'],
+            correctIndex: 0
+          },
+          {
+            question: '覺察情緒時，哪個描述最完整？',
+            options: ['說出情緒名稱、身體感受和強度', '只告訴自己不要想太多', '直接判斷自己很沒用'],
+            correctIndex: 0
+          },
+          {
+            question: '情緒很高時，最適合把目標調整成什麼？',
+            options: ['先做到能開始的一小步', '一次恢復到完美狀態', '完全不碰任務直到心情變好'],
+            correctIndex: 0
           }
         ]
       }
@@ -1710,6 +1797,21 @@ function getLessonTemplate(topic = {}) {
           {
             question: '上台前最能降低開口阻力的方法是？',
             options: ['先寫好第一句話並放慢速度', '一直想像大家批評的畫面', '等到完全不緊張才開始'],
+            correctIndex: 0
+          },
+          {
+            question: '想問同學問題但怕尷尬時，哪個做法比較安全？',
+            options: ['先用一句簡短、具體的問題開場', '一直猜對方會不會討厭自己', '完全不問，讓問題一直卡著'],
+            correctIndex: 0
+          },
+          {
+            question: '完成社交練習後，最適合反思什麼？',
+            options: ['實際結果和原本擔心的差距', '自己哪一句話最不完美', '別人心裡到底怎麼評價我'],
+            correctIndex: 0
+          },
+          {
+            question: '社交壓力升高時，安全表達的目標是什麼？',
+            options: ['讓自己能用低風險方式開始互動', '一次表現得完全不緊張', '避免所有需要開口的場合'],
             correctIndex: 0
           }
         ]
@@ -1748,42 +1850,20 @@ function getLessonTemplate(topic = {}) {
             question: '看到很多要讀的內容時，哪個反應比較符合壓力因應？',
             options: ['先分出可控制的一小塊', '把所有內容同時打開逼自己看', '滑手機讓自己暫時忘記'],
             correctIndex: 0
-          }
-        ]
-      }
-    },
-    {
-      kind: 'sleep',
-      match: ['睡眠', '恢復'],
-      detail: {
-        prompt: '睡不好時，是不是越想逼自己專心，身體反而越緊繃？',
-        choices: ['真的會', '偶爾', '還好'],
-        solution: '睡眠不足時先修復身體訊號。短呼吸、降低螢幕刺激，會比硬撐更有效。',
-        cards: [
-          ['睡眠不足最先影響？', '情緒穩定<br>和注意力'],
-          ['睡前降速第一步？', '光線變暗<br>手機放遠'],
-          ['焦慮睡不著怎麼辦？', '吐氣拉長<br>讓心跳下降'],
-          ['隔天讀書策略？', '短回合<br>高休息密度']
-        ],
-        quizQuestion: '睡眠壓力高時，哪個做法比較適合今晚？',
-        quizOptions: ['A. 睡前 20 分鐘放下手機，做 3 回合慢吐氣', 'B. 熬夜補完所有進度', 'C. 越焦慮越一直刷新訊息'],
-        correctIndex: 0,
-        success: '正確！先讓身體降速，明天的專注才有機會回來。',
-        danger: '睡眠壓力高時，先恢復身體狀態，比硬撐更適合。',
-        quizBank: [
+          },
           {
-            question: '睡眠壓力高時，今晚最適合先做什麼？',
-            options: ['睡前放遠手機，做幾回合慢吐氣', '熬夜把所有事情做完', '一直刷新訊息直到想睡'],
+            question: '報告和考試同時卡住時，哪個做法最能讓壓力變清楚？',
+            options: ['先列出壓力來源，再挑一個能控制的小步驟', '把所有任務都排到今晚完成', '先不要想，等壓力自己消失'],
             correctIndex: 0
           },
           {
-            question: '睡前降速練習想處理的是什麼？',
-            options: ['降低身體與螢幕刺激，讓恢復模式啟動', '讓自己立刻完成更多任務', '把焦慮完全壓下去不去感覺'],
+            question: '讀書微計畫最需要具備哪個特徵？',
+            options: ['具體到現在能立刻開始', '聽起來很有企圖心但不明確', '越大越好，才能證明自己努力'],
             correctIndex: 0
           },
           {
-            question: '睡不好隔天讀書時，哪個策略比較合適？',
-            options: ['用短回合和高休息密度恢復專注', '排滿三小時不休息', '因為睡不好所以完全放棄'],
+            question: '學業壓力很高時，哪個下一步比較可行？',
+            options: ['先整理三個標題或一頁重點', '直接要求自己補完全部進度', '因為壓力大所以完全放棄今天'],
             correctIndex: 0
           }
         ]
@@ -1803,7 +1883,7 @@ function getLessonTemplate(topic = {}) {
           ['微計畫的核心原則？', '只承諾「第一步」<br>動起來就贏了']
         ],
         quizQuestion: '下面哪個更像「多巴胺陷阱」式的逃避拖延？',
-        quizOptions: ['A. 作業還沒開始，先滑 10 分鐘 IG「冷靜一下」', 'B. 寫不出來，先去散步 5 分鐘再回來', 'C. 先做最簡單的第一題暖身'],
+        quizOptions: ['A. 作業還沒開始，先滑 10 分鐘社群媒體「冷靜一下」', 'B. 寫不出來，先去散步 5 分鐘再回來', 'C. 先做最簡單的第一題暖身'],
         correctIndex: 0,
         success: '正確！這就是多巴胺陷阱的核心。',
         danger: '這其實是多巴胺陷阱喔！大腦只是想逃避壓力。',
@@ -1822,42 +1902,20 @@ function getLessonTemplate(topic = {}) {
             question: '拖延當下最適合的開始方式是？',
             options: ['只做五分鐘，先碰到任務本身', '先滑手機找靈感', '先想像如果做不好會怎樣'],
             correctIndex: 0
-          }
-        ]
-      }
-    },
-    {
-      kind: 'focus',
-      match: ['穩定', '專注', '節奏'],
-      detail: {
-        prompt: '狀態還不錯時，你會不會反而想一次排很多，最後又累到反彈？',
-        choices: ['會太用力', '偶爾會', '還算穩'],
-        solution: '穩定狀態最適合練「節奏維持」。用固定專注與休息回合，比一次衝到底更能持續。',
-        cards: [
-          ['穩定時最該避免？', '過度用力<br>造成反彈'],
-          ['專注節奏怎麼排？', '25 分鐘專注<br>5 分鐘休息'],
-          ['開始前先做什麼？', '寫下本輪<br>唯一目標'],
-          ['維持狀態的關鍵？', '規律回合<br>而非硬撐']
-        ],
-        quizQuestion: '狀態穩定時，哪個做法最能延續專注？',
-        quizOptions: ['A. 設定一輪明確目標與休息時間', 'B. 一次排滿三小時不休息', 'C. 沒有計畫，想到什麼做什麼'],
-        correctIndex: 0,
-        success: '正確！穩定狀態適合用節奏延續，而不是靠硬撐。',
-        danger: '穩定時也需要節奏，才不容易用力過猛。',
-        quizBank: [
+          },
           {
-            question: '狀態穩定時，最適合怎麼維持專注？',
-            options: ['設定專注回合與休息時間', '一路硬撐到累了為止', '完全不安排，想到什麼做什麼'],
+            question: '想滑手機逃避任務時，哪個動作最能中斷慣性？',
+            options: ['先停 10 秒，再打開任務做第一小步', '滑到心情自然變好再開始', '把任務想得更完整再說'],
             correctIndex: 0
           },
           {
-            question: '專注節奏維持最想避免哪件事？',
-            options: ['過度用力後反彈', '有休息時間', '目標太清楚'],
+            question: '五分鐘開始法的成功標準是什麼？',
+            options: ['有碰到任務並開始第一小段', '五分鐘內完成整份作業', '開始前先完全消除焦慮'],
             correctIndex: 0
           },
           {
-            question: '一輪專注開始前，最適合先確認什麼？',
-            options: ['本輪唯一目標', '今天所有還沒做完的事', '自己會不會永遠做不好'],
+            question: '拖延時把任務拆小，是為了什麼？',
+            options: ['降低啟動阻力，讓自己比較願意開始', '讓任務看起來更多更有壓力', '證明自己可以一次做完全部'],
             correctIndex: 0
           }
         ]
@@ -1903,7 +1961,6 @@ function buildAdaptiveLessonItems() {
 
   const study = toNumberValue('slider-study', 40);
   const social = toNumberValue('slider-social', 20);
-  const sleep = toNumberValue('slider-sleep', 60);
 
   if (study >= 60 && !lessons.some(item => item.title.includes('番茄鐘') || item.title.includes('微計畫'))) {
     lessons.push({
@@ -1925,18 +1982,6 @@ function buildAdaptiveLessonItems() {
       tone: 'info',
       tags: ['社交壓力'],
       reason: '社交壓力偏高時，先練習低風險表達，可以減少反覆猜測與內耗。',
-      status: '推薦'
-    });
-  }
-
-  if (sleep >= 60 && !lessons.some(item => item.title.includes('呼吸') || item.title.includes('睡眠'))) {
-    lessons.push({
-      title: '睡眠壓力：4-7-8 呼吸放鬆',
-      sub: '入門 · 先把身體訊號降下來',
-      icon: 'ti ti-wind',
-      tone: 'success',
-      tags: ['睡眠', '放鬆'],
-      reason: '睡眠狀況不穩時，身體放鬆練習會比硬逼自己專注更適合當第一步。',
       status: '推薦'
     });
   }
@@ -1971,7 +2016,7 @@ function renderAdaptiveLessonList() {
   }
 
   list.innerHTML = lessons.map((lesson, index) => {
-    const completed = isCourseCompleted(lesson.title);
+    const completed = isCourseCompleted(lesson);
     const nextIndex = getNextIncompleteLessonIndex(lessons);
     const isCurrent = !completed && index === nextIndex;
     const status = completed ? '已完成' : isCurrent ? '進行中' : '待完成';
@@ -1993,8 +2038,10 @@ function renderAdaptiveLessonList() {
   }).join('');
 }
 
+const CHOICE_LABELS = ['A', 'B', 'C'];
+
 function stripQuizLabel(option) {
-  return String(option || '').replace(/^[A-ZＡ-Ｚ][.．、]\s*/, '').trim();
+  return String(option || '').replace(/^[A-ZＡ-Ｚ甲乙丙][.．、]\s*/, '').trim();
 }
 
 function shuffleItems(items = []) {
@@ -2021,7 +2068,7 @@ function pickLessonQuiz(detail = {}) {
   const shuffled = shuffleItems(options).slice(0, 3);
   return {
     question: quiz.question || fallbackQuiz.question,
-    options: shuffled.map((option, idx) => `${String.fromCharCode(65 + idx)}. ${option.text}`),
+    options: shuffled.map((option, idx) => `${CHOICE_LABELS[idx] || idx + 1}. ${option.text}`),
     correctIndex: shuffled.findIndex(option => option.correct)
   };
 }
@@ -2043,6 +2090,9 @@ function applyLessonDetail(index = 0, overrideLesson = null) {
   const solution = document.getElementById('lesson-solution-text');
   const quizQuestion = document.getElementById('lesson-quiz-question');
   const quizResult = document.getElementById('q1res');
+  const report = document.getElementById('course-report-text');
+  const courseAction = document.getElementById('course-next-action');
+  const chosenText = document.getElementById('student-chosen-text');
 
   if (pageTitle) pageTitle.textContent = lesson.title;
   if (pageSub) pageSub.textContent = lesson.sub || '依照你的情緒評估，推薦最適合今天的短課程。';
@@ -2055,7 +2105,11 @@ function applyLessonDetail(index = 0, overrideLesson = null) {
 
   (detail.choices || []).slice(0, 3).forEach((choice, i) => {
     const btn = document.getElementById(`lesson-choice-${i}`);
-    if (btn) btn.textContent = choice;
+    if (btn) {
+      btn.textContent = choice;
+      btn.disabled = false;
+      btn.classList.remove('selected', 'correct', 'wrong');
+    }
   });
 
   (detail.cards || []).slice(0, 4).forEach((card, i) => {
@@ -2083,8 +2137,17 @@ function applyLessonDetail(index = 0, overrideLesson = null) {
   const next = document.getElementById('p1-next');
   if (choices) choices.style.display = 'flex';
   if (chosen) chosen.style.display = 'none';
+  if (chosenText) chosenText.textContent = '';
   if (naviSolution) naviSolution.style.display = 'none';
   if (next) next.style.display = 'none';
+  if (report) report.textContent = '完成測驗後，AI會依照這堂課整理你的學習重點與下一步。';
+  if (courseAction) {
+    courseAction.innerHTML = '<i class="ti ti-arrow-right"></i> 繼續下一步';
+    courseAction.disabled = false;
+    courseAction.style.background = '';
+    courseAction.style.color = '';
+    courseAction.style.border = '';
+  }
   if (quizResult) {
     quizResult.style.display = 'none';
     quizResult.textContent = '';
@@ -2092,8 +2155,8 @@ function applyLessonDetail(index = 0, overrideLesson = null) {
   }
 
   currentLessonFeedback = {
-    success: detail.success || currentLessonFeedback.success,
-    danger: detail.danger || currentLessonFeedback.danger
+    success: detail.success || DEFAULT_LESSON_FEEDBACK.success,
+    danger: detail.danger || DEFAULT_LESSON_FEEDBACK.danger
   };
 }
 
@@ -2210,43 +2273,93 @@ async function fetchAiRecommendedTopics(options = {}) {
 }
 
 function updateDashboardChallengesPreview() {
+  const wrap = document.getElementById('dash-chal-list');
   const challenges = buildDynamicChallenges();
   if (!challenges.length) {
-    [1, 2].forEach(num => {
-      const title = document.getElementById(`dash-chal-${num}-title`);
-      const meta = document.getElementById(`dash-chal-${num}-meta`);
-      const pct = document.getElementById(`dash-chal-${num}-pct`);
-      if (title) title.textContent = num === 1 ? '完成課程後產生挑戰' : '等待下一個課程任務';
-      if (meta) meta.textContent = '先完成一堂課，Navi 會生成對應任務';
-      if (pct) pct.textContent = '--';
-    });
+    if (wrap) {
+      wrap.innerHTML = `
+        <div class="rec-row">
+          <div class="rec-icon"><i class="ti ti-sword"></i></div>
+          <div class="rec-main">
+            <div class="rec-title">完成課程後產生挑戰</div>
+            <div class="rec-meta">每完成一堂課，這裡都會累積一組對應任務</div>
+          </div>
+          <span class="chip">--</span>
+        </div>
+      `;
+    }
     return;
   }
-  challenges.slice(0, 2).forEach((challenge, idx) => {
-    const num = idx + 1;
-    const title = document.getElementById(`dash-chal-${num}-title`);
-    const meta = document.getElementById(`dash-chal-${num}-meta`);
-    const pct = document.getElementById(`dash-chal-${num}-pct`);
-    const list = document.getElementById(`realList${num}`);
-    const total = list ? list.querySelectorAll('.task-item').length : challenge.tasks.length;
-    const done = list ? list.querySelectorAll('.task-item.done').length : 0;
-    if (title) title.textContent = challenge.title;
-    if (meta) meta.textContent = `${challenge.deadlineLabel} · ${total} 項任務`;
-    if (pct) pct.textContent = `${total ? Math.round(done / total * 100) : 0}%`;
-  });
-  for (let idx = challenges.length; idx < 2; idx++) {
-    const num = idx + 1;
-    const title = document.getElementById(`dash-chal-${num}-title`);
-    const meta = document.getElementById(`dash-chal-${num}-meta`);
-    const pct = document.getElementById(`dash-chal-${num}-pct`);
-    if (title) title.textContent = '等待下一個課程任務';
-    if (meta) meta.textContent = '完成更多課程後會新增挑戰';
-    if (pct) pct.textContent = '--';
-  }
+  if (!wrap) return;
+  const totalTasks = challenges.reduce((sum, challenge) => sum + challenge.tasks.length, 0);
+  const doneTasks = challenges.reduce((sum, challenge) => sum + getChallengeDoneTasks(challenge).length, 0);
+  const activeChallenges = challenges.filter(challenge => !isChallengeCompleted(challenge));
+  const completedChallenges = challenges.filter(challenge => isChallengeCompleted(challenge));
+  wrap.innerHTML = `
+    <div class="rec-row clickable" onclick="openDashboardChallenge()">
+      <div class="rec-icon"><i class="ti ti-sword"></i></div>
+      <div class="rec-main">
+        <div class="rec-title">已累積 ${challenges.length} 組課程挑戰</div>
+        <div class="rec-meta">進行中 ${activeChallenges.length} 組 · 已完成 ${completedChallenges.length} 組 · ${doneTasks} / ${totalTasks} 項任務</div>
+      </div>
+      <span class="chip chip-success">${totalTasks ? Math.round(doneTasks / totalTasks * 100) : 0}%</span>
+    </div>
+    ${activeChallenges.length ? activeChallenges.map(challenge => {
+      const done = getChallengeDoneTasks(challenge).length;
+      const total = challenge.tasks.length;
+      return `
+        <div class="rec-row clickable" style="margin-top:10px;" onclick="openDashboardChallenge(${challenge.id - 1})">
+          <div class="rec-icon"><i class="${escapeHtml(challenge.icon)}"></i></div>
+          <div class="rec-main">
+            <div class="rec-title">${escapeHtml(challenge.title)}</div>
+            <div class="rec-meta">${escapeHtml(challenge.difficulty)} · 根據「${escapeHtml(challenge.courseTitle)}」· ${done} / ${total} 項任務</div>
+          </div>
+          <span class="chip ${difficultyToneToChip(challenge.tone)}">${total ? Math.round(done / total * 100) : 0}%</span>
+        </div>
+      `;
+    }).join('') : `
+      <div class="rec-row" style="margin-top:10px;">
+        <div class="rec-icon"><i class="ti ti-circle-check"></i></div>
+        <div class="rec-main">
+          <div class="rec-title">目前沒有進行中的挑戰</div>
+          <div class="rec-meta">已完成的挑戰會保留在下方紀錄中。</div>
+        </div>
+        <span class="chip chip-success">完成</span>
+      </div>
+    `}
+    ${completedChallenges.length ? `
+      <div class="section-label mt-12"><i class="ti ti-checklist"></i> 已完成挑戰紀錄</div>
+      ${completedChallenges.map(challenge => `
+        <div class="rec-row clickable" style="margin-top:10px;" onclick="openDashboardChallenge(${challenge.id - 1})">
+          <div class="rec-icon"><i class="${escapeHtml(challenge.icon)}"></i></div>
+          <div class="rec-main">
+            <div class="rec-title">${escapeHtml(challenge.title)}</div>
+            <div class="rec-meta">${escapeHtml(challenge.difficulty)} · 根據「${escapeHtml(challenge.courseTitle)}」· ${challenge.tasks.length} / ${challenge.tasks.length} 項任務</div>
+          </div>
+          <span class="chip chip-success">100%</span>
+        </div>
+      `).join('')}
+    ` : ''}
+  `;
 }
 
-function isCourseCompleted(title) {
-  return !!currentUser?.completedCourses?.some(course => course.title === title);
+function getLessonCompletionKey(lessonOrTitle) {
+  if (typeof lessonOrTitle === 'string') return lessonOrTitle;
+  return lessonOrTitle?.title || '';
+}
+
+function isRecommendedLesson(lessonOrTitle) {
+  if (typeof lessonOrTitle === 'string') return !!currentUser?.recommendationSnapshot?.topics?.some(topic => topic.title === lessonOrTitle);
+  return lessonOrTitle?.source !== 'catalog' && lessonOrTitle?.status !== '自選';
+}
+
+function isCourseCompleted(lessonOrTitle) {
+  const key = getLessonCompletionKey(lessonOrTitle);
+  if (!key) return false;
+  if (isRecommendedLesson(lessonOrTitle) && currentUser?.recommendationSnapshot) {
+    return !!currentUser.recommendationSnapshot.completedLessons?.[key];
+  }
+  return !!currentUser?.completedCourses?.some(course => course.title === key);
 }
 
 function isSelfSelectedLesson(lesson = currentActiveLesson) {
@@ -2264,7 +2377,7 @@ function getCurrentPathLessons() {
 }
 
 function getCompletedPathCount(lessons = getCurrentPathLessons()) {
-  return lessons.filter(lesson => isCourseCompleted(lesson.title)).length;
+  return lessons.filter(lesson => isCourseCompleted(lesson)).length;
 }
 
 function areAllPathLessonsCompleted(lessons = getCurrentPathLessons()) {
@@ -2272,7 +2385,7 @@ function areAllPathLessonsCompleted(lessons = getCurrentPathLessons()) {
 }
 
 function getNextIncompleteLessonIndex(lessons = getCurrentPathLessons()) {
-  const index = lessons.findIndex(lesson => !isCourseCompleted(lesson.title));
+  const index = lessons.findIndex(lesson => !isCourseCompleted(lesson));
   return index >= 0 ? index : 0;
 }
 
@@ -2436,17 +2549,43 @@ function selectMood(btn) {
   }
 }
 
+const stressDescMap = {
+  study: {
+    0: '目前幾乎沒有學業壓力，可以安排一個小目標維持節奏。',
+    20: '學業狀況穩定，照現在的步調前進就好。',
+    40: '有一點待辦壓力，先挑一件最小任務開始。',
+    60: '壓力開始明顯，建議把任務拆成 10 分鐘小步驟。',
+    80: '書本堆積如山？深呼吸，慢慢拆解。',
+    100: '學業壓力已經很滿，先暫停一下，只選今天最重要的一步。'
+  },
+  social: {
+    0: '目前社交狀態很輕鬆，可以自在維持自己的節奏。',
+    20: '社交狀態輕鬆自在。',
+    40: '有一點互動壓力，先用低風險方式回應就好。',
+    60: '訊息或互動開始有負擔，給自己一點緩衝時間。',
+    80: '訊息回不完？給自己一點獨處放鬆的時間。',
+    100: '社交壓力很高，先不用勉強表現，保留安全距離也可以。'
+  },
+  sleep: {
+    0: '睡眠狀態很好，今天可以延續穩定作息。',
+    20: '精神飽滿，充滿能量！',
+    40: '稍微有點疲累，今天任務可以排得輕一點。',
+    60: '睡眠品質不太穩，今晚可以提早降速。',
+    80: '昨晚沒睡好吧？今晚提早放下手機入睡吧。',
+    100: '睡眠狀態很吃緊，今天先降低任務量，把恢復排進去。'
+  }
+};
+
+function getStressDesc(type, value) {
+  const normalized = Math.max(0, Math.min(100, Math.round(Number(value || 0) / 20) * 20));
+  return stressDescMap[type]?.[normalized] || '';
+}
+
 // 4. 不重複的壓力提示字
 function updateStress(type, value) {
   document.getElementById(`val-${type}`).textContent = `${value}%`;
   const desc = document.getElementById(`desc-${type}`);
-  if(type === 'study') {
-    desc.textContent = value > 50 ? "書本堆積如山？深呼吸，慢慢拆解。" : "學業狀況穩定，繼續保持！";
-  } else if(type === 'social') {
-    desc.textContent = value > 50 ? "訊息回不完？給自己一點獨處放鬆的時間。" : "社交狀態輕鬆自在。";
-  } else if(type === 'sleep') {
-    desc.textContent = value > 50 ? "昨晚沒睡好吧？今晚提早放下手機入睡吧。" : "精神飽滿，充滿能量！";
-  }
+  if (desc) desc.textContent = getStressDesc(type, value);
 
   if (currentUser) {
     currentUser.recommendationContextKey = null;
@@ -2462,6 +2601,12 @@ function updateStress(type, value) {
 async function runGeminiAI() {
   const textDesc = document.getElementById('moodText').value.trim();
   if (!textDesc) { alert('請稍微寫一下發生了什麼事吧！'); return; }
+  const inputValidation = validateMoodInput(textDesc);
+  if (!inputValidation.valid) {
+    alert(inputValidation.message);
+    document.getElementById('moodText').focus();
+    return;
+  }
   
   const payload = {
     mood: currentMoodText, desc: textDesc,
@@ -2475,8 +2620,17 @@ async function runGeminiAI() {
   currentPracticeSelectionCache = null;
 
   // 紀錄圖表資料
-  currentUser.moodHistory.push({ date: new Date().toLocaleDateString('zh-TW').slice(5), score: 6 - currentMoodScore });
-  if(currentUser.moodHistory.length > 7) currentUser.moodHistory.shift();
+  const assessedAt = new Date();
+  const moodRecordDate = assessedAt.toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
+  currentUser.moodHistory.push({
+    date: moodRecordDate.slice(5),
+    fullDate: moodRecordDate,
+    assessedAt: assessedAt.toISOString(),
+    mood: currentMoodText,
+    moodScore: currentMoodScore,
+    score: 6 - currentMoodScore
+  });
+  currentUser.moodHistory = currentUser.moodHistory.slice(-80);
   persistCurrentUser();
   updateMoodChart();
 
@@ -2495,7 +2649,13 @@ async function runGeminiAI() {
   }
 
   applyEmotionAnalysisFromApi(res);
-  fetchAiRecommendedTopics({ force: true, contextPayload: payload }).finally(updateDashboardLanding);
+  const moodTopics = parseTopicsFromResponse(res);
+  if (moodTopics.length) {
+    saveRecommendedTopics(moodTopics, payload);
+    updateDashboardLanding();
+  } else {
+    fetchAiRecommendedTopics({ force: true, contextPayload: payload }).finally(updateDashboardLanding);
+  }
   updateDashboardLanding();
 }
 
@@ -2518,14 +2678,15 @@ function openLesson(index = 0, overrideLesson = null) {
   applyPracticeForCurrentCourse();
   renderDynamicChallenges();
   if (currentUser) {
-    const existingStage = currentUser.inProgressCourse?.title === lesson.title
+    const isSelfSelected = lesson.source === 'catalog' || lesson.status === '自選';
+    const existingStage = isSelfSelected && currentUser.inProgressCourse?.title === lesson.title
       ? currentUser.inProgressCourse.stage
       : null;
     currentUser.inProgressCourse = {
       index,
       title: lesson.title,
       lesson,
-      source: lesson.source || (lesson.status === '自選' ? 'catalog' : 'recommended'),
+      source: lesson.source || (isSelfSelected ? 'catalog' : 'recommended'),
       stage: existingStage && existingStage !== 'completed' ? existingStage : 'lesson_started',
       updatedAt: new Date().toISOString()
     };
@@ -2606,12 +2767,19 @@ function markCurrentLessonCompleted(correct) {
     completed_at: new Date().toISOString(),
     correct,
     kind: currentActiveLesson.kind || getCourseKind(currentActiveLesson),
+    difficulty: currentActiveLesson.difficulty || currentActiveLesson.sourceTopic?.difficulty || '入門',
     tags: currentActiveLesson.tags || [],
     reason: currentActiveLesson.reason || ''
   };
   if (existing) Object.assign(existing, record);
   else currentUser.completedCourses.push(record);
-  currentUser.completedCourses = currentUser.completedCourses.slice(-8);
+  if (!isSelfSelectedLesson(currentActiveLesson) && currentUser.recommendationSnapshot) {
+    if (!currentUser.recommendationSnapshot.completedLessons) currentUser.recommendationSnapshot.completedLessons = {};
+    currentUser.recommendationSnapshot.completedLessons[title] = {
+      completed_at: record.completed_at,
+      correct
+    };
+  }
   const allPathDone = areAllPathLessonsCompleted();
   currentUser.inProgressCourse = {
     index: currentUser.inProgressCourse?.index || 0,
@@ -2682,7 +2850,7 @@ function switchTab(btn, panelId) {
 }
 
 function getCourseKind(input = currentActiveLesson || '') {
-  const allowedKinds = ['emotion', 'study', 'social', 'procrastination', 'sleep', 'focus'];
+  const allowedKinds = ['emotion', 'study', 'social', 'procrastination'];
   if (typeof input === 'object' && allowedKinds.includes(input.kind)) return input.kind;
 
   const title = typeof input === 'object' ? input.title || '' : input || '';
@@ -2693,348 +2861,17 @@ function getCourseKind(input = currentActiveLesson || '') {
   const fullText = `${titleText} ${reason || ''} ${tags}`;
 
   if (hasAnyKeyword(titleText, ['情緒調節', '情緒覺察', '4-7-8', '呼吸放鬆', '冷靜'])) return 'emotion';
-  if (hasAnyKeyword(titleText, ['睡眠', '睡前', '失眠', '恢復', '休息', '優質睡眠'])) return 'sleep';
-  if (hasAnyKeyword(titleText, ['拖延', '番茄', '手機', '行動啟動', '五分鐘'])) return 'procrastination';
+  if (hasAnyKeyword(titleText, ['睡眠', '睡前', '失眠', '恢復', '休息', '優質睡眠'])) return 'emotion';
+  if (hasAnyKeyword(titleText, ['拖延', '番茄', '手機', '行動啟動', '五分鐘', '專注', '防干擾'])) return 'procrastination';
   if (hasAnyKeyword(titleText, ['社交', '溝通', '人際', '上台', '發表', '安全表達', '對話'])) return 'social';
   if (hasAnyKeyword(titleText, ['學業壓力', '壓力因應', '壓力應對', '微計畫', '讀書', '考試', '報告壓力'])) return 'study';
-  if (hasAnyKeyword(titleText, ['專注節奏', '穩定', '進階', '維持', '節奏'])) return 'focus';
 
-  if (hasAnyKeyword(fullText, ['睡眠', '睡前', '失眠', '恢復', '休息'])) return 'sleep';
-  if (hasAnyKeyword(fullText, ['拖延', '番茄', '手機', '滑', '逃避', '行動啟動', '五分鐘'])) return 'procrastination';
+  if (hasAnyKeyword(fullText, ['睡眠', '睡前', '失眠', '恢復', '休息'])) return 'emotion';
+  if (hasAnyKeyword(fullText, ['拖延', '番茄', '手機', '滑', '逃避', '行動啟動', '五分鐘', '專注', '防干擾'])) return 'procrastination';
   if (hasAnyKeyword(fullText, ['社交', '溝通', '人際', '上台', '發表', '對話', '安全表達'])) return 'social';
   if (hasAnyKeyword(fullText, ['情緒', '焦慮', '呼吸', '冷靜', '覺察', '調節'])) return 'emotion';
   if (hasAnyKeyword(fullText, ['學業', '讀書', '考試', '考前', '報告壓力', '期末', '壓力應對', '壓力因應', '微計畫'])) return 'study';
-  if (hasAnyKeyword(fullText, ['專注節奏', '穩定', '進階', '維持', '節奏'])) return 'focus';
   return 'emotion';
-}
-
-function getPracticeModuleDefinitions() {
-  return {
-    emotion: {
-      kind: 'emotion',
-      tab: '<i class="ti ti-heart-rate-monitor"></i> 情緒覺察',
-      sub: '依照情緒調節課程，先辨識情緒、身體感受與強度，再進入冷靜練習。',
-      breathTitle: '情緒覺察 + 4-7-8 呼吸',
-      breathBody: '先說出現在的情緒與身體感受，再做呼吸倒數。這對應 interactive_learning.md 的情緒覺察、呼吸引導與冷靜倒數模式。',
-      place: '壓力升高的當下',
-      story: '你感覺胸口緊、腦中一直想著等一下會失敗，身體比腦袋更早進入警戒。',
-      question: '情緒上來時，最適合的第一步是什麼？',
-      options: ['先命名情緒，再做一輪慢吐氣', '立刻逼自己恢復正常', '忽略身體感受繼續硬撐'],
-      correctIndex: 0,
-      success: '很好。先覺察再調節，情緒才有機會下降。',
-      danger: '這個模組的重點是先辨識情緒與身體感受，不是立刻壓下去。',
-      taskPrompt: '寫下你現在最明顯的情緒或身體感受，AI 會幫你拆成冷靜步驟。',
-      taskLabel: '<i class="ti ti-writing"></i> 想處理哪個情緒狀態？',
-      taskPlaceholder: '例如：想到明天考試就胸口很悶、坐不住...'
-    },
-    study: {
-      kind: 'study',
-      tab: '<i class="ti ti-list-check"></i> 壓力拆解',
-      sub: '依照壓力應對策略，練習把大型壓力來源拆成可控制、可排序的小步驟。',
-      breathTitle: '壓力來源分析 — 可控 / 不可控',
-      breathBody: '先把壓力來源拆開，分辨哪些能控制、哪些暫時不能控制，再選出今天 10 分鐘的小任務。',
-      place: '準備面對大型作業或考試時',
-      story: '你想到報告、考試、進度全部擠在一起，感覺每件事都很急，所以更不知道從哪裡開始。',
-      question: '壓力太大時，哪個做法最符合壓力拆解工具？',
-      options: ['列出壓力來源，先選一個可控制的小步驟', '把所有事情一次做完', '因為太多所以先完全不管'],
-      correctIndex: 0,
-      success: '對。壓力拆解的核心是把混在一起的壓力變成可排序的行動。',
-      danger: '這個模組要練的是拆解與排序，不是一次扛全部。',
-      taskPrompt: '輸入目前最大的壓力來源，AI 會拆成 5 到 7 個可執行的小步驟。',
-      taskLabel: '<i class="ti ti-writing"></i> 你想拆解哪個壓力來源？',
-      taskPlaceholder: '例如：期末報告還沒開始，還要準備段考...'
-    },
-    social: {
-      kind: 'social',
-      tab: '<i class="ti ti-messages"></i> 對話模擬',
-      sub: '依照社交焦慮克服課程，練習低風險開場、回覆訊息與完成後反思。',
-      breathTitle: '社交前穩定 — 先準備一句安全開場',
-      breathBody: '社交焦慮不是只靠深呼吸，還要降低開口阻力。先準備一句可掌控的開場，再進入對話模擬。',
-      place: '小組討論前',
-      story: '你想問同學問題，但腦中一直冒出「會不會很尷尬」「對方會不會覺得我很煩」。',
-      question: '對話模擬中，哪個開場最安全？',
-      options: ['我想確認一個地方，可以問你一下嗎？', '算了，我不要問了', '如果你覺得我很奇怪就不用回我'],
-      correctIndex: 0,
-      success: '很好。安全開場能降低社交壓力，也讓互動比較容易開始。',
-      danger: '社交練習的目標不是完美，而是用低風險方式開始。',
-      taskPrompt: '輸入一個你想練習的社交情境，AI 會幫你產生開場句與回覆步驟。',
-      taskLabel: '<i class="ti ti-writing"></i> 想模擬哪個社交情境？',
-      taskPlaceholder: '例如：想問同學作業問題，但怕很尷尬...'
-    },
-    procrastination: {
-      kind: 'procrastination',
-      tab: '<i class="ti ti-player-play"></i> 五分鐘開始',
-      sub: '依照拖延症行為重塑課程，練習五分鐘開始法、任務拆分與專注模式。',
-      breathTitle: '五分鐘開始法 — 先降低啟動阻力',
-      breathBody: '拖延時不要先追求完成，而是先承諾五分鐘。開始後再進入番茄鐘或專注倒數。',
-      place: '準備開始作業前',
-      story: '你看著作業，覺得太麻煩了，腦中出現「先滑一下手機」的念頭。',
-      question: '拖延當下，哪個行動最符合五分鐘開始法？',
-      options: ['只承諾做五分鐘，先打開第一個檔案', '先滑手機等有心情', '要求自己一次完成全部'],
-      correctIndex: 0,
-      success: '對。五分鐘開始法的重點是降低啟動阻力。',
-      danger: '拖延時先求開始，不是先求完成。',
-      taskPrompt: '輸入你最想拖延的任務，AI 會幫你拆成 5 到 7 個微步驟。',
-      taskLabel: '<i class="ti ti-writing"></i> 你想用五分鐘開始法處理哪件事？',
-      taskPlaceholder: '例如：英文報告還沒開始，一直想滑手機...'
-    },
-    sleep: {
-      kind: 'sleep',
-      tab: '<i class="ti ti-moon"></i> 睡前降速',
-      sub: '依照睡眠壓力修復課程，練習降低刺激、慢吐氣與明日小任務卸載。',
-      breathTitle: '睡前降速 — 慢吐氣與刺激降低',
-      breathBody: '睡前練習的重點是讓身體從警戒模式回到休息模式，包含手機放遠、光線降低與慢吐氣。',
-      place: '睡前 20 分鐘',
-      story: '你很累，但越滑手機越清醒，也越擔心明天精神不好。',
-      question: '睡眠壓力高時，哪個行動最適合？',
-      options: ['手機放遠，做 3 回合慢吐氣', '繼續刷新訊息到想睡', '熬夜把所有進度補完'],
-      correctIndex: 0,
-      success: '對。先降低刺激，睡眠修復才有機會發生。',
-      danger: '睡前練習的核心是降速，不是再刺激大腦。',
-      taskPrompt: '輸入今晚最放不下的事情，AI 會幫你整理睡前卸載步驟。',
-      taskLabel: '<i class="ti ti-writing"></i> 今晚腦中最放不下什麼？',
-      taskPlaceholder: '例如：一直擔心明天考試讀不完...'
-    },
-    focus: {
-      kind: 'focus',
-      tab: '<i class="ti ti-target-arrow"></i> 專注節奏',
-      sub: '依照穩定狀態進階課程，練習專注回合、休息節奏與自我檢查。',
-      breathTitle: '專注節奏 — 開始前校準',
-      breathBody: '狀態穩定時，重點是維持節奏。開始前先寫下唯一目標，再進入專注回合。',
-      place: '準備複習前',
-      story: '你今天狀態不錯，想把穩定感延續到接下來一小時。',
-      question: '想維持穩定專注，最適合怎麼做？',
-      options: ['安排專注回合與休息時間', '一次排滿三小時不休息', '完全不規劃，想到什麼做什麼'],
-      correctIndex: 0,
-      success: '很好。穩定狀態靠節奏延續，不是靠硬撐。',
-      danger: '穩定時也需要節奏，避免過度用力後反彈。',
-      taskPrompt: '輸入你想維持專注的主題，AI 會幫你設計專注回合。',
-      taskLabel: '<i class="ti ti-writing"></i> 想維持專注在哪件事？',
-      taskPlaceholder: '例如：下午想複習數學，但不想太快累掉...'
-    }
-  };
-}
-
-function getPracticeKindsForCurrentPath() {
-  const lessons = getCurrentPathLessons();
-  const completedPath = lessons.filter(lesson => isCourseCompleted(lesson.title));
-  const source = completedPath.length ? completedPath : (currentActiveLesson ? [currentActiveLesson] : lessons);
-  const kinds = [];
-  source.forEach(lesson => {
-    const kind = lesson.kind || getCourseKind(lesson);
-    if (!kinds.includes(kind)) kinds.push(kind);
-  });
-  return kinds.length ? kinds.slice(0, 3) : ['emotion', 'study', 'procrastination'];
-}
-
-function getPracticeModulesForCurrentPath() {
-  const defs = getPracticeModuleDefinitions();
-  const kinds = getPracticeKindsForCurrentPath();
-  const modules = kinds.map(kind => defs[kind]).filter(Boolean);
-  return modules.length ? modules.slice(0, 3) : [defs.emotion];
-}
-
-function getPracticeConfigForLesson(lesson = currentActiveLesson) {
-  const defs = getPracticeModuleDefinitions();
-  const kind = lesson?.kind || getCourseKind(lesson);
-  return defs[kind] || defs.emotion;
-}
-
-/*
-function getPracticeConfigForLesson_legacy(lesson = currentActiveLesson) {
-  const kind = getCourseKind(lesson?.title);
-  const configs = {
-    emotion: {
-      sub: '這組練習對應情緒調節課程，先降低身體警報，再處理壓力源。',
-      breathTitle: '4-7-8 呼吸法 — 快速降低焦慮',
-      breathBody: '吐氣拉長會幫助副交感神經啟動，讓心跳與肌肉緊繃慢慢下降。焦慮高時，先穩住身體再行動。',
-      place: '考前晚上，書桌前',
-      story: '「你想到明天的考試，胸口悶悶的，越想專心越坐不住。」',
-      question: '運用情緒調節策略，你會怎麼做？',
-      options: ['先做一輪慢吸慢吐，讓身體降速', '逼自己立刻讀完整章', '一邊自責一邊滑手機'],
-      correctIndex: 0,
-      success: '很適合。先降速，才比較能回到可行的讀書節奏。',
-      danger: '焦慮升高時，第一步通常不是硬逼自己，而是先讓身體警報下降。'
-    },
-    study: {
-      sub: '這組練習對應學業壓力微計畫，重點是把大任務切成可開始的小入口。',
-      breathTitle: '讀書前 60 秒降壓 — 讓大腦看見入口',
-      breathBody: '學業壓力高時，大腦會把整份任務看成威脅。先呼吸降壓，再把範圍縮到 10 分鐘，啟動阻力會低很多。',
-      place: '晚上 9 點，書房',
-      story: '「你打開課本，看到還剩 30 頁。胸口悶悶的，手不自覺地伸向手機...」',
-      question: '運用剛學到的微計畫策略，你會怎麼做？',
-      options: ['先整理今天只讀 10 分鐘的範圍', '要求自己今晚讀完整章', '想到讀不完就先滑手機'],
-      correctIndex: 0,
-      success: '正確。小範圍能降低啟動阻力，讓壓力變成可處理的行動。',
-      danger: '這堂課的重點是最小可行步驟，不是一次扛完整個任務。'
-    },
-    procrastination: {
-      sub: '這組練習對應拖延與手機逃避，重點是用番茄鐘建立微承諾。',
-      breathTitle: '啟動前呼吸 — 中斷滑手機慣性',
-      breathBody: '想滑手機時先停 10 秒，讓衝動過峰值，再用 25 分鐘番茄鐘把注意力帶回來。',
-      place: '晚上 9 點，書房',
-      story: '「你看到還沒開始的作業，腦中冒出：先滑 10 分鐘冷靜一下好了。」',
-      question: '運用番茄鐘微承諾，你會怎麼做？',
-      options: ['設定 25 分鐘，只完成第一小段', '先滑 10 分鐘 IG 冷靜一下', '直接放棄明天再說'],
-      correctIndex: 0,
-      success: '漂亮。先承諾一小段，能避開拖延最難的啟動點。',
-      danger: '滑手機通常會讓焦慮延後爆發。這堂課要練的是先做一小段。'
-    },
-    social: {
-      sub: '這組練習對應社交焦慮管理，先準備安全開場，再慢慢表達。',
-      breathTitle: '上台前穩定呼吸 — 把聲音找回來',
-      breathBody: '社交壓力會讓腦中預演失控。先穩定呼吸，再準備一句可掌控的開場，能降低開口阻力。',
-      place: '報告前 5 分鐘，教室外',
-      story: '「你想到等等要開口，腦中一直跑出同學會不會覺得我很怪。」',
-      question: '運用安全表達策略，你會怎麼做？',
-      options: ['先寫下第一句開場，講慢一點', '一直猜大家會不會討厭我', '臨時逃掉不報告'],
-      correctIndex: 0,
-      success: '很好。先掌握第一句，就能讓大腦從預演回到行動。',
-      danger: '安全表達的重點是找到低風險開口，不是要求自己一次完美。'
-    },
-    sleep: {
-      sub: '這組練習對應睡眠壓力修復，先降低刺激，讓身體進入恢復模式。',
-      breathTitle: '睡前降速呼吸 — 幫身體切換模式',
-      breathBody: '睡前拉長吐氣、降低螢幕刺激，可以幫助身體從警戒模式回到休息模式。',
-      place: '睡前 20 分鐘，房間',
-      story: '「你很累，但越滑手機越清醒，也越擔心明天精神不好。」',
-      question: '運用睡前降速策略，你會怎麼做？',
-      options: ['把手機放遠，做 3 回合慢吐氣', '熬夜補完所有進度', '一直刷新訊息到想睡'],
-      correctIndex: 0,
-      success: '對。睡眠壓力高時，先恢復身體狀態，明天才有專注力。',
-      danger: '睡前繼續刺激大腦會讓恢復更難。這堂課先練降速。'
-    },
-    focus: {
-      sub: '這組練習對應穩定狀態進階，練習維持專注節奏而不是過度用力。',
-      breathTitle: '專注節奏呼吸 — 開始前校準狀態',
-      breathBody: '狀態穩定時，短呼吸可以當作開始儀式，幫你更快進入固定節奏。',
-      place: '週末下午，準備複習',
-      story: '「你今天狀態不錯，想把這種穩定感延續到接下來一小時。」',
-      question: '運用專注節奏策略，你會怎麼做？',
-      options: ['安排 25 分鐘專注與 5 分鐘休息', '一次排滿三小時不休息', '沒有計畫，想到什麼做什麼'],
-      correctIndex: 0,
-      success: '很好。穩定狀態最適合用節奏維持，不需要過度逼迫。',
-      danger: '穩定時也需要節奏，避免用力過猛後反彈。'
-    }
-  };
-  return configs[kind] || configs.emotion;
-}
-*/
-
-function applyPracticeForCurrentCourse() {
-  const modules = getPracticeModulesForCurrentPath();
-  const primaryModule = modules[0] || getPracticeConfigForLesson();
-  const scenarioModule = modules[1] || primaryModule;
-  const taskModule = modules[2] || scenarioModule;
-  const panelModules = [primaryModule, scenarioModule, taskModule];
-  const uniqueModules = panelModules.filter((module, index, arr) => arr.findIndex(item => item.kind === module.kind) === index);
-  const config = scenarioModule;
-  currentPracticeScenario = config;
-  const sub = document.getElementById('practice-page-sub');
-  const breathTitle = document.getElementById('practice-breath-title');
-  const breathBody = document.getElementById('practice-breath-body');
-  const place = document.getElementById('practice-scene-place');
-  const story = document.getElementById('practice-scene-story');
-  const question = document.getElementById('practice-scene-question');
-  const primaryInteraction = document.getElementById('practice-primary-interaction');
-  const sceneInteraction = document.getElementById('practice-scene-interaction');
-  const tabIds = ['btn-tab-breath', 'btn-tab-scen', 'btn-tab-task'];
-  panelModules.forEach((module, index) => {
-    const tab = document.getElementById(tabIds[index]);
-    if (tab) tab.innerHTML = module.tab;
-  });
-  if (sub) sub.textContent = `依本次推薦課程生成：${uniqueModules.map(module => module.tab.replace(/<[^>]+>/g, '').trim()).join('、')}。`;
-  if (breathTitle) breathTitle.innerHTML = `<i class="ti ti-wind"></i> ${escapeHtml(primaryModule.breathTitle)}`;
-  if (breathBody) breathBody.textContent = primaryModule.breathBody;
-  if (place) place.innerHTML = `<i class="ti ti-map-pin"></i> ${escapeHtml(config.place)}`;
-  if (story) story.textContent = `「${config.story.replace(/^「|」$/g, '')}」`;
-  if (question) question.textContent = config.question;
-  if (primaryInteraction) primaryInteraction.innerHTML = renderPracticeInteraction(primaryModule, 'primary');
-  if (sceneInteraction) sceneInteraction.innerHTML = renderPracticeInteraction(config, 'scene');
-  config.options.forEach((option, idx) => {
-    const btn = document.getElementById(`sc${idx}`);
-    if (!btn) return;
-    btn.disabled = false;
-    btn.classList.remove('correct', 'wrong');
-    btn.innerHTML = `<span class="choice-key">${String.fromCharCode(65 + idx)}</span>${escapeHtml(option)}`;
-    btn.setAttribute('onclick', `pickChoice(${idx}, ${idx === config.correctIndex})`);
-  });
-  const fb = document.getElementById('scenFB');
-  if (fb) fb.style.display = 'none';
-  const taskPrompt = document.getElementById('task-practice-prompt');
-  const taskLabel = document.getElementById('task-practice-label');
-  const taskInput = document.getElementById('taskInput');
-  if (taskPrompt) taskPrompt.textContent = taskModule.taskPrompt;
-  if (taskLabel) taskLabel.innerHTML = taskModule.taskLabel;
-  if (taskInput) taskInput.placeholder = taskModule.taskPlaceholder;
-}
-
-function renderPracticeInteraction(module, area) {
-  const kind = module?.kind || 'emotion';
-  if (area === 'primary') {
-    const primaryMap = {
-      emotion: `
-        <div class="mini-practice-box">
-          <div class="section-label"><i class="ti ti-heart-rate-monitor"></i> 情緒覺察操作</div>
-          <div class="chip-row">
-            <button class="chip" onclick="setMiniPracticeResult('目前強度：低。可以先做 1 輪呼吸。')">低</button>
-            <button class="chip chip-warning" onclick="setMiniPracticeResult('目前強度：中。建議做 2 輪呼吸並寫下壓力來源。')">中</button>
-            <button class="chip chip-danger" onclick="setMiniPracticeResult('目前強度：高。先啟動 30 秒冷靜模式，不急著解決問題。')">高</button>
-          </div>
-          <div class="ai-insight mt-8" id="mini-practice-result">先選出現在的情緒強度。</div>
-        </div>`,
-      study: `
-        <div class="mini-practice-box">
-          <div class="section-label"><i class="ti ti-list-check"></i> 壓力可控分類</div>
-          <div class="task-list">
-            <div class="task-item" onclick="toggleMiniCheck(this)"><div class="task-check"></div><span>我能控制：今天先完成一個小段落</span></div>
-            <div class="task-item" onclick="toggleMiniCheck(this)"><div class="task-check"></div><span>我暫時不能控制：老師或同學的評價</span></div>
-            <div class="task-item" onclick="toggleMiniCheck(this)"><div class="task-check"></div><span>下一步：選一個 10 分鐘任務</span></div>
-          </div>
-        </div>`,
-      social: `
-        <div class="mini-practice-box">
-          <div class="section-label"><i class="ti ti-message-circle"></i> 安全開場練習</div>
-          <input class="task-input" id="mini-social-line" type="text" placeholder="寫一句你敢說出口的開場，例如：我想確認一個地方..." maxlength="80">
-          <button class="btn-ghost mt-8" onclick="setMiniPracticeResult('很好，這句開場有明確目的，也保留安全感。')"><i class="ti ti-check"></i> 檢查開場</button>
-          <div class="ai-insight mt-8" id="mini-practice-result">先寫一句低風險開場。</div>
-        </div>`,
-      procrastination: `
-        <div class="mini-practice-box">
-          <div class="section-label"><i class="ti ti-player-play"></i> 五分鐘開始法</div>
-          <div class="ai-insight">先不用完成，只要承諾開始五分鐘。</div>
-          <button class="btn-ghost mt-8" onclick="setMiniPracticeResult('五分鐘開始已啟動：請只打開檔案或拿出材料，不要求完成。')"><i class="ti ti-clock-play"></i> 啟動五分鐘</button>
-          <div class="ai-insight mt-8" id="mini-practice-result">等待啟動。</div>
-        </div>`,
-      sleep: `
-        <div class="mini-practice-box">
-          <div class="section-label"><i class="ti ti-moon"></i> 睡前降速清單</div>
-          <div class="task-list">
-            <div class="task-item" onclick="toggleMiniCheck(this)"><div class="task-check"></div><span>手機放到伸手拿不到的位置</span></div>
-            <div class="task-item" onclick="toggleMiniCheck(this)"><div class="task-check"></div><span>把明天第一件小事寫下來</span></div>
-            <div class="task-item" onclick="toggleMiniCheck(this)"><div class="task-check"></div><span>做 3 回合慢吐氣</span></div>
-          </div>
-        </div>`,
-      focus: `
-        <div class="mini-practice-box">
-          <div class="section-label"><i class="ti ti-target-arrow"></i> 專注回合設定</div>
-          <input class="task-input" id="mini-focus-goal" type="text" placeholder="寫下這一輪唯一目標，例如：整理英文報告大綱" maxlength="80">
-          <button class="btn-ghost mt-8" onclick="setMiniPracticeResult('專注回合已設定：25 分鐘只做這一個目標，結束後休息 5 分鐘。')"><i class="ti ti-player-play"></i> 設定一輪</button>
-          <div class="ai-insight mt-8" id="mini-practice-result">先寫下唯一目標。</div>
-        </div>`
-    };
-    return primaryMap[kind] || primaryMap.emotion;
-  }
-
-  const sceneMap = {
-    emotion: '<div class="ai-insight mb-8">操作重點：先命名情緒，再選擇降速行動。</div>',
-    study: '<div class="ai-insight mb-8">操作重點：先找可控制的小步驟，不處理整座壓力山。</div>',
-    social: '<div class="ai-insight mb-8">操作重點：先練一句安全開場，再慢慢回應。</div>',
-    procrastination: '<div class="ai-insight mb-8">操作重點：先啟動五分鐘，不要求一次完成。</div>',
-    sleep: '<div class="ai-insight mb-8">操作重點：降低刺激，讓身體知道可以休息。</div>',
-    focus: '<div class="ai-insight mb-8">操作重點：一輪只放一個目標，避免過度用力。</div>'
-  };
-  return sceneMap[kind] || sceneMap.emotion;
 }
 
 function setMiniPracticeResult(text) {
@@ -3046,6 +2883,80 @@ function toggleMiniCheck(el) {
   el.classList.toggle('done');
   const check = el.querySelector('.task-check');
   if (check) check.innerHTML = el.classList.contains('done') ? '<i class="ti ti-check"></i>' : '';
+  const panel = el.closest('.practice-panel');
+  if (panel?.id?.startsWith('practice-panel-')) {
+    updatePracticeFooterState(panel.id.replace('practice-panel-', ''));
+  }
+}
+
+function selectFocusDistraction(moduleId, key, btn) {
+  const module = currentPracticeModuleById[moduleId];
+  const action = focusDistractionActions[key];
+  if (!module || !action) return;
+  module.focusDistraction = key;
+  module.focusActionConfirmed = false;
+  document.querySelectorAll(`[data-focus-distraction]`).forEach(item => {
+    if (item.closest(`#practice-panel-${moduleId}`)) item.classList.toggle('selected', item === btn);
+  });
+  const actionText = document.getElementById(`focus-action-text-${moduleId}`);
+  const actionItem = document.getElementById(`focus-action-confirm-${moduleId}`);
+  if (actionText) actionText.textContent = action.action;
+  if (actionItem) {
+    actionItem.classList.remove('done');
+    const check = actionItem.querySelector('.task-check');
+    if (check) check.innerHTML = '';
+  }
+  setPracticeModuleResult(moduleId, `已選擇干擾源：${action.label}。請先完成下方防干擾行動，再進入下一步。`);
+  updatePracticeFooterState(moduleId);
+}
+
+function toggleFocusActionConfirm(moduleId, el) {
+  const module = currentPracticeModuleById[moduleId];
+  if (!module?.focusDistraction) {
+    setPracticeModuleResult(moduleId, '請先選擇一個最大干擾源。');
+    return;
+  }
+  el.classList.toggle('done');
+  module.focusActionConfirmed = el.classList.contains('done');
+  const check = el.querySelector('.task-check');
+  if (check) check.innerHTML = module.focusActionConfirmed ? '<i class="ti ti-check"></i>' : '';
+  updatePracticeFooterState(moduleId);
+}
+
+function selectProcrastinationTriggerReason(moduleId, key, btn) {
+  const module = currentPracticeModuleById[moduleId];
+  const reason = procrastinationTriggerReasons[key];
+  if (!module || !reason) return;
+  module.triggerReason = key;
+  document.querySelectorAll(`[data-trigger-reason]`).forEach(item => {
+    if (item.closest(`#practice-panel-${moduleId}`)) item.classList.toggle('selected', item === btn);
+  });
+  setPracticeModuleResult(moduleId, `你辨識到卡住原因是「${reason.label}」：${reason.desc}`);
+  updatePracticeFooterState(moduleId);
+}
+
+function selectProcrastinationReplacementAction(moduleId, key, btn) {
+  const module = currentPracticeModuleById[moduleId];
+  const action = procrastinationReplacementActions[key];
+  if (!module || !action) return;
+  module.replacementAction = key;
+  document.querySelectorAll(`[data-trigger-action]`).forEach(item => {
+    if (item.closest(`#practice-panel-${moduleId}`)) item.classList.toggle('selected', item === btn);
+  });
+  setPracticeModuleResult(moduleId, `下一次先用「${action.label}」：${action.desc}`);
+  updatePracticeFooterState(moduleId);
+}
+
+function selectSleepSlowdownAction(moduleId, key, btn) {
+  const module = currentPracticeModuleById[moduleId];
+  const action = sleepSlowdownActions[key];
+  if (!module || !action) return;
+  module.sleepAction = key;
+  document.querySelectorAll(`[data-sleep-action]`).forEach(item => {
+    if (item.closest(`#practice-panel-${moduleId}`)) item.classList.toggle('selected', item === btn);
+  });
+  setPracticeModuleResult(moduleId, `今晚離線降速行動：${action.label}。${action.desc}`);
+  updatePracticeFooterState(moduleId);
 }
 
 let currentPracticeModules = [];
@@ -3077,10 +2988,9 @@ function getPracticeModuleDefinitions() {
     { id: 'social-opener', kind: 'social', kinds: ['social'], role: 'course', icon: 'ti ti-message-circle', title: '安全開場練習', goal: '先準備一句低風險開場，降低開口阻力。', priority: 20, type: 'safe-opener' },
     { id: 'social-reflection', kind: 'social', kinds: ['social'], role: 'reflection', icon: 'ti ti-notes', title: '完成後反思', goal: '比較想像中的糟糕結果與實際結果。', priority: 35, type: 'reflection' },
     { id: 'procrastination-five', kind: 'procrastination', kinds: ['procrastination'], role: 'course', icon: 'ti ti-player-play', title: '五分鐘開始法', goal: '先做五分鐘就好，降低啟動阻力。', priority: 10, type: 'five-start' },
-    { id: 'procrastination-focus', kind: 'procrastination', kinds: ['procrastination', 'focus'], role: 'action', icon: 'ti ti-clock', title: '專注模式', goal: '用專注倒數與干擾降低模式進入行動。', priority: 20, type: 'focus-mode' },
-    { id: 'behavior-tracking', kind: 'procrastination', kinds: ['procrastination'], role: 'reflection', icon: 'ti ti-checkbox', title: '每日行為追蹤', goal: '記錄是否開始作業、提前準備與完成小任務。', priority: 40, type: 'tracking' },
-    { id: 'sleep-slowdown', kind: 'sleep', kinds: ['sleep'], role: 'regulation', icon: 'ti ti-moon', title: '睡前降速練習', goal: '降低螢幕刺激、慢吐氣並卸載明日小任務。', priority: 10, type: 'sleep' },
-    { id: 'focus-rhythm', kind: 'focus', kinds: ['focus'], role: 'course', icon: 'ti ti-target-arrow', title: '專注節奏維持', goal: '狀態穩定時設定專注回合與休息節奏。', priority: 10, type: 'focus-rhythm' },
+    { id: 'procrastination-focus', kind: 'procrastination', kinds: ['procrastination'], role: 'action', icon: 'ti ti-shield-check', title: '專注防干擾計畫', goal: '開始前先設定目標、時間與防干擾行動，保護接下來的專注。', priority: 20, type: 'focus-mode' },
+    { id: 'behavior-tracking', kind: 'procrastination', kinds: ['procrastination'], role: 'reflection', icon: 'ti ti-zoom-question', title: '拖延觸發點回顧', goal: '找出剛剛卡住的原因，替下一次選一個更容易啟動的替代行動。', priority: 40, type: 'procrastination-trigger' },
+    { id: 'sleep-slowdown', kind: 'sleep', kinds: ['sleep'], role: 'regulation', icon: 'ti ti-moon', title: '睡前降速練習', goal: '先在手機上設定睡前收尾計畫，再離開畫面執行降速行動。', priority: 10, type: 'sleep' },
     { id: 'task-breakdown-ai', kind: 'study', kinds: ['study', 'procrastination'], role: 'action', icon: 'ti ti-robot', title: 'AI 任務拆解', goal: '由 AI 依課程與狀態拆成 5 到 7 個可執行步驟。', priority: 60, type: 'task-breakdown', when: ctx => ctx.profile.study >= 50 || ctx.profile.procrastination }
   ];
 }
@@ -3091,7 +3001,7 @@ function getPracticeKindsForCurrentPath() {
     return [lesson?.kind || getCourseKind(lesson)].filter(Boolean);
   }
   const lessons = getCurrentPathLessons();
-  const completedPath = lessons.filter(lesson => isCourseCompleted(lesson.title));
+  const completedPath = lessons.filter(lesson => isCourseCompleted(lesson));
   const source = completedPath.length ? completedPath : (currentActiveLesson ? [currentActiveLesson] : lessons);
   const kinds = [];
   source.forEach(lesson => {
@@ -3206,7 +3116,13 @@ function getPracticeModulesForCurrentPath() {
     if (selected.length < limit && !selected.some(item => item.id === module.id)) selected.push(module);
   });
 
-  const result = selected.slice(0, limit);
+  const result = selected
+    .slice(0, limit)
+    .sort((a, b) => {
+      if (a.id === 'procrastination-focus' && b.id === 'procrastination-five') return -1;
+      if (a.id === 'procrastination-five' && b.id === 'procrastination-focus') return 1;
+      return 0;
+    });
   currentPracticeSelectionCache = { key: selectionKey, moduleIds: result.map(module => module.id) };
   return result;
 }
@@ -3234,7 +3150,7 @@ function applyPracticeForCurrentCourse() {
     sub.textContent = `依今天的狀態精選 ${currentPracticeModules.length} 個練習模組：${currentPracticeModules.map(module => module.title).join('、')}。同課程下次會優先調整為不同練習。`;
   }
   tabs.innerHTML = currentPracticeModules.map((module, index) => `
-    <button class="ptab ${index === 0 ? 'active' : ''}" onclick="activatePracticeModule('${module.id}')">
+    <button class="ptab ${index === 0 ? 'active' : ''}" type="button" data-module-id="${module.id}" tabindex="-1" aria-disabled="true">
       <i class="${module.icon}"></i> ${escapeHtml(module.title)}
     </button>
   `).join('');
@@ -3243,16 +3159,18 @@ function applyPracticeForCurrentCourse() {
       ${renderPracticeModule(module)}
     </div>
   `).join('');
+  setTimeout(refreshPracticeFooterStates, 0);
   resetTask();
 }
 
 function activatePracticeModule(moduleId) {
   document.querySelectorAll('.ptab').forEach(btn => {
-    btn.classList.toggle('active', btn.getAttribute('onclick')?.includes(`'${moduleId}'`));
+    btn.classList.toggle('active', btn.dataset.moduleId === moduleId);
   });
   document.querySelectorAll('.practice-panel').forEach(panel => {
     panel.classList.toggle('active', panel.id === `practice-panel-${moduleId}`);
   });
+  updatePracticeFooterState(moduleId);
 }
 
 function switchTab(btn, panelId) {
@@ -3295,9 +3213,8 @@ function renderPracticeModule(module) {
     'reflection': () => renderInputPracticeModule(module, '寫下：我原本最怕什麼？實際結果是什麼？', '很好，反思能幫你校正腦中過度糟糕的預測。'),
     'five-start': () => renderFiveStartModule(module),
     'focus-mode': () => renderFocusModeModule(module),
-    'tracking': () => renderTrackingModule(module),
+    'procrastination-trigger': () => renderProcrastinationTriggerModule(module),
     'sleep': () => renderSleepModule(module),
-    'focus-rhythm': () => renderFocusRhythmModule(module),
     'task-breakdown': () => renderTaskBreakdownModule(module)
   };
   const body = renderers[module.type] ? renderers[module.type]() : renderChecklistModule(module, ['先完成一個小步驟', '記錄完成後的狀態']);
@@ -3323,16 +3240,20 @@ function renderBreathModule(module) {
 }
 
 function renderEmotionAwarenessModule(module) {
+  const levelChipClass = {
+    '低': 'chip-success emotion-level-low',
+    '中': 'chip-warning emotion-level-mid',
+    '高': 'chip-danger emotion-level-high'
+  };
   return `
     <div class="card practice-card-${module.role}">
       <div class="emotion-scale">
-        ${['低', '中', '高'].map(level => `<button class="chip" onclick="setEmotionLevel('${module.id}', '${level}')">${level}</button>`).join('')}
+        ${['低', '中', '高'].map(level => `<button class="chip ${levelChipClass[level]}" data-emotion-level="${level}" data-module-id="${module.id}" onclick="setEmotionLevel('${module.id}', '${level}', this)">${level}</button>`).join('')}
       </div>
       <div class="meta-row mt-10">
-        <input class="task-input" id="emotion-name-${module.id}" placeholder="現在的情緒是什麼？例如：緊張、煩、害怕" maxlength="60">
-        <input class="task-input" id="emotion-body-${module.id}" placeholder="身體哪裡最明顯？例如：胸口、肩膀、胃" maxlength="60">
+        <input class="task-input" id="emotion-name-${module.id}" placeholder="現在的情緒是什麼？例如：緊張、煩、害怕" maxlength="60" oninput="updatePracticeFooterState('${module.id}')">
+        <input class="task-input" id="emotion-body-${module.id}" placeholder="身體哪裡最明顯？例如：胸口、肩膀、胃" maxlength="60" oninput="updatePracticeFooterState('${module.id}')">
       </div>
-      <button class="btn-primary mt-10" onclick="completeEmotionAwareness('${module.id}')"><i class="ti ti-check"></i> 完成覺察</button>
       <div class="ai-insight mt-10" id="practice-result-${module.id}">先選情緒強度，再寫下身體感受。</div>
     </div>
   `;
@@ -3350,12 +3271,34 @@ function renderCalmModule(module) {
 }
 
 function renderStressSourceModule(module) {
-  return renderChecklistModule(module, [
-    '我能控制：今天先完成一個小段落',
-    '我暫時不能控制：老師或同學的評價',
-    '我需要釐清：最急的是哪一件',
-    '下一步：選一個 10 分鐘任務'
-  ], '壓力可控分類');
+  return `
+    <div class="card practice-card-${module.role}">
+      <div class="ai-insight mb-10">
+        這一步不是要立刻解決全部壓力，而是先分清楚：哪些事情今天能動手，哪些事情先不用一直扛著。
+      </div>
+      <div class="stress-source-steps">
+        <div class="mini-practice-box mini-practice-course">
+          <div class="section-label"><i class="ti ti-alert-circle"></i> 1. 現在最卡的是什麼？</div>
+          <input class="task-input compact-input" id="stress-main-${module.id}" placeholder="例如：報告還沒做完、考試範圍太多、怕被老師評價" maxlength="80" oninput="updatePracticeFooterState('${module.id}')">
+        </div>
+        <div class="stress-source-grid">
+          <div class="mini-practice-box mini-practice-action">
+            <div class="section-label"><i class="ti ti-circle-check"></i> 2. 我能控制</div>
+            <input class="task-input compact-input" id="stress-control-${module.id}" placeholder="例如：今天先整理一頁大綱" maxlength="80" oninput="updatePracticeFooterState('${module.id}')">
+          </div>
+          <div class="mini-practice-box mini-practice-reflection">
+            <div class="section-label"><i class="ti ti-clock-pause"></i> 3. 暫時不能控制</div>
+            <input class="task-input compact-input" id="stress-uncontrol-${module.id}" placeholder="例如：別人怎麼評價、題目會不會很難" maxlength="80" oninput="updatePracticeFooterState('${module.id}')">
+          </div>
+        </div>
+        <div class="mini-practice-box mini-practice-action">
+          <div class="section-label"><i class="ti ti-player-play"></i> 4. 下一個 10 分鐘小行動</div>
+          <input class="task-input compact-input" id="stress-next-${module.id}" placeholder="例如：打開檔案，先列 3 個標題" maxlength="80" oninput="updatePracticeFooterState('${module.id}')">
+        </div>
+      </div>
+      <div class="ai-insight mt-10" id="practice-result-${module.id}">先把壓力分成可控制與暫時不能控制，下一步會更清楚。</div>
+    </div>
+  `;
 }
 
 function renderPriorityModule(module) {
@@ -3375,7 +3318,6 @@ function renderTodayTaskModule(module, ctx) {
         <i class="ti ti-calendar-check"></i>
         <div><div class="fb-title">今天的小任務</div><div>${escapeHtml(task)}</div></div>
       </div>
-      <button class="btn-primary mt-10" onclick="addCompleteTask('完成今日小任務'); setPracticeModuleResult('${module.id}', '已記錄今日小任務，接下來可以進入現實挑戰。')"><i class="ti ti-check"></i> 我完成了</button>
       <div class="ai-insight mt-10" id="practice-result-${module.id}">任務要小到現在願意開始。</div>
     </div>
   `;
@@ -3392,27 +3334,133 @@ function renderFiveStartModule(module) {
   `;
 }
 
+const focusDistractionActions = {
+  phone: { label: '手機', icon: 'ti ti-device-mobile', action: '把手機放到伸手拿不到的位置，螢幕朝下。' },
+  messages: { label: '訊息通知', icon: 'ti ti-message-circle', action: '先傳一句「我晚點回，現在先專心一段時間」，再把通知關掉。' },
+  thoughts: { label: '想太多', icon: 'ti ti-brain', action: '把腦中的擔心寫成一句話，先放到旁邊，不在這一輪處理。' },
+  desk: { label: '桌面雜物', icon: 'ti ti-stack-2', action: '桌面只留下這一輪會用到的材料，其餘先移到旁邊。' },
+  sound: { label: '環境聲音', icon: 'ti ti-volume', action: '戴上耳機、換到較安靜的位置，或先告知旁人你要專心一段時間。' }
+};
+
 function renderFocusModeModule(module) {
-  return renderInputPracticeModule(module, '寫下這一輪唯一目標，例如：整理英文報告大綱', '專注回合已設定：25 分鐘只做這一個目標，結束後休息 5 分鐘。');
+  return `
+    <div class="card practice-card-${module.role}">
+      <div class="meta-row">
+        <div class="meta-col">
+          <div class="meta-label">專注時間</div>
+          <select class="meta-select" id="focus-duration-${module.id}" onchange="updatePracticeFooterState('${module.id}')">
+            <option value="10">10 分鐘</option>
+            <option value="25" selected>25 分鐘</option>
+            <option value="45">45 分鐘</option>
+          </select>
+        </div>
+        <div class="meta-col">
+          <div class="meta-label">本輪唯一目標</div>
+          <input class="task-input compact-input" id="focus-goal-${module.id}" placeholder="例如：整理英文報告第一段" maxlength="80" oninput="updatePracticeFooterState('${module.id}')">
+        </div>
+      </div>
+      <div class="section-label mt-12"><i class="ti ti-ban"></i> 最大干擾源</div>
+      <div class="focus-distraction-grid">
+        ${Object.entries(focusDistractionActions).map(([key, item]) => `
+          <button class="choice-btn focus-distraction-btn" data-focus-distraction="${key}" onclick="selectFocusDistraction('${module.id}', '${key}', this)">
+            <span class="choice-key"><i class="${item.icon}"></i></span>${item.label}
+          </button>
+        `).join('')}
+      </div>
+      <div class="task-list mt-10">
+        <div class="task-item focus-action-item" id="focus-action-confirm-${module.id}" onclick="toggleFocusActionConfirm('${module.id}', this)">
+          <div class="task-check"></div><span id="focus-action-text-${module.id}">先選擇一個干擾源，系統會給你一個防干擾行動。</span>
+        </div>
+      </div>
+      <div class="ai-insight mt-10" id="practice-result-${module.id}">先設定專注環境，再進入五分鐘開始或下一個行動。</div>
+    </div>
+  `;
 }
 
-function renderTrackingModule(module) {
-  return renderChecklistModule(module, ['開始作業 10 分鐘', '提早開始報告', '完成第一個小任務', '完成後記錄感受'], '每日行為追蹤');
+const procrastinationTriggerReasons = {
+  hard: { label: '太難', icon: 'ti ti-mountain', desc: '題目或任務看起來太大，先降到最簡單的一步。' },
+  many: { label: '太多', icon: 'ti ti-layers-intersect', desc: '事情混在一起，先只選一件最小任務。' },
+  failure: { label: '怕失敗', icon: 'ti ti-alert-circle', desc: '先用草稿或試做降低標準，不用一次就做對。' },
+  phone: { label: '想滑手機', icon: 'ti ti-device-mobile', desc: '先處理環境，把手機放到比較不容易拿到的位置。' },
+  tired: { label: '太累', icon: 'ti ti-battery-2', desc: '先用低能量版本開始，或安排一段短休息後再回來。' }
+};
+
+const procrastinationReplacementActions = {
+  five: { label: '五分鐘開始', icon: 'ti ti-player-play', desc: '只承諾開始五分鐘，完成不是這一刻的目標。' },
+  phoneAway: { label: '手機放遠', icon: 'ti ti-device-mobile-off', desc: '把手機放到伸手拿不到的位置，先保護一輪專注。' },
+  smallest: { label: '先做最簡單一步', icon: 'ti ti-step-into', desc: '把任務縮到現在能立刻做的一個動作。' }
+};
+
+function renderProcrastinationTriggerModule(module) {
+  return `
+    <div class="card practice-card-${module.role}">
+      <div class="mini-practice-box mini-practice-${module.role}">
+        <div class="section-label"><i class="ti ti-zoom-question"></i> 我剛剛最想逃避的是什麼？</div>
+        <input class="task-input compact-input" id="trigger-task-${module.id}" placeholder="例如：打開報告檔案、開始讀考試範圍、回覆訊息" maxlength="80" oninput="updatePracticeFooterState('${module.id}')">
+      </div>
+      <div class="section-label mt-12"><i class="ti ti-alert-triangle"></i> 主要卡住原因</div>
+      <div class="trigger-choice-grid">
+        ${Object.entries(procrastinationTriggerReasons).map(([key, item]) => `
+          <button class="choice-btn trigger-choice-btn" data-trigger-reason="${key}" onclick="selectProcrastinationTriggerReason('${module.id}', '${key}', this)">
+            <span class="choice-key"><i class="${item.icon}"></i></span>${item.label}
+          </button>
+        `).join('')}
+      </div>
+      <div class="section-label mt-12"><i class="ti ti-refresh"></i> 下一次替代行動</div>
+      <div class="trigger-choice-grid">
+        ${Object.entries(procrastinationReplacementActions).map(([key, item]) => `
+          <button class="choice-btn trigger-choice-btn" data-trigger-action="${key}" onclick="selectProcrastinationReplacementAction('${module.id}', '${key}', this)">
+            <span class="choice-key"><i class="${item.icon}"></i></span>${item.label}
+          </button>
+        `).join('')}
+      </div>
+      <div class="ai-insight mt-10" id="practice-result-${module.id}">先把拖延發生的原因看清楚，下一次會比較容易啟動。</div>
+    </div>
+  `;
 }
+
+const sleepSlowdownActions = {
+  light: { label: '調暗燈光', icon: 'ti ti-bulb-off', desc: '把環境亮度降下來，讓身體知道接下來要準備休息。' },
+  notify: { label: '關閉通知', icon: 'ti ti-bell-off', desc: '先關閉通知或切到勿擾，減少睡前被訊息拉走。' },
+  away: { label: '手機離開床邊', icon: 'ti ti-device-mobile-off', desc: '完成這個畫面後，把手機放到床邊以外的位置。' },
+  breath: { label: '三回合慢吐氣', icon: 'ti ti-wind', desc: '吸氣自然一點，吐氣拉長，做三回合讓身體降速。' }
+};
 
 function renderSleepModule(module) {
-  return renderChecklistModule(module, ['手機放到伸手拿不到的位置', '把明天第一件小事寫下來', '做 3 回合慢吐氣', '把房間光線調暗'], '睡前降速清單');
-}
-
-function renderFocusRhythmModule(module) {
-  return renderChecklistModule(module, ['寫下本輪唯一目標', '設定 25 分鐘專注', '安排 5 分鐘休息', '結束後檢查狀態'], '專注節奏設定');
+  return `
+    <div class="card practice-card-${module.role}">
+      <div class="meta-row">
+        <div class="meta-col">
+          <div class="meta-label">今晚降速時間</div>
+          <select class="meta-select" id="sleep-duration-${module.id}" onchange="updatePracticeFooterState('${module.id}')">
+            <option value="10">10 分鐘</option>
+            <option value="20" selected>20 分鐘</option>
+            <option value="30">30 分鐘</option>
+          </select>
+        </div>
+        <div class="meta-col">
+          <div class="meta-label">明天第一件小事</div>
+          <input class="task-input compact-input" id="sleep-tomorrow-${module.id}" placeholder="例如：起床後先整理報告標題" maxlength="80" oninput="updatePracticeFooterState('${module.id}')">
+        </div>
+      </div>
+      <div class="section-label mt-12"><i class="ti ti-moon"></i> 離線降速行動</div>
+      <div class="sleep-action-grid">
+        ${Object.entries(sleepSlowdownActions).map(([key, item]) => `
+          <button class="choice-btn sleep-action-btn" data-sleep-action="${key}" onclick="selectSleepSlowdownAction('${module.id}', '${key}', this)">
+            <span class="choice-key"><i class="${item.icon}"></i></span>${item.label}
+          </button>
+        `).join('')}
+      </div>
+      <div class="ai-insight mt-10" id="practice-result-${module.id}">先完成睡前收尾設定，按完成後就可以離開畫面去執行。</div>
+    </div>
+  `;
 }
 
 function renderInputPracticeModule(module, placeholder, resultText) {
+  module.resultText = resultText;
   return `
     <div class="card practice-card-${module.role}">
-      <input class="task-input" id="practice-input-${module.id}" type="text" placeholder="${escapeHtml(placeholder)}" maxlength="100">
-      <button class="btn-primary mt-10" onclick="completeInputPractice('${module.id}', '${escapeHtml(resultText)}')"><i class="ti ti-check"></i> 完成這一步</button>
+      <input class="task-input" id="practice-input-${module.id}" type="text" placeholder="${escapeHtml(placeholder)}" maxlength="100" oninput="updatePracticeFooterState('${module.id}')">
       <div class="ai-insight mt-10" id="practice-result-${module.id}">先寫下你的版本。</div>
     </div>
   `;
@@ -3440,7 +3488,7 @@ function renderChoiceModule(module, config) {
       <div class="scene-q">${escapeHtml(config.question)}</div>
       ${config.options.map((option, idx) => `
         <button class="choice-btn" id="choice-${module.id}-${idx}" onclick="pickPracticeChoice('${module.id}', ${idx})">
-          <span class="choice-key">${String.fromCharCode(65 + idx)}</span>${escapeHtml(option)}
+          <span class="choice-key">${CHOICE_LABELS[idx] || idx + 1}</span>${escapeHtml(option)}
         </button>
       `).join('')}
       <div class="fb-box mt-10" id="choice-fb-${module.id}" style="display:none"></div>
@@ -3456,10 +3504,218 @@ function renderTaskBreakdownModule(module) {
 function renderPracticeModuleFooter(module) {
   return `
     <div class="practice-flow-footer">
-      <button class="btn-ghost btn-auto" onclick="completePracticeModule('${module.id}')"><i class="ti ti-check"></i> 完成此模組</button>
-      <button class="btn-primary btn-auto" onclick="goNextPracticeStep('${module.id}')"><i class="ti ti-arrow-right"></i> 下一步</button>
+      <button class="btn-primary btn-auto practice-flow-action" id="practice-next-${module.id}" onclick="goNextPracticeStep('${module.id}')" disabled><i class="ti ti-arrow-right"></i> 完成並進入下一步</button>
+      <div class="practice-completion-hint" id="practice-hint-${module.id}"></div>
     </div>
   `;
+}
+
+function getPracticePanel(moduleId) {
+  return document.getElementById(`practice-panel-${moduleId}`);
+}
+
+function getActivePracticeModuleId() {
+  const active = document.querySelector('.practice-panel.active');
+  return active?.id?.startsWith('practice-panel-') ? active.id.replace('practice-panel-', '') : '';
+}
+
+function markPracticeModuleReady(moduleId) {
+  const module = currentPracticeModuleById[moduleId];
+  if (module) module.readyToComplete = true;
+  updatePracticeFooterState(moduleId);
+}
+
+function getPracticeCompletionStatus(moduleId) {
+  const module = currentPracticeModuleById[moduleId];
+  if (!module) return { done: false, message: '找不到目前的練習模組。' };
+  if (module.completed || module.readyToComplete) return { done: true, message: '已完成，可以進入下一步。' };
+
+  const panel = getPracticePanel(moduleId);
+  const inputValue = id => document.getElementById(`${id}-${moduleId}`)?.value.trim() || '';
+  const checklistItems = panel ? Array.from(panel.querySelectorAll('.task-item')) : [];
+
+  if (['priority'].includes(module.type) || (checklistItems.length && !module.type)) {
+    const allChecked = checklistItems.length > 0 && checklistItems.every(item => item.classList.contains('done'));
+    return allChecked
+      ? { done: true, message: '清單已完成，可以進入下一步。' }
+      : { done: false, message: '請先把這個練習清單全部勾選完成。' };
+  }
+
+  switch (module.type) {
+    case 'breath':
+      return { done: false, message: '請先完成一輪 4-7-8 呼吸練習。' };
+    case 'calm':
+      return { done: false, message: '請先完成 30 秒冷靜倒數。' };
+    case 'five-start':
+      return { done: false, message: '請先啟動並完成五分鐘倒數。' };
+    case 'emotion-awareness': {
+      const emotion = inputValue('emotion-name');
+      const body = inputValue('emotion-body');
+      if (!module.selectedLevel) return { done: false, message: '請先選擇情緒強度：低、中或高。' };
+      if (!emotion || !body) return { done: false, message: '請先填寫情緒名稱與身體感受。' };
+      return { done: true, message: '覺察內容已完整，可以完成模組。' };
+    }
+    case 'stress-source': {
+      const fields = ['stress-main', 'stress-control', 'stress-uncontrol', 'stress-next'].map(inputValue);
+      return fields.every(Boolean)
+        ? { done: true, message: '壓力分類已填完，可以完成模組。' }
+        : { done: false, message: '請先把四格都填完：壓力來源、能控制、暫時不能控制、下一個小行動。' };
+    }
+    case 'safe-opener':
+    case 'reflection':
+      return inputValue('practice-input')
+        ? { done: true, message: '已寫下你的版本，可以完成模組。' }
+        : { done: false, message: '請先寫下你的版本，再完成這一步。' };
+    case 'focus-mode': {
+      const goal = document.getElementById(`focus-goal-${moduleId}`)?.value.trim();
+      const duration = document.getElementById(`focus-duration-${moduleId}`)?.value;
+      if (!duration) return { done: false, message: '請先選擇專注時間。' };
+      if (!goal) return { done: false, message: '請先寫下本輪唯一目標。' };
+      if (!module.focusDistraction) return { done: false, message: '請先選擇這一輪最大的干擾源。' };
+      if (!module.focusActionConfirmed) return { done: false, message: '請先完成並勾選下方防干擾行動。' };
+      return { done: true, message: '防干擾設定已完成，可以進入下一步。' };
+    }
+    case 'procrastination-trigger': {
+      const task = document.getElementById(`trigger-task-${moduleId}`)?.value.trim();
+      if (!task) return { done: false, message: '請先寫下剛剛最想逃避的是什麼。' };
+      if (!module.triggerReason) return { done: false, message: '請先選擇一個主要卡住原因。' };
+      if (!module.replacementAction) return { done: false, message: '請先選擇下一次要使用的替代行動。' };
+      return { done: true, message: '拖延觸發點已整理完成，可以進入下一步。' };
+    }
+    case 'sleep': {
+      const duration = document.getElementById(`sleep-duration-${moduleId}`)?.value;
+      const tomorrow = document.getElementById(`sleep-tomorrow-${moduleId}`)?.value.trim();
+      if (!duration) return { done: false, message: '請先選擇今晚降速時間。' };
+      if (!tomorrow) return { done: false, message: '請先寫下明天第一件小事，讓腦袋不用睡前反覆想。' };
+      if (!module.sleepAction) return { done: false, message: '請先選擇一個離線降速行動。' };
+      return { done: true, message: '睡前收尾計畫已設定，可以完成模組。' };
+    }
+    case 'choice-social':
+      return module.choiceCompleted
+        ? { done: true, message: '已完成情境選擇，可以進入下一步。' }
+        : { done: false, message: '請先選擇一個情境回應。' };
+    case 'today-task':
+      return { done: true, message: '完成今日小任務後，按下方按鈕記錄並進入下一步。' };
+    case 'task-breakdown': {
+      const steps = Array.from(document.querySelectorAll('#stepList .step-item'));
+      if (!steps.length) return { done: false, message: '請先輸入任務，讓系統拆解出小步驟。' };
+      const allDone = aiSteps.length > 0 && aiSteps.every(step => step.done);
+      return allDone
+        ? { done: true, message: '任務拆解步驟已完成，可以進入下一步。' }
+        : { done: false, message: '請先完成拆解後的所有小步驟。' };
+    }
+    default: {
+      if (checklistItems.length) {
+        const allChecked = checklistItems.every(item => item.classList.contains('done'));
+        return allChecked
+          ? { done: true, message: '清單已完成，可以進入下一步。' }
+          : { done: false, message: '請先把這個練習清單全部勾選完成。' };
+      }
+      return { done: true, message: '已完成，可以進入下一步。' };
+    }
+  }
+}
+
+function updatePracticeFooterState(moduleId) {
+  const module = currentPracticeModuleById[moduleId];
+  if (!module) return;
+  const status = getPracticeCompletionStatus(moduleId);
+  const nextBtn = document.getElementById(`practice-next-${moduleId}`);
+  const hint = document.getElementById(`practice-hint-${moduleId}`);
+  const canProceed = module.completed || status.done;
+  if (nextBtn) {
+    nextBtn.disabled = !canProceed;
+    nextBtn.innerHTML = module.completed
+      ? '<i class="ti ti-arrow-right"></i> 進入下一步'
+      : '<i class="ti ti-arrow-right"></i> 完成並進入下一步';
+  }
+  if (hint) {
+    hint.textContent = module.completed ? '此模組已完成，可以進入下一步。' : status.message;
+    hint.classList.toggle('ready', canProceed);
+  }
+}
+
+function refreshPracticeFooterStates() {
+  currentPracticeModules.forEach(module => updatePracticeFooterState(module.id));
+}
+
+function finalizePracticeModule(moduleId) {
+  const module = currentPracticeModuleById[moduleId];
+  if (!module || module.finalized) return;
+  module.finalized = true;
+
+  if (module.type === 'emotion-awareness') {
+    const emotion = document.getElementById(`emotion-name-${moduleId}`)?.value.trim();
+    const body = document.getElementById(`emotion-body-${moduleId}`)?.value.trim();
+    const level = module.selectedLevel;
+    setPracticeModuleResult(moduleId, `你辨識到「${emotion}」，身體感受在「${body}」，強度是「${level}」。下一步先做一個低壓力調節：慢吐氣 3 次，然後只選一件最小任務。`);
+    syncToBackend('情緒覺察練習', { 情緒: emotion, 身體感受: body, 強度: level });
+    return;
+  }
+
+  if (module.type === 'stress-source') {
+    const main = document.getElementById(`stress-main-${moduleId}`)?.value.trim();
+    const control = document.getElementById(`stress-control-${moduleId}`)?.value.trim();
+    const uncontrol = document.getElementById(`stress-uncontrol-${moduleId}`)?.value.trim();
+    const next = document.getElementById(`stress-next-${moduleId}`)?.value.trim();
+    setPracticeModuleResult(moduleId, `你把「${main}」拆清楚了。現在先做可控制的部分：「${control}」。暫時不能控制的「${uncontrol}」先放下，下一個 10 分鐘只做：「${next}」。`);
+    syncToBackend('壓力來源分析', { 壓力來源: main, 能控制: control, 暫時不能控制: uncontrol, 下一步: next });
+    return;
+  }
+
+  if (['safe-opener', 'reflection'].includes(module.type)) {
+    const value = document.getElementById(`practice-input-${moduleId}`)?.value.trim();
+    setPracticeModuleResult(moduleId, `${module.resultText || '已完成這一步。'} 你寫下的是：「${value}」`);
+    return;
+  }
+
+  if (module.type === 'focus-mode') {
+    const goal = document.getElementById(`focus-goal-${moduleId}`)?.value.trim();
+    const duration = document.getElementById(`focus-duration-${moduleId}`)?.value;
+    const action = focusDistractionActions[module.focusDistraction];
+    setPracticeModuleResult(moduleId, `防干擾計畫已完成：接下來 ${duration} 分鐘只做「${goal}」。已處理干擾源「${action?.label || '未標記'}」：${action?.action || ''}`);
+    syncToBackend('專注防干擾計畫', {
+      目標: goal,
+      分鐘: duration,
+      干擾源: action?.label || '',
+      防干擾行動: action?.action || ''
+    });
+    return;
+  }
+
+  if (module.type === 'procrastination-trigger') {
+    const task = document.getElementById(`trigger-task-${moduleId}`)?.value.trim();
+    const reason = procrastinationTriggerReasons[module.triggerReason];
+    const action = procrastinationReplacementActions[module.replacementAction];
+    setPracticeModuleResult(moduleId, `你發現自己想逃避「${task}」，主要原因是「${reason?.label || '未標記'}」。下一次先用「${action?.label || '替代行動'}」：${action?.desc || ''}`);
+    syncToBackend('拖延觸發點回顧', {
+      逃避對象: task,
+      卡住原因: reason?.label || '',
+      原因說明: reason?.desc || '',
+      替代行動: action?.label || '',
+      行動說明: action?.desc || ''
+    });
+    return;
+  }
+
+  if (module.type === 'sleep') {
+    const duration = document.getElementById(`sleep-duration-${moduleId}`)?.value;
+    const tomorrow = document.getElementById(`sleep-tomorrow-${moduleId}`)?.value.trim();
+    const action = sleepSlowdownActions[module.sleepAction];
+    setPracticeModuleResult(moduleId, `睡前收尾設定完成：接下來 ${duration} 分鐘先做「${action?.label || '離線降速行動'}」。明天第一件小事是：「${tomorrow}」。現在可以離開畫面，照剛剛設定開始降速。`);
+    syncToBackend('睡前降速練習', {
+      降速分鐘: duration,
+      明天第一件小事: tomorrow,
+      離線降速行動: action?.label || '',
+      行動說明: action?.desc || ''
+    });
+    return;
+  }
+
+  if (module.type === 'today-task') {
+    module.todayTaskCompleted = true;
+    setPracticeModuleResult(moduleId, '已記錄今日小任務，接下來可以進入下一步。');
+  }
 }
 
 function setPracticeModuleResult(moduleId, text) {
@@ -3467,58 +3723,110 @@ function setPracticeModuleResult(moduleId, text) {
   if (el) el.textContent = text;
 }
 
-function setEmotionLevel(moduleId, level) {
+function setEmotionLevel(moduleId, level, btn) {
   const module = currentPracticeModuleById[moduleId];
   if (module) module.selectedLevel = level;
+  document.querySelectorAll(`[data-module-id="${moduleId}"][data-emotion-level]`).forEach(item => {
+    item.classList.toggle('selected', item === btn);
+  });
   setPracticeModuleResult(moduleId, `目前強度：${level}。接著寫下情緒名稱與身體感受，系統會整理下一步。`);
+  updatePracticeFooterState(moduleId);
 }
 
 function completeEmotionAwareness(moduleId) {
   const module = currentPracticeModuleById[moduleId];
   const emotion = document.getElementById(`emotion-name-${moduleId}`)?.value.trim();
   const body = document.getElementById(`emotion-body-${moduleId}`)?.value.trim();
-  const level = module?.selectedLevel || '未選';
-  if (!emotion || !body) {
-    setPracticeModuleResult(moduleId, '請先寫下情緒名稱與身體感受，覺察才會完整。');
+  const level = module?.selectedLevel;
+  const status = getPracticeCompletionStatus(moduleId);
+  if (!status.done) {
+    setPracticeModuleResult(moduleId, status.message);
+    updatePracticeFooterState(moduleId);
     return;
   }
   const advice = `你辨識到「${emotion}」，身體感受在「${body}」，強度是「${level}」。下一步先做一個低壓力調節：慢吐氣 3 次，然後只選一件最小任務。`;
   setPracticeModuleResult(moduleId, advice);
+  markPracticeModuleReady(moduleId);
   completePracticeModule(moduleId, false);
   syncToBackend('情緒覺察練習', { 情緒: emotion, 身體感受: body, 強度: level });
 }
 
 function completeInputPractice(moduleId, resultText) {
   const value = document.getElementById(`practice-input-${moduleId}`)?.value.trim();
-  if (!value) {
-    setPracticeModuleResult(moduleId, '請先寫下你的版本，再完成這一步。');
+  const status = getPracticeCompletionStatus(moduleId);
+  if (!status.done) {
+    setPracticeModuleResult(moduleId, status.message);
+    updatePracticeFooterState(moduleId);
     return;
   }
   setPracticeModuleResult(moduleId, `${resultText} 你寫下的是：「${value}」`);
+  markPracticeModuleReady(moduleId);
   completePracticeModule(moduleId, false);
 }
 
-function completePracticeModule(moduleId, shouldNavigate = false) {
+function completeStressSource(moduleId) {
+  const main = document.getElementById(`stress-main-${moduleId}`)?.value.trim();
+  const control = document.getElementById(`stress-control-${moduleId}`)?.value.trim();
+  const uncontrol = document.getElementById(`stress-uncontrol-${moduleId}`)?.value.trim();
+  const next = document.getElementById(`stress-next-${moduleId}`)?.value.trim();
+
+  const status = getPracticeCompletionStatus(moduleId);
+  if (!status.done) {
+    setPracticeModuleResult(moduleId, status.message);
+    updatePracticeFooterState(moduleId);
+    return;
+  }
+
+  setPracticeModuleResult(
+    moduleId,
+    `你把「${main}」拆清楚了。現在先做可控制的部分：「${control}」。暫時不能控制的「${uncontrol}」先放下，下一個 10 分鐘只做：「${next}」。`
+  );
+  syncToBackend('壓力來源分析', { 壓力來源: main, 能控制: control, 暫時不能控制: uncontrol, 下一步: next });
+  markPracticeModuleReady(moduleId);
+  completePracticeModule(moduleId, false);
+}
+
+function completeTodayTask(moduleId) {
   const module = currentPracticeModuleById[moduleId];
-  if (!module) return;
+  if (module) module.todayTaskCompleted = true;
+  setPracticeModuleResult(moduleId, '已記錄今日小任務，接下來可以進入下一步。');
+  markPracticeModuleReady(moduleId);
+  completePracticeModule(moduleId, false);
+}
+
+function completePracticeModule(moduleId, shouldNavigate = false, options = {}) {
+  const module = currentPracticeModuleById[moduleId];
+  if (!module) return false;
+  if (!options.skipValidation) {
+    const status = getPracticeCompletionStatus(moduleId);
+    if (!status.done) {
+      setPracticeModuleResult(moduleId, status.message);
+      updatePracticeFooterState(moduleId);
+      return false;
+    }
+  }
+  finalizePracticeModule(moduleId);
   if (!module.completed) {
     module.completed = true;
     addCompleteTask(`系統內練習：${module.title}`);
   }
   const panel = document.getElementById(`practice-panel-${moduleId}`);
   panel?.classList.add('module-completed');
-  if (shouldNavigate) goNextPracticeStep(moduleId);
+  updatePracticeFooterState(moduleId);
+  if (shouldNavigate) return goNextPracticeStep(moduleId);
+  return true;
 }
 
 function goNextPracticeStep(moduleId) {
-  completePracticeModule(moduleId, false);
+  if (!completePracticeModule(moduleId, false)) return false;
   const idx = currentPracticeModules.findIndex(module => module.id === moduleId);
   const next = currentPracticeModules[idx + 1];
   if (next) {
     activatePracticeModule(next.id);
-    return;
+    return true;
   }
   goPage(3);
+  return true;
 }
 
 function pickPracticeChoice(moduleId, idx) {
@@ -3534,6 +3842,7 @@ function pickPracticeChoice(moduleId, idx) {
     }
   });
   const correct = idx === config.correctIndex;
+  module.choiceCompleted = true;
   const fb = document.getElementById(`choice-fb-${moduleId}`);
   if (fb) {
     fb.style.display = 'block';
@@ -3542,6 +3851,7 @@ function pickPracticeChoice(moduleId, idx) {
   }
   if (correct) addCompleteTask(`${module.title}：完成情境選擇`);
   syncToBackend('系統內練習選擇', { 模組: module.title, 選擇: config.options[idx], 正確: correct });
+  updatePracticeFooterState(moduleId);
 }
 
 // ==========================================
@@ -3549,6 +3859,7 @@ function pickPracticeChoice(moduleId, idx) {
 // ==========================================
 let breathInterval = null;
 let fiveStartTimers = {};
+let activeBreathModuleId = '';
 let breathPhaseIdx = 0;
 let breathCycleCount = 0;
 const breathPhases = [
@@ -3559,6 +3870,7 @@ const breathPhases = [
 
 function startBreath() {
   stopBreath();
+  activeBreathModuleId = getActivePracticeModuleId();
   breathPhaseIdx = 0;
   breathCycleCount = 0;
   runBreathPhase();
@@ -3573,7 +3885,11 @@ function runBreathPhase() {
   if (breathCycleCount >= 1) {
     text.textContent = '完成！';
     phase.textContent = '身體已成功放鬆，可以切換到下一個練習模組。';
-    addCompleteTask("完成 4-7-8 呼吸練習");
+    const moduleId = activeBreathModuleId || getActivePracticeModuleId();
+    if (moduleId) {
+      markPracticeModuleReady(moduleId);
+      completePracticeModule(moduleId, false, { skipValidation: true });
+    }
     setTimeout(activateNextPracticeModule, 1400);
     return;
   }
@@ -3680,8 +3996,8 @@ function startFiveMinuteCountdown(moduleId) {
         btn.innerHTML = '<i class="ti ti-check"></i> 已完成五分鐘';
       }
       setPracticeModuleResult(moduleId, '五分鐘完成。你已經跨過最難的啟動點，可以選擇休息一下或進入下一步。');
-      addCompleteTask('完成五分鐘開始法');
-      completePracticeModule(moduleId, false);
+      markPracticeModuleReady(moduleId);
+      completePracticeModule(moduleId, false, { skipValidation: true });
     }
   }, 1000);
 }
@@ -3697,7 +4013,8 @@ function startCalmCountdown(moduleId) {
     if (seconds <= 0) {
       clearInterval(timer);
       setPracticeModuleResult(moduleId, '冷靜倒數完成。現在可以選擇一個最小行動，不必一次解決全部。');
-      addCompleteTask('完成 30 秒冷靜倒數');
+      markPracticeModuleReady(moduleId);
+      completePracticeModule(moduleId, false, { skipValidation: true });
     }
   }, 1000);
 }
@@ -3780,7 +4097,7 @@ async function startBreakdown() {
   });
   
   updateAIProgress();
-  document.getElementById('task-to-challenge').style.display = 'block';
+  updatePracticeFooterState(getActivePracticeModuleId());
 }
 
 function toggleAIStep(i, el) {
@@ -3798,6 +4115,9 @@ function updateAIProgress() {
   const pct = total ? Math.round(done / total * 100) : 0;
   document.getElementById('progText').textContent = done + ' / ' + total;
   document.getElementById('progFill').style.width = pct + '%';
+  const toChallenge = document.getElementById('task-to-challenge');
+  if (toChallenge) toChallenge.style.display = total && done === total ? 'block' : 'none';
+  updatePracticeFooterState(getActivePracticeModuleId());
 }
 
 function ensureMinimumAiSteps(steps, task) {
@@ -3829,6 +4149,8 @@ function resetTask() {
   if (challenge) challenge.style.display = 'none';
   if (inputArea) inputArea.style.display = 'block';
   if (taskInput) taskInput.value = '';
+  aiSteps = [];
+  updatePracticeFooterState(getActivePracticeModuleId());
 }
 
 // ==========================================
@@ -3836,54 +4158,97 @@ function resetTask() {
 // ==========================================
 function getChallengeTemplateForCourse(course = '') {
   const kind = getCourseKind(course);
+  const difficulty = getChallengeDifficulty(course);
   const templates = {
     emotion: {
       title: '情緒調節實作挑戰',
       icon: 'ti ti-wind',
       tone: 'info',
-      tasks: ['情緒高漲時，做 3 次 4-7-8 深呼吸', '感到想逃避時，先暫停 10 秒並說出現在的情緒', '在手機備忘錄記錄當下情緒一句話']
+      baseTasks: ['情緒高漲時，做 3 次 4-7-8 深呼吸', '在手機備忘錄記錄當下情緒一句話'],
+      midTasks: ['感到想逃避時，先暫停 10 秒並說出現在的情緒', '把情緒強度用 1 到 5 分記錄下來'],
+      advancedTasks: ['回頭比較觸發前後的身體變化', '整理一個下次可重複使用的情緒調節流程']
     },
     study: {
       title: '學業壓力微計畫挑戰',
       icon: 'ti ti-notebook',
       tone: 'warning',
-      tasks: ['選一個今天只做 10 分鐘的讀書範圍', '把大任務拆成 3 個小步驟並完成第一步', '睡前記錄今天完成的一個小進展']
+      baseTasks: ['選一個今天只做 10 分鐘的讀書範圍', '完成第一個不需要完美的小步驟'],
+      midTasks: ['把大任務拆成 3 個小步驟並完成第一步', '睡前記錄今天完成的一個小進展'],
+      advancedTasks: ['安排兩段專注時間與休息時間', '檢查哪個壓力來源可以明天繼續處理']
     },
     procrastination: {
       title: '拖延行為重塑挑戰',
       icon: 'ti ti-clock',
       tone: 'warning',
-      tasks: ['設定一個 25 分鐘番茄鐘並開始第一小段', '想滑手機時先暫停 10 秒再決定', '完成後給自己 5 分鐘休息獎勵']
+      baseTasks: ['只承諾開始 5 分鐘', '想滑手機時先暫停 10 秒再決定'],
+      midTasks: ['設定一個 25 分鐘番茄鐘並開始第一小段', '完成後給自己 5 分鐘休息獎勵'],
+      advancedTasks: ['連續完成兩輪短番茄鐘', '記錄今天最容易拖延的觸發點']
     },
     social: {
       title: '安全表達實作挑戰',
       icon: 'ti ti-messages',
       tone: 'info',
-      tasks: ['為一個社交情境寫下第一句安全開場', '回覆一則訊息時先說事實再說感受', '練習把一句話慢慢說清楚，不追求完美']
-    },
-    sleep: {
-      title: '睡前降速修復挑戰',
-      icon: 'ti ti-moon',
-      tone: 'success',
-      tasks: ['睡前 20 分鐘把手機放到伸手拿不到的位置', '做 3 回合慢吐氣練習', '寫下明天第一個小任務，讓腦袋不用反覆想']
-    },
-    focus: {
-      title: '專注節奏維持挑戰',
-      icon: 'ti ti-target-arrow',
-      tone: 'success',
-      tasks: ['安排一輪 25 分鐘專注與 5 分鐘休息', '開始前寫下本輪唯一目標', '結束後檢查狀態並決定是否進入下一輪']
+      baseTasks: ['為一個社交情境寫下第一句安全開場', '練習把一句話慢慢說清楚，不追求完美'],
+      midTasks: ['回覆一則訊息時先說事實再說感受', '找一個低風險對象練習提出小問題'],
+      advancedTasks: ['在小組討論中主動補充一次想法', '回顧互動後實際結果是否比想像中可怕']
     }
   };
-  return templates[kind] || templates.emotion;
+  const template = templates[kind] || templates.emotion;
+  return {
+    title: template.title,
+    icon: template.icon,
+    tone: template.tone,
+    difficulty,
+    tasks: buildTasksByDifficulty(template, difficulty)
+  };
+}
+
+function getChallengeDifficulty(course = '') {
+  const kind = course?.kind || getCourseKind(course);
+  const baseDifficulty = normalizeDifficultyLabel([
+    course?.difficulty,
+    course?.sub,
+    course?.title,
+    ...(course?.tags || [])
+  ].join(' ')) || '入門';
+  const adaptive = getAdaptiveDifficulty(buildAiContextPayload(), { kind, baseDifficulty });
+  return adaptive === '入門' ? '初階' : adaptive;
+}
+
+function buildTasksByDifficulty(template, difficulty) {
+  if (difficulty === '進階') {
+    return [...template.baseTasks, ...template.midTasks, ...template.advancedTasks].slice(0, 5);
+  }
+  if (difficulty === '中階') {
+    return [...template.baseTasks, ...template.midTasks].slice(0, 4);
+  }
+  return template.baseTasks.slice(0, 3);
 }
 
 function getChallengeDeadlineForCourse(course = '') {
   const kind = getCourseKind(course);
   const hour = new Date().getHours();
-  if (kind === 'social') return { label: '建議 3 天內完成', days: 3 };
-  if (kind === 'sleep') return { label: hour >= 20 ? '今晚或明晚完成' : '建議 24 小時內完成', days: 1 };
+  const profile = getAssessmentProfile(buildAiContextPayload());
+  const pressure = Math.max(profile.study, profile.social, profile.sleep, (profile.moodScore - 1) * 25);
+  const difficulty = getChallengeDifficulty(course);
+  if (pressure >= 80 || profile.moodScore >= 4) return { label: '建議 3 天內完成', days: 3 };
   if (hour >= 20) return { label: '建議 48 小時內完成', days: 2 };
+  if (kind === 'social') return { label: '建議 3 天內完成', days: 3 };
+  if (difficulty === '進階') return { label: '建議 24 小時內完成', days: 1 };
   return { label: '建議 24 小時內完成', days: 1 };
+}
+
+function getChallengeProgressKey(course, index = 0) {
+  return `course:${course?.title || course?.courseTitle || 'challenge'}:${course?.completed_at || index}`;
+}
+
+function getChallengeDoneTasks(challenge) {
+  const progress = currentUser?.challengeProgress || {};
+  return progress[challenge.progressKey] || [];
+}
+
+function isChallengeCompleted(challenge) {
+  return challenge?.tasks?.length > 0 && getChallengeDoneTasks(challenge).length >= challenge.tasks.length;
 }
 
 function buildDynamicChallenges() {
@@ -3893,18 +4258,16 @@ function buildDynamicChallenges() {
       ? [{ title: currentUser.inProgressCourse.title }]
       : [];
 
-  const unique = [];
-  learned.forEach(course => {
+  return learned.map((course, index) => {
     const kind = course.kind || getCourseKind(course);
-    if (!unique.some(item => item.kind === kind)) unique.push({ ...course, kind });
-  });
-
-  return unique.slice(0, 2).map((course, index) => {
+    const courseRecord = { ...course, kind };
     const template = getChallengeTemplateForCourse(course);
     const deadline = getChallengeDeadlineForCourse(course);
     return {
       id: index + 1,
       courseTitle: course.title,
+      kind,
+      progressKey: getChallengeProgressKey(courseRecord, index),
       deadlineLabel: deadline.label,
       deadlineDays: deadline.days,
       ...template
@@ -3926,31 +4289,49 @@ function renderDynamicChallenges() {
     `;
     return;
   }
-  wrap.innerHTML = challenges.map(challenge => `
-    <div class="challenge-card mb-10">
-      <div class="challenge-header">
-        <div class="challenge-icon" style="background:var(--${challenge.tone}-bg);color:var(--${challenge.tone})"><i class="${escapeHtml(challenge.icon)}"></i></div>
-        <div>
-          <div class="challenge-title">${escapeHtml(challenge.title)}</div>
-          <div class="challenge-sub">根據「${escapeHtml(challenge.courseTitle)}」生成</div>
-          <div class="chip-row mt-4"><span class="chip ${difficultyToneToChip(challenge.tone)}">${escapeHtml(challenge.deadlineLabel)}</span><span class="chip">${challenge.tasks.length} 項任務</span></div>
+  wrap.innerHTML = challenges.map(challenge => {
+    const doneTasks = getChallengeDoneTasks(challenge);
+    const doneSet = new Set(doneTasks);
+    const pct = challenge.tasks.length ? Math.round(doneTasks.length / challenge.tasks.length * 100) : 0;
+    const completed = isChallengeCompleted(challenge);
+    return `
+      <div class="challenge-card mb-10 ${completed ? 'challenge-completed' : ''}">
+        <div class="challenge-header">
+          <div class="challenge-icon" style="background:var(--${challenge.tone}-bg);color:var(--${challenge.tone})"><i class="${escapeHtml(challenge.icon)}"></i></div>
+          <div>
+            <div class="challenge-title">${escapeHtml(challenge.title)}</div>
+            <div class="challenge-sub">根據「${escapeHtml(challenge.courseTitle)}」生成</div>
+            <div class="chip-row mt-4"><span class="chip ${completed ? 'chip-success' : difficultyToneToChip(challenge.tone)}">${completed ? '已完成' : '進行中'}</span><span class="chip ${difficultyToneToChip(challenge.tone)}">${escapeHtml(challenge.difficulty)}</span><span class="chip ${difficultyToneToChip(challenge.tone)}">${escapeHtml(challenge.deadlineLabel)}</span><span class="chip">${challenge.tasks.length} 項任務</span></div>
+          </div>
         </div>
+        <div class="task-list" id="realList${challenge.id}">
+          ${challenge.tasks.map(task => {
+            const done = doneSet.has(task);
+            return `
+              <div class="task-item ${done ? 'done' : ''}" onclick="toggleRealTask(this, ${challenge.id}, '${escapeJsString(task)}', '${escapeJsString(challenge.progressKey)}')">
+                <div class="task-check">${done ? '<i class="ti ti-check"></i>' : ''}</div><span>${escapeHtml(task)}</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div class="prog-row mt-8"><span>完成進度</span><span class="prog-num" id="rPct${challenge.id}">${pct}%</span></div>
+        <div class="prog-track"><div class="prog-fill" id="rBar${challenge.id}" style="width:${pct}%;background:var(--success)"></div></div>
       </div>
-      <div class="task-list" id="realList${challenge.id}">
-        ${challenge.tasks.map(task => `
-          <div class="task-item" onclick="toggleRealTask(this,${challenge.id}, '${escapeHtml(task)}')"><div class="task-check"></div><span>${escapeHtml(task)}</span></div>
-        `).join('')}
-      </div>
-      <div class="prog-row mt-8"><span>完成進度</span><span class="prog-num" id="rPct${challenge.id}">0%</span></div>
-      <div class="prog-track"><div class="prog-fill" id="rBar${challenge.id}" style="width:0%;background:var(--success)"></div></div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
-function toggleRealTask(el, listNum, taskName) {
+function toggleRealTask(el, listNum, taskName, progressKey = '') {
   if(el.classList.contains('done')) return;
   el.classList.add('done');
   el.querySelector('.task-check').innerHTML = '<i class="ti ti-check"></i>';
+  if (progressKey) {
+    if (!currentUser.challengeProgress) currentUser.challengeProgress = {};
+    const doneTasks = currentUser.challengeProgress[progressKey] || [];
+    if (!doneTasks.includes(taskName)) {
+      currentUser.challengeProgress[progressKey] = [...doneTasks, taskName];
+    }
+  }
   
   const list = document.getElementById('realList' + listNum);
   const total = list.querySelectorAll('.task-item').length;
@@ -3960,6 +4341,8 @@ function toggleRealTask(el, listNum, taskName) {
   document.getElementById('rBar' + listNum).style.width = pct + '%';
   
   addCompleteTask(taskName);
+  persistCurrentUser();
+  updateDashboardChallengesPreview();
 }
 
 async function submitReport() {
@@ -3978,7 +4361,8 @@ async function submitReport() {
     text: reportText,
     active_course: currentActiveLesson?.title || '',
     completed_courses: currentUser?.completedCourses || [],
-    recent_actions: currentUser?.recentActions || []
+    recent_actions: currentUser?.recentActions || [],
+    challenge_progress: currentUser?.challengeProgress || {}
   });
   const analysis = res?.insight || res?.summary || res?.analysis || `AI 分析：你已經把學習內容帶到現實行動中。接下來可以先保留最容易完成的一個任務，明天再逐步增加難度。你提到的「${reportText.slice(0, 36)}${reportText.length > 36 ? '...' : ''}」會被納入下一輪任務調整。`;
   let reportRecord = null;
@@ -4009,30 +4393,102 @@ async function submitReport() {
   if (result) result.innerHTML = insightHtml;
   if (dynamic) dynamic.innerHTML = insightHtml;
   if (dash) dash.innerHTML = renderOutcomeSummary(reportRecord || { analysis, report: reportText }, { compact: true });
+  const reportInput = document.getElementById('reportText');
+  if (reportInput) reportInput.value = '';
 }
 
 // ==========================================
 // Step 4 圖表與動態洞察
 // ==========================================
 // 18. 圖表生成
+function getTaipeiDateKey(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('zh-TW', {
+    timeZone: 'Asia/Taipei',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(date);
+  const pick = type => parts.find(part => part.type === type)?.value || '';
+  return `${pick('year')}-${pick('month')}-${pick('day')}`;
+}
+
+function formatChartDayLabel(dateKey) {
+  const [, month, day] = String(dateKey || '').split('-');
+  return month && day ? `${Number(month)}/${Number(day)}` : String(dateKey || '');
+}
+
+function getRecentWeekKeys() {
+  const keys = [];
+  const base = new Date();
+  for (let offset = 6; offset >= 0; offset--) {
+    const date = new Date(base);
+    date.setDate(base.getDate() - offset);
+    keys.push(getTaipeiDateKey(date));
+  }
+  return keys;
+}
+
+function getMoodRecordDateKey(record) {
+  if (record.fullDate) {
+    const parsed = new Date(record.fullDate);
+    if (!Number.isNaN(parsed.getTime())) return getTaipeiDateKey(parsed);
+    const parts = String(record.fullDate).match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
+    if (parts) return `${parts[1]}-${String(parts[2]).padStart(2, '0')}-${String(parts[3]).padStart(2, '0')}`;
+  }
+  if (record.assessedAt) {
+    const parsed = new Date(record.assessedAt);
+    if (!Number.isNaN(parsed.getTime())) return getTaipeiDateKey(parsed);
+  }
+  return record.date || '';
+}
+
+function buildWeeklyMoodSummary() {
+  const weekKeys = getRecentWeekKeys();
+  const summary = Object.fromEntries(weekKeys.map(key => [key, {
+    key,
+    label: formatChartDayLabel(key),
+    totalScore: 0,
+    count: 0,
+    moodCounts: {}
+  }]));
+
+  (currentUser?.moodHistory || []).forEach(record => {
+    const key = getMoodRecordDateKey(record);
+    if (!summary[key]) return;
+    const score = Number(record.score ?? (record.moodScore ? 6 - Number(record.moodScore) : 0));
+    if (!Number.isFinite(score) || score <= 0) return;
+    const mood = record.mood || '未標記';
+    summary[key].totalScore += score;
+    summary[key].count += 1;
+    summary[key].moodCounts[mood] = (summary[key].moodCounts[mood] || 0) + 1;
+  });
+
+  return weekKeys.map(key => summary[key]);
+}
+
 function updateMoodChart() {
   const wrappers = ['cloudChartWrapper', 'dash-cloudChartWrapper']
     .map(id => document.getElementById(id))
     .filter(Boolean);
-  if (wrappers.length === 0 || !currentUser.moodHistory) return;
+  if (wrappers.length === 0) return;
 
+  const weeklySummary = buildWeeklyMoodSummary();
   wrappers.forEach(chart => {
-    chart.innerHTML = '';
-    currentUser.moodHistory.forEach(record => {
-      const height = (record.score / 5) * 100;
-      const color = height > 60 ? 'var(--success)' : (height > 40 ? 'var(--info)' : 'var(--danger)');
-      chart.innerHTML += `
-        <div class="chart-col">
-          <div class="chart-bar-outer"><div class="chart-bar-inner" style="height:${height}%;background:${color}"></div></div>
-          <div class="chart-day">${record.date}</div>
+    chart.innerHTML = weeklySummary.map(day => {
+      const average = day.count ? day.totalScore / day.count : 0;
+      const height = day.count ? Math.max(8, (average / 5) * 100) : 0;
+      const color = average > 3 ? 'var(--success)' : (average > 2 ? 'var(--info)' : 'var(--danger)');
+      const moodText = Object.entries(day.moodCounts)
+        .map(([mood, count]) => `${mood}：${count} 次`)
+        .join('、') || '尚無情緒評估';
+      const title = `${day.label}\n評估 ${day.count} 次\n${moodText}`;
+      return `
+        <div class="chart-col" title="${escapeHtml(title)}">
+          <div class="chart-bar-outer"><div class="chart-bar-inner" style="height:${height}%;background:${day.count ? color : 'transparent'}"></div></div>
+          <div class="chart-day">${escapeHtml(day.label)}</div>
         </div>
       `;
-    });
+    }).join('');
   });
 }
 
@@ -4059,7 +4515,8 @@ async function fetchInsight() {
   const res = await syncToBackend('/api/ai/insights', {
     tasks_completed: currentUser.tasksCompleted,
     streak: currentUser.streak,
-    recent_actions: currentUser.recentActions
+    recent_actions: currentUser.recentActions,
+    challenge_progress: currentUser.challengeProgress || {}
   });
   
   document.getElementById('insight-loading').style.display = 'none';
@@ -4102,6 +4559,7 @@ async function submitFinalReflection() {
   const btn = document.getElementById('finalSubmitBtn');
   btn.textContent = "⏳ 同步中...";
   btn.disabled = true;
+  const todayKey = new Date().toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
 
   // Step 1：確保使用者存在於後端
   try {
@@ -4125,10 +4583,14 @@ async function submitFinalReflection() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         user_id: currentUser.id,
+        reflection_type: 'daily',
+        reflection_date: todayKey,
         reflect_choice: selectedBtn.textContent,
         final_badges: currentUser.badges,
         final_streak: currentUser.streak,
-        mood_text_snapshot: currentMoodText
+        mood_text_snapshot: currentMoodText,
+        tasks_completed: currentUser.tasksCompleted || 0,
+        recent_actions: currentUser.recentActions || []
       })
     });
   } catch(e) { console.log('反思同步失敗:', e); }
@@ -4136,19 +4598,31 @@ async function submitFinalReflection() {
   // Step 3：寫入 action_logs（萬用備份）
   try {
     if (typeof syncToBackend === 'function') {
-      await syncToBackend("點擊了確認送出總結資料");
+      await syncToBackend("送出今日反思", {
+        日期: todayKey,
+        反思感受: selectedBtn.textContent,
+        任務數: currentUser.tasksCompleted || 0
+      });
     }
   } catch(e) { console.log('Log 同步失敗:', e); }
 
-  // 🌟 補上這段：當上面的步驟都做完後，把按鈕變成綠色成功狀態！
-  btn.textContent = "✅ 已同步至雲端資料庫";
-  btn.style.background = "#28a745"; // 變成漂亮的成功綠色
+  if (!currentUser.dailyReflections) currentUser.dailyReflections = [];
+  currentUser.dailyReflections.push({
+    date: todayKey,
+    choice: selectedBtn.textContent,
+    tasksCompleted: currentUser.tasksCompleted || 0,
+    submittedAt: new Date().toISOString()
+  });
+  currentUser.dailyReflections = currentUser.dailyReflections.slice(-30);
+  persistCurrentUser();
+
+  btn.textContent = "✅ 今日反思已同步";
+  btn.style.background = "#28a745";
   btn.style.color = "white";
   btn.style.border = "none";
   
-  // 彈出成功的提示視窗
   setTimeout(() => {
-    alert("🎉 太棒了！您的反思紀錄與數據已完美同步至 Colab 資料庫囉！");
+    alert("今日反思已同步至資料庫。");
   }, 300);
 }
 function startNewCycle() {
@@ -4158,7 +4632,7 @@ function startNewCycle() {
   document.getElementById('moodText').value = '';
   document.getElementById('next-cycle-block').style.display = 'none';
   document.getElementById('next-cycle-block').style.opacity = '0';
-  document.getElementById('finalSubmitBtn').innerHTML = "<i class='ti ti-send'></i> 確認送出總結資料";
+  document.getElementById('finalSubmitBtn').innerHTML = "<i class='ti ti-send'></i> 送出今日反思";
   document.getElementById('finalSubmitBtn').disabled = false;
   document.getElementById('finalSubmitBtn').style.background = "var(--brand)";
   document.querySelectorAll('.reflect-opt').forEach(b => b.classList.remove('selected'));

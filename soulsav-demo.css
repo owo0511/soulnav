@@ -315,6 +315,12 @@ button { cursor: pointer; }
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
 }
+.btn-primary:disabled, .btn-ghost:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+  transform: none;
+  box-shadow: none;
+}
 
 .page-home-btn {
   float: right;
@@ -598,6 +604,11 @@ button { cursor: pointer; }
 }
 .quiz-opt.correct, .choice-btn.correct { border-color: var(--success); background: #effaf5; color: #168257; }
 .quiz-opt.wrong, .choice-btn.wrong { border-color: var(--danger); background: #fff0f2; color: #ad3340; }
+.choice-btn.selected {
+  border-color: var(--brand);
+  background: #effaf7;
+  color: var(--brand);
+}
 .quiz-result, .fb-box, .reflect-result, .error-box {
   margin-top: 10px;
   padding: 13px 14px;
@@ -632,7 +643,9 @@ button { cursor: pointer; }
   padding: 10px 13px;
   background: transparent;
   color: var(--muted);
+  cursor: default;
   font-weight: 900;
+  pointer-events: none;
   white-space: nowrap;
 }
 .ptab.active { color: #fff; background: var(--text); }
@@ -754,11 +767,45 @@ button { cursor: pointer; }
   margin-top: 12px;
   flex-wrap: wrap;
 }
+.practice-flow-action {
+  flex: 1 1 100%;
+}
+.practice-completion-hint {
+  flex-basis: 100%;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+}
+.practice-completion-hint.ready {
+  color: var(--success);
+}
 
 .emotion-scale {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+.emotion-scale .chip {
+  cursor: pointer;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+.emotion-scale .chip:hover,
+.emotion-scale .chip.selected {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(43, 55, 59, .10);
+}
+.emotion-scale .chip.selected {
+  border-width: 2px;
+}
+.emotion-scale .emotion-level-low.selected {
+  box-shadow: 0 8px 18px rgba(47,177,118,.22);
+}
+.emotion-scale .emotion-level-mid.selected {
+  box-shadow: 0 8px 18px rgba(242,165,26,.24);
+}
+.emotion-scale .emotion-level-high.selected {
+  box-shadow: 0 8px 18px rgba(230,95,104,.22);
 }
 
 .calm-count, .focus-timer {
@@ -793,6 +840,34 @@ button { cursor: pointer; }
   color: var(--brand);
   background: #fff;
   font-size: 22px;
+}
+
+.stress-source-steps {
+  display: grid;
+  gap: 10px;
+}
+
+.stress-source-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.focus-distraction-grid,
+.trigger-choice-grid,
+.sleep-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.focus-action-item {
+  cursor: pointer;
+}
+
+.compact-input {
+  min-height: 48px;
+  padding: 12px 14px;
 }
 
 .outcome-summary {
@@ -895,6 +970,13 @@ button { cursor: pointer; }
 .challenge-card {
   margin-bottom: 12px;
 }
+.challenge-card.challenge-completed {
+  background: #f7fbf9;
+  border-color: rgba(47,177,118,.28);
+}
+.challenge-card.challenge-completed .challenge-title {
+  color: #166534;
+}
 .challenge-header {
   display: flex;
   align-items: center;
@@ -944,6 +1026,10 @@ button { cursor: pointer; }
   color: var(--muted);
   font-size: 12px;
 }
+.chart-col:hover .chart-bar-outer {
+  border-color: rgba(31,156,141,.42);
+  box-shadow: 0 8px 18px rgba(43,55,59,.08);
+}
 .chart-bar-outer {
   height: 150px;
   display: flex;
@@ -951,6 +1037,8 @@ button { cursor: pointer; }
   overflow: hidden;
   border-radius: 14px 14px 8px 8px;
   background: #edf5f4;
+  border: 1px solid transparent;
+  transition: .16s ease;
 }
 .chart-bar-inner {
   width: 100%;
@@ -1125,6 +1213,12 @@ button { cursor: pointer; }
     flex: 1 1 0;
     min-width: 0;
   }
+  .stress-source-grid,
+  .focus-distraction-grid,
+  .trigger-choice-grid,
+  .sleep-action-grid {
+    grid-template-columns: 1fr;
+  }
   .calm-count, .focus-timer {
     width: 126px;
     height: 126px;
@@ -1209,7 +1303,7 @@ button { cursor: pointer; }
   }
 }
 
-/* Dashboard：卡片式 mobile 佈局 */
+/* 儀表板：卡片式行動版佈局 */
 .dash-reco-list .rec-row + .rec-row { margin-top: 10px; }
 .dash-quick-grid {
   display: grid;
@@ -1218,7 +1312,7 @@ button { cursor: pointer; }
 }
 .dash-quick-grid .btn-ghost { width: 100%; }
 
-/* Mobile Bottom Navigation */
+/* 行動版底部導覽 */
 .mobile-bottom-nav {
   display: none;
   position: fixed;
