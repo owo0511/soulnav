@@ -315,7 +315,7 @@
                 <div class="insight-text">點一下「更新洞察」，我會用你的最新狀態整理出一句可行建議。</div>
               </div>
             </div>
-            <button class="btn-primary mt-10" style="background:var(--info)" onclick="fetchInsight()"><i class="ti ti-refresh"></i> 更新洞察</button>
+            <button class="btn-primary mt-10" style="background:var(--info)" data-insight-action="refresh" onclick="fetchInsight()"><i class="ti ti-refresh"></i> 更新洞察</button>
           </div>
 
           <div class="card mb-10 dash-quick-card">
@@ -628,7 +628,7 @@
         <div id="dynamic-insight-container">
           <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--info)"></div><div class="insight-text">點擊下方按鈕獲取深度洞察。</div></div>
         </div>
-        <button class="btn-primary" style="margin-bottom:15px; background:var(--info)" onclick="fetchInsight()"><i class="ti ti-refresh"></i> 產生最新洞察</button>
+        <button class="btn-primary" style="margin-bottom:15px; background:var(--info)" data-insight-action="refresh" onclick="fetchInsight()"><i class="ti ti-refresh"></i> 產生最新洞察</button>
         
         <button class="btn-primary" onclick="goPage(5)"><i class="ti ti-robot"></i> 看AI個人化回饋</button>
       </div>
@@ -3086,6 +3086,7 @@ let currentPracticeModules = [];
 let currentPracticeModuleById = {};
 let currentPracticeSelectionCache = null;
 let currentPracticeSessionKey = '';
+let insightRequestInFlight = false;
 
 function getPracticeContext() {
   const payload = currentUser?.lastAssessment || buildAiContextPayload();
@@ -3368,17 +3369,24 @@ function applyPracticeForCurrentCourse() {
     </div>
   `).join('');
   if (activeModuleId) rememberActivePracticeModule(activeModuleId);
-  setTimeout(refreshPracticeFooterStates, 0);
+  setTimeout(() => {
+    refreshPracticeFooterStates();
+    const activeTab = tabs.querySelector('.ptab.active');
+    activeTab?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }, 0);
   resetTask();
 }
 
 function activatePracticeModule(moduleId) {
+  let activeTab = null;
   document.querySelectorAll('.ptab').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.moduleId === moduleId);
+    if (btn.dataset.moduleId === moduleId) activeTab = btn;
   });
   document.querySelectorAll('.practice-panel').forEach(panel => {
     panel.classList.toggle('active', panel.id === `practice-panel-${moduleId}`);
   });
+  activeTab?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
   rememberActivePracticeModule(moduleId);
   updatePracticeFooterState(moduleId);
 }
@@ -5056,7 +5064,7 @@ function updateMoodChart() {
     chart.innerHTML = weeklySummary.map((day, index) => {
       const average = day.count ? day.totalScore / day.count : 0;
       const height = day.count ? Math.max(8, (average / 5) * 100) : 0;
-      const color = average > 3 ? 'var(--success)' : (average > 2 ? 'var(--info)' : 'var(--danger)');
+      const color = average > 3 ? 'var(--mood-chart-good)' : (average > 2 ? 'var(--mood-chart-mid)' : 'var(--mood-chart-low)');
       const moodText = getMoodChartDetailText(day);
       const title = `${day.label}\n評估 ${day.count} 次\n${moodText}`;
       return `
@@ -5085,27 +5093,45 @@ function updateBehaviorList() {
 }
 
 // 20. AI 洞察
+function setInsightButtonsLoading(isLoading) {
+  document.querySelectorAll('[data-insight-action="refresh"]').forEach(btn => {
+    if (!btn.dataset.defaultLabel) btn.dataset.defaultLabel = btn.innerHTML;
+    btn.disabled = isLoading;
+    btn.innerHTML = isLoading
+      ? '<i class="ti ti-loader-2"></i> AI 分析中...'
+      : btn.dataset.defaultLabel;
+  });
+}
+
 async function fetchInsight() {
+  if (insightRequestInFlight) return;
+  insightRequestInFlight = true;
+  setInsightButtonsLoading(true);
   document.getElementById('insight-loading').style.display = 'block';
   document.getElementById('dynamic-insight-container').innerHTML = '';
-  
-  const res = await syncToBackend('/api/ai/insights', {
-    tasks_completed: currentUser.tasksCompleted,
-    streak: currentUser.streak,
-    recent_actions: currentUser.recentActions,
-    challenge_progress: currentUser.challengeProgress || {}
-  });
-  
-  document.getElementById('insight-loading').style.display = 'none';
-  const insightHtml = (res && res.insight) ? `
-    <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--success)"></div><div class="insight-text">${res.insight}</div></div>
-  ` : `
-    <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--success)"></div><div class="insight-text">觀察到你完成了多項微步驟！這是克服拖延最棒的開始。</div></div>
-  `;
 
-  document.getElementById('dynamic-insight-container').innerHTML = insightHtml;
-  const dashInsight = document.getElementById('dash-daily-insight-container');
-  if (dashInsight) dashInsight.innerHTML = insightHtml;
+  try {
+    const res = await syncToBackend('/api/ai/insights', {
+      tasks_completed: currentUser.tasksCompleted,
+      streak: currentUser.streak,
+      recent_actions: currentUser.recentActions,
+      challenge_progress: currentUser.challengeProgress || {}
+    });
+
+    const insightHtml = (res && res.insight) ? `
+      <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--success)"></div><div class="insight-text">${res.insight}</div></div>
+    ` : `
+      <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--success)"></div><div class="insight-text">觀察到你完成了多項微步驟！這是克服拖延最棒的開始。</div></div>
+    `;
+
+    document.getElementById('dynamic-insight-container').innerHTML = insightHtml;
+    const dashInsight = document.getElementById('dash-daily-insight-container');
+    if (dashInsight) dashInsight.innerHTML = insightHtml;
+  } finally {
+    document.getElementById('insight-loading').style.display = 'none';
+    insightRequestInFlight = false;
+    setInsightButtonsLoading(false);
+  }
 }
 
 // ==========================================

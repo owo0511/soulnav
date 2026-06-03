@@ -14,6 +14,9 @@
   --success: #2fb176;
   --warning: #f2a51a;
   --danger: #e65f68;
+  --mood-chart-good: rgba(47, 177, 118, .72);
+  --mood-chart-mid: rgba(90, 174, 255, .68);
+  --mood-chart-low: rgba(230, 95, 104, .62);
   --info-bg: rgba(90, 174, 255, .12);
   --success-bg: rgba(47, 177, 118, .12);
   --warning-bg: rgba(242, 165, 26, .14);
@@ -1321,6 +1324,11 @@ button { cursor: pointer; }
 .mt-12 { margin-top: 12px; }
 
 @media (max-width: 920px) {
+  :root {
+    --mood-chart-good: rgba(47, 177, 118, .56);
+    --mood-chart-mid: rgba(90, 174, 255, .52);
+    --mood-chart-low: rgba(230, 95, 104, .48);
+  }
   body {
     background: #f7fbf9;
   }
@@ -1411,10 +1419,18 @@ button { cursor: pointer; }
   .practice-tabs {
     width: 100%;
     border-radius: 16px;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    scroll-padding-inline: 14px;
     scroll-snap-type: x proximity;
   }
   .ptab {
+    flex: 0 0 auto;
     min-height: 42px;
+    max-width: 78vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
     padding: 10px 12px;
     scroll-snap-align: start;
   }
@@ -1443,6 +1459,11 @@ button { cursor: pointer; }
   }
   .practice-audio-actions {
     justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .practice-audio-btn {
+    flex: 1 1 138px;
+    justify-content: center;
   }
   .calm-count, .focus-timer {
     width: 126px;
@@ -1454,6 +1475,17 @@ button { cursor: pointer; }
   .login-input,
   .meta-select {
     font-size: 16px;
+  }
+  .btn-row,
+  .meta-row {
+    flex-wrap: wrap;
+  }
+  .btn-row > *,
+  .meta-row > * {
+    min-width: 0;
+  }
+  .meta-col {
+    flex: 1 1 100%;
   }
 
   .mobile-bottom-nav {
@@ -1612,5 +1644,16 @@ button { cursor: pointer; }
     min-height: 50px;
     padding: 8px 4px;
     font-size: 11px;
+  }
+  .chart-wrap {
+    gap: 7px;
+  }
+  .chart-bar-outer {
+    height: 128px;
+    border-radius: 12px 12px 7px 7px;
+    background: rgba(237, 245, 244, .72);
+  }
+  .practice-flow-action {
+    width: 100%;
   }
 }
