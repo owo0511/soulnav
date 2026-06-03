@@ -37,12 +37,12 @@
 }
 .login-tab.active { background: var(--panel-soft); color: var(--brand); border-color: rgba(31,156,141,0.2); }
 
-/* 心情選取單一化與綠框 */
+/* 心情選取單一化 */
 .mood-btn.sel {
-  border: 2px solid var(--success) !important;
-  background: #effaf5 !important;
+  border: 2px solid var(--mood-color) !important;
+  background: var(--mood-soft) !important;
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(47,177,118,0.15) !important;
+  box-shadow: var(--shadow-sm) !important;
 }
 
 /* 滑桿樣式 */
@@ -200,19 +200,6 @@
 
   <div class="top-bar">
     <div class="logo"><i class="ti ti-brain"></i> Soul<em>Nav</em></div>
-    <div class="flow-indicator">
-      <span class="flow-step active" data-page="0">儀表板</span>
-      <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
-      <span class="flow-step" data-page="1">課程學習</span>
-      <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
-      <span class="flow-step" data-page="2">情境練習</span>
-      <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
-      <span class="flow-step" data-page="3">現實挑戰</span>
-      <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
-      <span class="flow-step" data-page="4">情緒追蹤</span>
-      <span class="flow-arrow"><i class="ti ti-chevron-right"></i></span>
-      <span class="flow-step" data-page="5">AI回饋</span>
-    </div>
   </div>
 
   <div class="body-wrap">
@@ -258,7 +245,7 @@
               <span class="chip chip-info">社交 <b id="dash-val-social">20%</b></span>
               <span class="chip chip-info">睡眠 <b id="dash-val-sleep">60%</b></span>
             </div>
-            <button class="btn-ghost mt-10" onclick="openEmotionAssessment()"><i class="ti ti-robot"></i> 情緒評估</button>
+            <button class="btn-ghost mood-assessment-cta mt-10" onclick="openEmotionAssessment()"><i class="ti ti-robot"></i> 情緒評估</button>
           </div>
 
           <div class="card mb-10" id="continue-course-card" style="display:none">
@@ -311,8 +298,8 @@
             </div>
 
             <div class="section-label" style="margin-top:14px;"><i class="ti ti-chart-bar"></i> 情緒趨勢（一週）</div>
-            <div class="chart-wrap" id="dash-cloudChartWrapper" style="height:140px;"></div>
-            <div style="text-align:center;font-size:12px;color:var(--muted);margin-top:8px;">有打卡紀錄才會顯示</div>
+            <div class="chart-wrap dashboard-chart" id="dash-cloudChartWrapper"></div>
+            <div class="chart-helper">有打卡紀錄才會顯示</div>
 
             <div class="section-label" style="margin-top:14px;"><i class="ti ti-history"></i> 最近行為</div>
             <div class="behavior-list" id="dash-recent-actions-container">
@@ -426,7 +413,7 @@
                 <div class="ai-loading" style="min-height:90px"><div class="spinner"></div><span>正在產生推薦課程...</span></div>
               </div>
             </div>
-            <button class="btn-primary mt-10" onclick="goPage(1)"><i class="ti ti-book"></i> 前往本次推薦課程</button>
+            <button class="btn-primary mt-10" onclick="openRecommendedCourseOverview()"><i class="ti ti-book"></i> 前往本次推薦課程</button>
             <button class="btn-ghost mt-10" onclick="goPage(0)"><i class="ti ti-home"></i> 回首頁</button>
           </div>
         </div>
@@ -780,6 +767,11 @@ const DEFAULT_LESSON_FEEDBACK = {
   danger: '再想一下：今天最適合的是先降低壓力，再用小步驟開始。'
 };
 let currentLessonFeedback = { ...DEFAULT_LESSON_FEEDBACK };
+let practiceAudio = null;
+let activePracticeAudioTrack = '';
+const PRACTICE_AUDIO_TRACKS = {
+  relax: { label: '放鬆音樂', src: 'audio/background.mp3', startAt: 5 }
+};
 
 const COURSE_CATALOG = [
   {
@@ -1014,6 +1006,73 @@ function getGeminiRoute(actionType) {
   return routeMap[actionType] || actionType;
 }
 
+function renderPracticeAudioControls(moduleId) {
+  return `
+    <div class="practice-audio-box">
+      <div class="practice-audio-label"><i class="ti ti-headphones"></i> 可選背景音</div>
+      <div class="practice-audio-actions">
+        ${Object.entries(PRACTICE_AUDIO_TRACKS).map(([key, track]) => `
+          <button class="practice-audio-btn" type="button" data-audio-track="${key}" onclick="togglePracticeAudio('${key}', this)">
+            <i class="ti ti-music"></i> ${track.label}
+          </button>
+        `).join('')}
+        <button class="practice-audio-btn stop" type="button" onclick="stopPracticeAudio()">
+          <i class="ti ti-volume-off"></i> 關閉
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function updatePracticeAudioButtons() {
+  document.querySelectorAll('.practice-audio-btn[data-audio-track]').forEach(btn => {
+    btn.classList.toggle('is-on', btn.dataset.audioTrack === activePracticeAudioTrack);
+  });
+}
+
+function stopPracticeAudio() {
+  if (practiceAudio) {
+    practiceAudio.pause();
+    practiceAudio.currentTime = 0;
+  }
+  activePracticeAudioTrack = '';
+  updatePracticeAudioButtons();
+}
+
+function moduleSupportsPracticeAudio(module) {
+  return ['breath', 'calm', 'focus-mode'].includes(module?.type);
+}
+
+async function togglePracticeAudio(trackKey, btn = null) {
+  const track = PRACTICE_AUDIO_TRACKS[trackKey];
+  if (!track?.src) {
+    alert('這個音軌尚未設定音檔。');
+    return;
+  }
+  if (activePracticeAudioTrack === trackKey) {
+    stopPracticeAudio();
+    return;
+  }
+  if (practiceAudio) {
+    practiceAudio.pause();
+    practiceAudio.currentTime = 0;
+  }
+  practiceAudio = new Audio(track.src);
+  practiceAudio.loop = true;
+  practiceAudio.preload = 'auto';
+  practiceAudio.volume = 0.5;
+  practiceAudio.currentTime = track.startAt || 0;
+  try {
+    await practiceAudio.play();
+    activePracticeAudioTrack = trackKey;
+    updatePracticeAudioButtons();
+  } catch (error) {
+    activePracticeAudioTrack = '';
+    updatePracticeAudioButtons();
+    alert(`音樂檔無法播放：${error?.message || '請確認檔案路徑與格式'}`);
+  }
+}
+
 async function syncToBackend(actionType, detailsObj) {
   if (!currentUser || !currentUser.id) return null;
   const details = detailsObj || {};
@@ -1191,9 +1250,85 @@ function parseTopicsFromResponse(res) {
   return [];
 }
 
+function getTopicDedupKey(topic = {}) {
+  const canonical = canonicalizeTopic(topic);
+  const kind = canonical.kind || getCourseKind(canonical);
+  const difficulty = normalizeDifficultyLabel(topic.difficulty || canonical.difficulty) || topic.difficulty || canonical.difficulty || '推薦';
+  return `${kind}:${difficulty}`;
+}
+
+function dedupeRecommendedTopics(topics = [], contextPayload = buildAiContextPayload()) {
+  const normalized = topics.map(canonicalizeTopic).filter(Boolean);
+  const result = [];
+  const seen = new Set();
+  normalized.forEach(topic => {
+    const key = getTopicDedupKey(topic);
+    if (seen.has(key)) return;
+    seen.add(key);
+    result.push(topic);
+  });
+
+  return result.slice(0, 4);
+}
+
+function canonicalizeStoredTopic(rawTopic) {
+  const canonical = canonicalizeTopic(rawTopic);
+  if (!canonical) return null;
+  const storedDifficulty = rawTopic?.difficulty || canonical.difficulty;
+  return {
+    ...canonical,
+    reason: rawTopic?.reason || canonical.reason,
+    difficulty: storedDifficulty,
+    tone: rawTopic?.tone || canonical.tone || difficultyToTone(storedDifficulty),
+    tags: rawTopic?.tags?.length ? rawTopic.tags : canonical.tags,
+    lessonDetail: rawTopic?.lessonDetail || canonical.lessonDetail
+  };
+}
+
+function normalizeStoredRecommendedTopics(topics = []) {
+  const result = [];
+  const seen = new Set();
+  (topics || []).map(canonicalizeStoredTopic).filter(Boolean).forEach(topic => {
+    const key = getTopicDedupKey(topic);
+    if (seen.has(key)) return;
+    seen.add(key);
+    result.push(topic);
+  });
+  return result.slice(0, 4);
+}
+
+function getActiveRecommendedTopics() {
+  const snapshotTopics = currentUser?.recommendationSnapshot?.topics;
+  if (Array.isArray(snapshotTopics) && snapshotTopics.length) {
+    return normalizeStoredRecommendedTopics(snapshotTopics);
+  }
+  if (currentUser?.recommendedTopics?.length) {
+    return normalizeStoredRecommendedTopics(currentUser.recommendedTopics);
+  }
+  return [];
+}
+
+function getRecommendedTopicsForDisplay(topics = null, options = {}) {
+  const source = Array.isArray(topics) && topics.length ? topics : getActiveRecommendedTopics();
+  if (source.length) return normalizeStoredRecommendedTopics(source);
+  return options.fallback ? dedupeRecommendedTopics(computeAiRecommendedTopicsFallback()) : [];
+}
+
+function resetRecommendedCourseProgressView() {
+  if (currentUser?.inProgressCourse?.source !== 'catalog') {
+    currentUser.inProgressCourse = null;
+  }
+  currentActiveLesson = null;
+  currentPracticeSelectionCache = null;
+  const overview = document.getElementById('p1-overview');
+  const lessonPanel = document.getElementById('p1-lesson');
+  if (overview) overview.style.display = 'block';
+  if (lessonPanel) lessonPanel.style.display = 'none';
+}
+
 function saveRecommendedTopics(topics, contextPayload = buildAiContextPayload()) {
   if (!currentUser || !topics?.length) return;
-  const normalizedTopics = topics.map(canonicalizeTopic);
+  const normalizedTopics = dedupeRecommendedTopics(topics, contextPayload);
   currentUser.recommendedTopics = normalizedTopics;
   currentUser.recommendedTopicsAt = new Date().toISOString();
   currentUser.recommendationContextKey = buildAiContextKey(contextPayload);
@@ -1203,10 +1338,12 @@ function saveRecommendedTopics(topics, contextPayload = buildAiContextPayload())
     contextKey: currentUser.recommendationContextKey,
     createdAt: currentUser.recommendedTopicsAt
   };
+  resetRecommendedCourseProgressView();
   persistCurrentUser();
   updateCoreRecommendationText(normalizedTopics);
   renderRecommendedTopics(normalizedTopics);
   renderAdaptiveLessonList();
+  updateDashboardContinueCourse();
 }
 
 function updateCoreRecommendationText(topics = currentUser?.recommendedTopics || computeAiRecommendedTopicsFallback()) {
@@ -1947,15 +2084,9 @@ function getLessonTemplate(topic = {}) {
 }
 
 function buildAdaptiveLessonItems() {
-  const snapshotTopics = currentUser?.recommendationSnapshot?.topics;
-  const hasSnapshot = Array.isArray(snapshotTopics) && snapshotTopics.length > 0;
-  const topics = hasSnapshot
-    ? snapshotTopics
-    : currentUser?.recommendedTopics?.length
-      ? currentUser.recommendedTopics
-      : computeAiRecommendedTopicsFallback();
-
-  const lessons = topics.slice(0, 3).map((topic, index) => topicToLesson(topic, index, '推薦'));
+  const hasSnapshot = Array.isArray(currentUser?.recommendationSnapshot?.topics) && currentUser.recommendationSnapshot.topics.length > 0;
+  const dedupedTopics = getRecommendedTopicsForDisplay(null, { fallback: true });
+  const lessons = dedupedTopics.slice(0, 4).map((topic, index) => topicToLesson(topic, index, '推薦'));
 
   if (hasSnapshot) return lessons.slice(0, 4);
 
@@ -2190,7 +2321,7 @@ function renderTopicCards(targetId, topics, options = {}) {
 }
 
 function renderRecommendedTopics(topics) {
-  const normalizedTopics = (topics || []).map(canonicalizeTopic);
+  const normalizedTopics = getRecommendedTopicsForDisplay(topics);
   renderTopicCards('emotion-reco-list', normalizedTopics, {
     emptyText: '目前尚無推薦主題，請先完成情緒評估。',
     clickable: true,
@@ -2227,9 +2358,10 @@ async function fetchAiRecommendedTopics(options = {}) {
   const payload = options.contextPayload || buildAiContextPayload();
   const contextKey = buildAiContextKey(payload);
   if (!options.force && currentUser.recommendedTopics?.length && currentUser.recommendationContextKey === contextKey) {
-    renderRecommendedTopics(currentUser.recommendedTopics);
+    const savedTopics = getActiveRecommendedTopics();
+    renderRecommendedTopics(savedTopics);
     renderAdaptiveLessonList();
-    return currentUser.recommendedTopics;
+    return savedTopics;
   }
 
   const emotionList = document.getElementById('emotion-reco-list');
@@ -2244,17 +2376,18 @@ async function fetchAiRecommendedTopics(options = {}) {
     if (topics.length) {
       console.log('TOPICS SUCCESS', topics);
       saveRecommendedTopics(topics, payload);
-      renderRecommendedTopics(topics);
+      renderRecommendedTopics(getActiveRecommendedTopics());
       renderAdaptiveLessonList();
       if (hint) hint.textContent = '以下為 AI 依你目前狀態整理的學習主題。';
       return topics;
     }
 
     if (currentUser.recommendedTopics?.length && currentUser.recommendationContextKey === contextKey) {
-      renderRecommendedTopics(currentUser.recommendedTopics);
+      const savedTopics = getActiveRecommendedTopics();
+      renderRecommendedTopics(savedTopics);
       renderAdaptiveLessonList();
       if (hint) hint.textContent = '顯示上次 AI 推薦結果（本次未取得新資料）。';
-      return currentUser.recommendedTopics;
+      return savedTopics;
     }
 
     const fallback = computeAiRecommendedTopicsFallback(payload);
@@ -2463,6 +2596,7 @@ function addCompleteTask(taskName) {
 }
 
 function goPage(idx) {
+  if (idx !== 2) stopPracticeAudio();
   if (idx === 2 && currentUser?.recommendationSnapshot?.topics?.length && !areAllPathLessonsCompleted()) {
     alert('請先完成本次 AI 推薦課程，全部完成後系統內練習會依課程主題動態解鎖。');
     idx = 1;
@@ -2719,14 +2853,23 @@ function openCourseFromCatalog(index = 0) {
 }
 
 function openRecommendedCourse(index = 0) {
-  const topic = currentUser?.recommendationSnapshot?.topics?.[index]
-    || currentUser?.recommendedTopics?.[index]
-    || computeAiRecommendedTopicsFallback()[index]
+  const topics = getRecommendedTopicsForDisplay(null, { fallback: true });
+  const topic = topics[index]
     || COURSE_CATALOG[0];
   if (!topic) return;
   const lesson = { ...topicToLesson(topic, index, '推薦'), source: 'recommended' };
   goPage(1);
   openLesson(index, lesson);
+}
+
+function openRecommendedCourseOverview() {
+  const overview = document.getElementById('p1-overview');
+  const lessonPanel = document.getElementById('p1-lesson');
+  if (overview) overview.style.display = 'block';
+  if (lessonPanel) lessonPanel.style.display = 'none';
+  renderRecommendedTopics(getRecommendedTopicsForDisplay());
+  renderAdaptiveLessonList();
+  goPage(1);
 }
 
 function continueActiveCourse() {
@@ -2959,9 +3102,23 @@ function selectSleepSlowdownAction(moduleId, key, btn) {
   updatePracticeFooterState(moduleId);
 }
 
+function recordPracticeActionPlan(source, details = {}) {
+  if (!currentUser) return;
+  if (!currentUser.practiceActionPlans) currentUser.practiceActionPlans = [];
+  currentUser.practiceActionPlans.push({
+    source,
+    details,
+    plannedAt: new Date().toISOString(),
+    status: 'planned'
+  });
+  currentUser.practiceActionPlans = currentUser.practiceActionPlans.slice(-30);
+  persistCurrentUser();
+}
+
 let currentPracticeModules = [];
 let currentPracticeModuleById = {};
 let currentPracticeSelectionCache = null;
+let currentPracticeSessionKey = '';
 
 function getPracticeContext() {
   const payload = currentUser?.lastAssessment || buildAiContextPayload();
@@ -2982,11 +3139,11 @@ function getPracticeModuleDefinitions() {
     { id: 'emotion-breath', kind: 'emotion', kinds: ['emotion'], role: 'regulation', icon: 'ti ti-wind', title: '呼吸引導互動', goal: '依照情緒強度做 4-7-8 或慢節奏呼吸。', priority: 20, type: 'breath' },
     { id: 'emotion-calm', kind: 'emotion', kinds: ['emotion'], role: 'regulation', icon: 'ti ti-hourglass-low', title: '30 秒冷靜倒數', goal: '高情緒壓力時先啟動冷靜與 Grounding。', priority: 30, type: 'calm', when: ctx => ctx.profile.moodScore >= 4 },
     { id: 'study-source', kind: 'study', kinds: ['study'], role: 'course', icon: 'ti ti-list-details', title: '壓力來源分析', goal: '分辨壓力來源、可控制與不可控制問題。', priority: 10, type: 'stress-source' },
-    { id: 'study-priority', kind: 'study', kinds: ['study'], role: 'course', icon: 'ti ti-sort-ascending', title: '優先順序排序', goal: '把混在一起的壓力排成今天可以處理的順序。', priority: 20, type: 'priority' },
-    { id: 'study-today-task', kind: 'study', kinds: ['study'], role: 'action', icon: 'ti ti-calendar-check', title: '今日小任務', goal: '依壓力程度產生 10 分鐘小目標。', priority: 30, type: 'today-task', when: ctx => ctx.profile.study >= 50 },
-    { id: 'social-dialogue', kind: 'social', kinds: ['social'], role: 'course', icon: 'ti ti-messages', title: '對話模擬', goal: '模擬小組討論、回覆訊息或發表意見。', priority: 10, type: 'choice-social' },
-    { id: 'social-opener', kind: 'social', kinds: ['social'], role: 'course', icon: 'ti ti-message-circle', title: '安全開場練習', goal: '先準備一句低風險開場，降低開口阻力。', priority: 20, type: 'safe-opener' },
-    { id: 'social-reflection', kind: 'social', kinds: ['social'], role: 'reflection', icon: 'ti ti-notes', title: '完成後反思', goal: '比較想像中的糟糕結果與實際結果。', priority: 35, type: 'reflection' },
+    { id: 'study-priority', kind: 'study', kinds: ['study'], role: 'course', icon: 'ti ti-adjustments-check', title: '先做哪一個判斷器', goal: '從多個可控任務中判斷今天第一件要處理的事。', priority: 20, type: 'priority' },
+    { id: 'study-today-task', kind: 'study', kinds: ['study'], role: 'action', icon: 'ti ti-calendar-check', title: '今日最小行動設定', goal: '把今天要做的事縮成 10 分鐘內可以開始的小動作。', priority: 30, type: 'today-task', when: ctx => ctx.profile.study >= 50 },
+    { id: 'social-opener', kind: 'social', kinds: ['social'], role: 'course', icon: 'ti ti-message-circle', title: '安全開場練習', goal: '先準備一句低風險開場，降低開口阻力。', priority: 10, type: 'safe-opener' },
+    { id: 'social-refusal', kind: 'social', kinds: ['social'], role: 'action', icon: 'ti ti-hand-stop', title: '安全拒絕練習', goal: '練習溫和但清楚地拒絕，保護界線又不過度道歉。', priority: 20, type: 'safe-refusal' },
+    { id: 'social-reframe', kind: 'social', kinds: ['social'], role: 'reflection', icon: 'ti ti-brain', title: '想像校正練習', goal: '把「對方一定會討厭我」這類災難化想像改寫成較平衡的句子。', priority: 30, type: 'social-reframe' },
     { id: 'procrastination-five', kind: 'procrastination', kinds: ['procrastination'], role: 'course', icon: 'ti ti-player-play', title: '五分鐘開始法', goal: '先做五分鐘就好，降低啟動阻力。', priority: 10, type: 'five-start' },
     { id: 'procrastination-focus', kind: 'procrastination', kinds: ['procrastination'], role: 'action', icon: 'ti ti-shield-check', title: '專注防干擾計畫', goal: '開始前先設定目標、時間與防干擾行動，保護接下來的專注。', priority: 20, type: 'focus-mode' },
     { id: 'behavior-tracking', kind: 'procrastination', kinds: ['procrastination'], role: 'reflection', icon: 'ti ti-zoom-question', title: '拖延觸發點回顧', goal: '找出剛剛卡住的原因，替下一次選一個更容易啟動的替代行動。', priority: 40, type: 'procrastination-trigger' },
@@ -3020,7 +3177,7 @@ function getPracticeKindsForCurrentPath() {
 
 function getPracticeSelectionKey(ctx = getPracticeContext()) {
   const contextKey = currentUser?.recommendationContextKey || buildAiContextKey(ctx.payload);
-  return `${getPracticeCourseKey()}::${contextKey}`;
+  return `practice-main-v2::${getPracticeCourseKey()}::${contextKey}`;
 }
 
 function getPracticeCourseKey() {
@@ -3062,6 +3219,49 @@ function rememberPracticeSelection(selectionKey, modules) {
   persistCurrentUser();
 }
 
+function getPracticeProgress(selectionKey = getPracticeSelectionKey()) {
+  if (!currentUser) return { activeModuleId: '', completedModuleIds: [] };
+  if (!currentUser.practiceProgressByKey) currentUser.practiceProgressByKey = {};
+  if (!currentUser.practiceProgressByKey[selectionKey]) {
+    currentUser.practiceProgressByKey[selectionKey] = { activeModuleId: '', completedModuleIds: [] };
+  }
+  const progress = currentUser.practiceProgressByKey[selectionKey];
+  if (!Array.isArray(progress.completedModuleIds)) progress.completedModuleIds = [];
+  return progress;
+}
+
+function savePracticeProgress(selectionKey, patch = {}) {
+  if (!currentUser) return;
+  const progress = getPracticeProgress(selectionKey);
+  Object.assign(progress, patch, { updatedAt: new Date().toISOString() });
+  persistCurrentUser();
+}
+
+function rememberActivePracticeModule(moduleId) {
+  if (!moduleId) return;
+  const selectionKey = currentPracticeSessionKey || getPracticeSelectionKey();
+  savePracticeProgress(selectionKey, { activeModuleId: moduleId });
+}
+
+function rememberCompletedPracticeModule(moduleId) {
+  if (!moduleId) return;
+  const selectionKey = currentPracticeSessionKey || getPracticeSelectionKey();
+  const progress = getPracticeProgress(selectionKey);
+  if (!progress.completedModuleIds.includes(moduleId)) progress.completedModuleIds.push(moduleId);
+  savePracticeProgress(selectionKey, { completedModuleIds: progress.completedModuleIds });
+}
+
+function restorePracticeProgressToModules(selectionKey) {
+  const progress = getPracticeProgress(selectionKey);
+  currentPracticeModules.forEach(module => {
+    if (progress.completedModuleIds.includes(module.id)) {
+      module.completed = true;
+      module.readyToComplete = true;
+      module.finalized = true;
+    }
+  });
+}
+
 function pickPracticeModule(candidates, selected, usedIds, role) {
   const pool = candidates
     .filter(module => !selected.some(item => item.id === module.id))
@@ -3073,23 +3273,40 @@ function pickPracticeModule(candidates, selected, usedIds, role) {
   return pool[0] || null;
 }
 
+function isAuxiliaryPracticeModule(module) {
+  return module?.kind === 'sleep' || module?.type === 'sleep';
+}
+
+function pickPracticeModuleForKind(candidates, selected, usedIds, kind, role = '') {
+  return pickPracticeModule(
+    candidates.filter(module => module.kind === kind && !isAuxiliaryPracticeModule(module)),
+    selected,
+    usedIds,
+    role
+  );
+}
+
 function getPracticeModulesForCurrentPath() {
   const ctx = getPracticeContext();
   const kinds = getPracticeKindsForCurrentPath();
+  const primaryKinds = kinds.filter(kind => kind !== 'sleep');
+  const mainKinds = primaryKinds.length ? primaryKinds : ['emotion'];
+  const matchingKinds = primaryKinds.length ? kinds : ['emotion', ...kinds];
   const selectionKey = getPracticeSelectionKey(ctx);
   if (currentPracticeSelectionCache?.key === selectionKey) {
     const defs = getPracticeModuleDefinitions();
-    return currentPracticeSelectionCache.moduleIds
+    const cachedModules = currentPracticeSelectionCache.moduleIds
       .map(id => defs.find(module => module.id === id))
       .filter(Boolean);
+    if (cachedModules.some(module => !isAuxiliaryPracticeModule(module))) return cachedModules;
   }
   const limit = getPracticeModuleLimit(ctx);
   const usedIds = getRecentlyUsedPracticeModuleIds(selectionKey);
   const modules = getPracticeModuleDefinitions()
-    .filter(module => moduleMatchesContext(module, ctx, kinds))
+    .filter(module => moduleMatchesContext(module, ctx, matchingKinds))
     .sort((a, b) => {
-      const ak = kinds.indexOf(a.kind);
-      const bk = kinds.indexOf(b.kind);
+      const ak = matchingKinds.indexOf(a.kind);
+      const bk = matchingKinds.indexOf(b.kind);
       const usedScore = (usedIds.includes(a.id) ? 100 : 0) - (usedIds.includes(b.id) ? 100 : 0);
       return usedScore || (ak === -1 ? 99 : ak) - (bk === -1 ? 99 : bk) || a.priority - b.priority;
     });
@@ -3100,19 +3317,35 @@ function getPracticeModulesForCurrentPath() {
   });
 
   const selected = [];
-  const highStateModule = pickPracticeModule(unique, selected, usedIds, 'regulation');
-  if (highStateModule && (ctx.profile.moodScore >= 4 || ctx.profile.sleep >= 70)) selected.push(highStateModule);
+  mainKinds.forEach(kind => {
+    if (selected.length >= limit) return;
+    const courseModule = pickPracticeModuleForKind(unique, selected, usedIds, kind, 'course');
+    if (courseModule) selected.push(courseModule);
+  });
 
-  const courseModule = pickPracticeModule(unique, selected, usedIds, 'course');
-  if (courseModule) selected.push(courseModule);
+  if (ctx.profile.sleep >= 60 && selected.length > 0 && selected.length < limit) {
+    const sleepModule = pickPracticeModule(unique.filter(isAuxiliaryPracticeModule), selected, usedIds);
+    if (sleepModule) selected.push(sleepModule);
+  }
 
-  const actionModule = pickPracticeModule(unique, selected, usedIds, 'action');
-  if (selected.length < limit && actionModule) selected.push(actionModule);
+  mainKinds.forEach(kind => {
+    if (selected.length >= limit) return;
+    const actionModule = pickPracticeModuleForKind(unique, selected, usedIds, kind, 'action');
+    if (actionModule) selected.push(actionModule);
+  });
 
-  const reflectionModule = pickPracticeModule(unique, selected, usedIds, 'reflection');
-  if (selected.length < limit && reflectionModule && usedIds.length) selected.push(reflectionModule);
+  if (selected.length < limit && ctx.profile.moodScore >= 4) {
+    const emotionRegulation = pickPracticeModuleForKind(unique, selected, usedIds, 'emotion', 'regulation');
+    if (emotionRegulation) selected.push(emotionRegulation);
+  }
 
-  unique.forEach(module => {
+  mainKinds.forEach(kind => {
+    if (selected.length >= limit || !usedIds.length) return;
+    const reflectionModule = pickPracticeModuleForKind(unique, selected, usedIds, kind, 'reflection');
+    if (reflectionModule) selected.push(reflectionModule);
+  });
+
+  unique.filter(module => !isAuxiliaryPracticeModule(module)).forEach(module => {
     if (selected.length < limit && !selected.some(item => item.id === module.id)) selected.push(module);
   });
 
@@ -3139,9 +3372,17 @@ function getPracticeConfigForLesson(lesson = currentActiveLesson) {
 
 function applyPracticeForCurrentCourse() {
   stopBreath();
+  stopPracticeAudio();
+  const selectionKey = getPracticeSelectionKey();
+  currentPracticeSessionKey = selectionKey;
   currentPracticeModules = getPracticeModulesForCurrentPath();
   currentPracticeModuleById = Object.fromEntries(currentPracticeModules.map(module => [module.id, module]));
-  rememberPracticeSelection(getPracticeSelectionKey(), currentPracticeModules);
+  rememberPracticeSelection(selectionKey, currentPracticeModules);
+  restorePracticeProgressToModules(selectionKey);
+  const progress = getPracticeProgress(selectionKey);
+  const activeModuleId = currentPracticeModules.some(module => module.id === progress.activeModuleId)
+    ? progress.activeModuleId
+    : currentPracticeModules[0]?.id;
   const tabs = document.getElementById('practice-tabs');
   const panels = document.getElementById('practice-module-panels');
   const sub = document.getElementById('practice-page-sub');
@@ -3149,16 +3390,17 @@ function applyPracticeForCurrentCourse() {
   if (sub) {
     sub.textContent = `依今天的狀態精選 ${currentPracticeModules.length} 個練習模組：${currentPracticeModules.map(module => module.title).join('、')}。同課程下次會優先調整為不同練習。`;
   }
-  tabs.innerHTML = currentPracticeModules.map((module, index) => `
-    <button class="ptab ${index === 0 ? 'active' : ''}" type="button" data-module-id="${module.id}" tabindex="-1" aria-disabled="true">
+  tabs.innerHTML = currentPracticeModules.map(module => `
+    <button class="ptab ${module.id === activeModuleId ? 'active' : ''}" type="button" data-module-id="${module.id}" tabindex="-1" aria-disabled="true">
       <i class="${module.icon}"></i> ${escapeHtml(module.title)}
     </button>
   `).join('');
-  panels.innerHTML = currentPracticeModules.map((module, index) => `
-    <div class="practice-panel practice-role-${module.role} ${index === 0 ? 'active' : ''}" id="practice-panel-${module.id}">
+  panels.innerHTML = currentPracticeModules.map(module => `
+    <div class="practice-panel practice-role-${module.role} ${module.id === activeModuleId ? 'active' : ''}" id="practice-panel-${module.id}">
       ${renderPracticeModule(module)}
     </div>
   `).join('');
+  if (activeModuleId) rememberActivePracticeModule(activeModuleId);
   setTimeout(refreshPracticeFooterStates, 0);
   resetTask();
 }
@@ -3170,6 +3412,7 @@ function activatePracticeModule(moduleId) {
   document.querySelectorAll('.practice-panel').forEach(panel => {
     panel.classList.toggle('active', panel.id === `practice-panel-${moduleId}`);
   });
+  rememberActivePracticeModule(moduleId);
   updatePracticeFooterState(moduleId);
 }
 
@@ -3200,17 +3443,9 @@ function renderPracticeModule(module) {
     'stress-source': () => renderStressSourceModule(module),
     'priority': () => renderPriorityModule(module),
     'today-task': () => renderTodayTaskModule(module, ctx),
-    'choice-social': () => renderChoiceModule(module, {
-      place: '小組討論前',
-      story: '你想問同學一個問題，但腦中一直擔心對方會覺得你很麻煩。',
-      question: '哪個開場最能降低社交壓力？',
-      options: ['我想確認一個地方，可以問你一下嗎？', '算了，我不要問了', '如果你覺得我很奇怪就不用回我'],
-      correctIndex: 0,
-      success: '很好。這句話有目的，也保留了安全感。',
-      danger: '社交練習的目標是低風險開始，不是一次完美。'
-    }),
     'safe-opener': () => renderInputPracticeModule(module, '寫一句你敢說出口的開場，例如：我想確認一個地方...', '這句開場已經能降低互動壓力。'),
-    'reflection': () => renderInputPracticeModule(module, '寫下：我原本最怕什麼？實際結果是什麼？', '很好，反思能幫你校正腦中過度糟糕的預測。'),
+    'safe-refusal': () => renderInputPracticeModule(module, '寫一句溫和但清楚的拒絕，例如：謝謝你找我，但我今天真的沒辦法...', '這句拒絕保留了禮貌，也清楚表達界線。'),
+    'social-reframe': () => renderSocialReframeModule(module),
     'five-start': () => renderFiveStartModule(module),
     'focus-mode': () => renderFocusModeModule(module),
     'procrastination-trigger': () => renderProcrastinationTriggerModule(module),
@@ -3224,12 +3459,13 @@ function renderPracticeModule(module) {
 function renderBreathModule(module) {
   return `
     <div class="card mb-10 text-center">
+      ${renderPracticeAudioControls(module.id)}
       <div class="breath-circle" id="breathCircle"><div class="breath-text" id="breathText">準備好了嗎？</div></div>
       <div class="breath-count" id="breathCount">—</div>
       <div class="breath-phase" id="breathPhase">點下方開始練習</div>
       <div class="btn-row mt-12">
-        <button class="btn-ghost btn-auto" onclick="startBreath()"><i class="ti ti-player-play"></i> 開始練習</button>
-        <button class="btn-ghost btn-auto" onclick="stopBreath()"><i class="ti ti-player-stop"></i> 停止</button>
+        <button class="btn-ghost btn-auto" id="breath-start-${module.id}" onclick="startBreath('${module.id}')"><i class="ti ti-player-play"></i> 開始練習</button>
+        <button class="btn-ghost btn-auto" id="breath-stop-${module.id}" onclick="stopBreath()" disabled><i class="ti ti-player-stop"></i> 停止</button>
       </div>
     </div>
     <div class="card">
@@ -3262,9 +3498,10 @@ function renderEmotionAwarenessModule(module) {
 function renderCalmModule(module) {
   return `
     <div class="card text-center practice-card-${module.role}">
+      ${renderPracticeAudioControls(module.id)}
       <div class="calm-count" id="calm-count-${module.id}">30</div>
       <div class="breath-phase">看見 5 個物品、感覺 4 個觸點、聽見 3 個聲音。</div>
-      <button class="btn-primary mt-10" onclick="startCalmCountdown('${module.id}')"><i class="ti ti-hourglass-low"></i> 開始 30 秒冷靜</button>
+      <button class="btn-primary mt-10" id="calm-start-${module.id}" onclick="startCalmCountdown('${module.id}')"><i class="ti ti-hourglass-low"></i> 開始 30 秒冷靜</button>
       <div class="ai-insight mt-10" id="practice-result-${module.id}">高壓狀態先讓身體回到安全感。</div>
     </div>
   `;
@@ -3302,23 +3539,75 @@ function renderStressSourceModule(module) {
 }
 
 function renderPriorityModule(module) {
-  return renderChecklistModule(module, [
-    '先處理截止時間最近的任務',
-    '先做最容易開始的小步驟',
-    '把不重要但干擾大的事情移到稍後',
-    '留下今天只需要完成的一件事'
-  ], '優先順序排序');
+  const options = ['請選擇', '第 1 件', '第 2 件', '第 3 件']
+    .map((label, idx) => `<option value="${idx ? idx - 1 : ''}">${label}</option>`)
+    .join('');
+  return `
+    <div class="card practice-card-${module.role}">
+      <div class="mini-practice-box mini-practice-${module.role}">
+        <div class="section-label"><i class="ti ti-list-numbers"></i> 今天可處理的 2 到 3 件事</div>
+        <div class="stress-source-steps">
+          <input class="task-input compact-input" id="priority-task-0-${module.id}" placeholder="第 1 件：例如整理英文報告大綱" maxlength="80" oninput="updatePracticeFooterState('${module.id}')">
+          <input class="task-input compact-input" id="priority-task-1-${module.id}" placeholder="第 2 件：例如複習數學第一章" maxlength="80" oninput="updatePracticeFooterState('${module.id}')">
+          <input class="task-input compact-input" id="priority-task-2-${module.id}" placeholder="第 3 件，可不填" maxlength="80" oninput="updatePracticeFooterState('${module.id}')">
+        </div>
+      </div>
+      <div class="priority-decision-grid mt-12">
+        <div class="mini-practice-box mini-practice-action">
+          <div class="meta-label">最接近截止</div>
+          <select class="meta-select" id="priority-deadline-${module.id}" onchange="updatePracticeFooterState('${module.id}')">${options}</select>
+        </div>
+        <div class="mini-practice-box mini-practice-action">
+          <div class="meta-label">最容易開始</div>
+          <select class="meta-select" id="priority-easy-${module.id}" onchange="updatePracticeFooterState('${module.id}')">${options}</select>
+        </div>
+        <div class="mini-practice-box mini-practice-action">
+          <div class="meta-label">不做影響最大</div>
+          <select class="meta-select" id="priority-impact-${module.id}" onchange="updatePracticeFooterState('${module.id}')">${options}</select>
+        </div>
+      </div>
+      <div class="ai-insight mt-10" id="practice-result-${module.id}">先寫下可控任務，再用三個判斷點選出今天第一件事。</div>
+    </div>
+  `;
 }
 
 function renderTodayTaskModule(module, ctx) {
-  const task = ctx.profile.study >= 70 ? '整理報告大綱 10 分鐘' : '閱讀或複習 10 分鐘';
   return `
     <div class="card practice-card-${module.role}">
-      <div class="today-task-card">
-        <i class="ti ti-calendar-check"></i>
-        <div><div class="fb-title">今天的小任務</div><div>${escapeHtml(task)}</div></div>
+      <div class="stress-source-steps">
+        <div class="mini-practice-box mini-practice-course">
+          <div class="section-label"><i class="ti ti-target"></i> 今天要處理的事</div>
+          <input class="task-input compact-input" id="today-task-name-${module.id}" placeholder="例如：英文報告、數學作業、整理簡報" maxlength="80" oninput="updatePracticeFooterState('${module.id}')">
+        </div>
+        <div class="mini-practice-box mini-practice-action">
+          <div class="section-label"><i class="ti ti-player-play"></i> 10 分鐘內可以開始的小動作</div>
+          <input class="task-input compact-input" id="today-task-action-${module.id}" placeholder="例如：打開檔案，先列 3 個標題" maxlength="80" oninput="updatePracticeFooterState('${module.id}')">
+        </div>
+        <div class="meta-row">
+          <div class="meta-col">
+            <div class="meta-label">預計什麼時候做</div>
+            <select class="meta-select" id="today-task-time-${module.id}" onchange="updatePracticeFooterState('${module.id}')">
+              <option value="">請選擇</option>
+              <option value="現在">現在</option>
+              <option value="今天下課後">今天下課後</option>
+              <option value="晚餐前後">晚餐前後</option>
+              <option value="睡前以前">睡前以前</option>
+            </select>
+          </div>
+          <div class="meta-col">
+            <div class="meta-label">可能卡住的原因</div>
+            <select class="meta-select" id="today-task-obstacle-${module.id}" onchange="updatePracticeFooterState('${module.id}')">
+              <option value="">請選擇</option>
+              <option value="任務太大">任務太大</option>
+              <option value="不知道從哪開始">不知道從哪開始</option>
+              <option value="容易滑手機">容易滑手機</option>
+              <option value="擔心做不好">擔心做不好</option>
+              <option value="太累">太累</option>
+            </select>
+          </div>
+        </div>
       </div>
-      <div class="ai-insight mt-10" id="practice-result-${module.id}">任務要小到現在願意開始。</div>
+      <div class="ai-insight mt-10" id="practice-result-${module.id}">這裡是設定今天的最小行動，不代表你已經完成現實任務。</div>
     </div>
   `;
 }
@@ -3345,6 +3634,7 @@ const focusDistractionActions = {
 function renderFocusModeModule(module) {
   return `
     <div class="card practice-card-${module.role}">
+      ${renderPracticeAudioControls(module.id)}
       <div class="meta-row">
         <div class="meta-col">
           <div class="meta-label">專注時間</div>
@@ -3466,6 +3756,24 @@ function renderInputPracticeModule(module, placeholder, resultText) {
   `;
 }
 
+function renderSocialReframeModule(module) {
+  return `
+    <div class="card practice-card-${module.role}">
+      <div class="stress-source-steps">
+        <div class="mini-practice-box mini-practice-reflection">
+          <div class="section-label"><i class="ti ti-alert-circle"></i> 我最擔心的想法</div>
+          <input class="task-input compact-input" id="social-fear-${module.id}" placeholder="例如：我問問題，對方一定會覺得我很煩" maxlength="100" oninput="updatePracticeFooterState('${module.id}')">
+        </div>
+        <div class="mini-practice-box mini-practice-action">
+          <div class="section-label"><i class="ti ti-refresh"></i> 比較平衡的說法</div>
+          <input class="task-input compact-input" id="social-reframe-${module.id}" placeholder="例如：我只是確認一件事，對方可以晚點回覆也沒關係" maxlength="120" oninput="updatePracticeFooterState('${module.id}')">
+        </div>
+      </div>
+      <div class="ai-insight mt-10" id="practice-result-${module.id}">把腦中最糟的預測改寫成比較可承受的說法。</div>
+    </div>
+  `;
+}
+
 function renderChecklistModule(module, items, title = '練習清單') {
   return `
     <div class="card practice-card-${module.role}">
@@ -3534,7 +3842,7 @@ function getPracticeCompletionStatus(moduleId) {
   const inputValue = id => document.getElementById(`${id}-${moduleId}`)?.value.trim() || '';
   const checklistItems = panel ? Array.from(panel.querySelectorAll('.task-item')) : [];
 
-  if (['priority'].includes(module.type) || (checklistItems.length && !module.type)) {
+  if (checklistItems.length && !module.type) {
     const allChecked = checklistItems.length > 0 && checklistItems.every(item => item.classList.contains('done'));
     return allChecked
       ? { done: true, message: '清單已完成，可以進入下一步。' }
@@ -3561,11 +3869,26 @@ function getPracticeCompletionStatus(moduleId) {
         ? { done: true, message: '壓力分類已填完，可以完成模組。' }
         : { done: false, message: '請先把四格都填完：壓力來源、能控制、暫時不能控制、下一個小行動。' };
     }
+    case 'priority': {
+      const tasks = [0, 1, 2].map(idx => document.getElementById(`priority-task-${idx}-${moduleId}`)?.value.trim() || '');
+      const deadline = document.getElementById(`priority-deadline-${moduleId}`)?.value;
+      const easy = document.getElementById(`priority-easy-${moduleId}`)?.value;
+      const impact = document.getElementById(`priority-impact-${moduleId}`)?.value;
+      if (tasks.filter(Boolean).length < 2) return { done: false, message: '請至少寫下 2 件今天可處理的事。' };
+      if (!deadline || !easy || !impact) return { done: false, message: '請完成三個判斷：最接近截止、最容易開始、不做影響最大。' };
+      const selectedIndexes = [deadline, easy, impact].map(value => Number(value));
+      if (selectedIndexes.some(index => !tasks[index])) return { done: false, message: '選到的項目需要有填寫任務內容。' };
+      return { done: true, message: '已完成先做哪一個的判斷，可以進入下一步。' };
+    }
     case 'safe-opener':
-    case 'reflection':
+    case 'safe-refusal':
       return inputValue('practice-input')
         ? { done: true, message: '已寫下你的版本，可以完成模組。' }
         : { done: false, message: '請先寫下你的版本，再完成這一步。' };
+    case 'social-reframe':
+      return inputValue('social-fear') && inputValue('social-reframe')
+        ? { done: true, message: '想像校正已完成，可以進入下一步。' }
+        : { done: false, message: '請先填寫擔心的想法，並改寫成比較平衡的說法。' };
     case 'focus-mode': {
       const goal = document.getElementById(`focus-goal-${moduleId}`)?.value.trim();
       const duration = document.getElementById(`focus-duration-${moduleId}`)?.value;
@@ -3590,12 +3913,12 @@ function getPracticeCompletionStatus(moduleId) {
       if (!module.sleepAction) return { done: false, message: '請先選擇一個離線降速行動。' };
       return { done: true, message: '睡前收尾計畫已設定，可以完成模組。' };
     }
-    case 'choice-social':
-      return module.choiceCompleted
-        ? { done: true, message: '已完成情境選擇，可以進入下一步。' }
-        : { done: false, message: '請先選擇一個情境回應。' };
     case 'today-task':
-      return { done: true, message: '完成今日小任務後，按下方按鈕記錄並進入下一步。' };
+      return inputValue('today-task-name') && inputValue('today-task-action')
+        && document.getElementById(`today-task-time-${moduleId}`)?.value
+        && document.getElementById(`today-task-obstacle-${moduleId}`)?.value
+        ? { done: true, message: '今日最小行動已設定，可以進入下一步。' }
+        : { done: false, message: '請先填完任務、小動作、預計時間與可能卡住原因。' };
     case 'task-breakdown': {
       const steps = Array.from(document.querySelectorAll('#stepList .step-item'));
       if (!steps.length) return { done: false, message: '請先輸入任務，讓系統拆解出小步驟。' };
@@ -3639,6 +3962,29 @@ function refreshPracticeFooterStates() {
   currentPracticeModules.forEach(module => updatePracticeFooterState(module.id));
 }
 
+function getPriorityDecision(moduleId) {
+  const tasks = [0, 1, 2].map(idx => document.getElementById(`priority-task-${idx}-${moduleId}`)?.value.trim() || '');
+  const picks = {
+    deadline: Number(document.getElementById(`priority-deadline-${moduleId}`)?.value),
+    easy: Number(document.getElementById(`priority-easy-${moduleId}`)?.value),
+    impact: Number(document.getElementById(`priority-impact-${moduleId}`)?.value)
+  };
+  const voteCount = {};
+  Object.values(picks).forEach(index => {
+    if (Number.isInteger(index) && tasks[index]) voteCount[index] = (voteCount[index] || 0) + 1;
+  });
+  const repeatedPick = Object.entries(voteCount)
+    .sort((a, b) => Number(b[1]) - Number(a[1]))
+    .find(([, count]) => count >= 2);
+  const firstIndex = repeatedPick ? Number(repeatedPick[0]) : picks.easy;
+  return {
+    tasks,
+    filledTasks: tasks.filter(Boolean),
+    picks,
+    firstTask: tasks[firstIndex] || tasks.find(Boolean) || ''
+  };
+}
+
 function finalizePracticeModule(moduleId) {
   const module = currentPracticeModuleById[moduleId];
   if (!module || module.finalized) return;
@@ -3663,9 +4009,36 @@ function finalizePracticeModule(moduleId) {
     return;
   }
 
-  if (['safe-opener', 'reflection'].includes(module.type)) {
+  if (module.type === 'priority') {
+    const decision = getPriorityDecision(moduleId);
+    setPracticeModuleResult(moduleId, `今天先處理：「${decision.firstTask}」。判斷依據是截止時間、容易開始程度與影響大小；其他任務先放到下一輪，不需要全部同時處理。`);
+    const details = {
+      可處理任務: decision.filledTasks,
+      最接近截止: decision.tasks[decision.picks.deadline] || '',
+      最容易開始: decision.tasks[decision.picks.easy] || '',
+      不做影響最大: decision.tasks[decision.picks.impact] || '',
+      建議先做: decision.firstTask
+    };
+    recordPracticeActionPlan('先做哪一個判斷器', details);
+    syncToBackend('先做哪一個判斷器', details);
+    return;
+  }
+
+  if (['safe-opener', 'safe-refusal'].includes(module.type)) {
     const value = document.getElementById(`practice-input-${moduleId}`)?.value.trim();
     setPracticeModuleResult(moduleId, `${module.resultText || '已完成這一步。'} 你寫下的是：「${value}」`);
+    const source = module.type === 'safe-refusal' ? '安全拒絕練習' : '安全開場練習';
+    recordPracticeActionPlan(source, { 句子: value });
+    syncToBackend(source, { 句子: value });
+    return;
+  }
+
+  if (module.type === 'social-reframe') {
+    const fear = document.getElementById(`social-fear-${moduleId}`)?.value.trim();
+    const reframe = document.getElementById(`social-reframe-${moduleId}`)?.value.trim();
+    setPracticeModuleResult(moduleId, `你把「${fear}」改寫成：「${reframe}」。這不是否定擔心，而是讓想法變得比較可承受。`);
+    recordPracticeActionPlan('想像校正練習', { 擔心想法: fear, 平衡說法: reframe });
+    syncToBackend('想像校正練習', { 擔心想法: fear, 平衡說法: reframe });
     return;
   }
 
@@ -3713,8 +4086,19 @@ function finalizePracticeModule(moduleId) {
   }
 
   if (module.type === 'today-task') {
-    module.todayTaskCompleted = true;
-    setPracticeModuleResult(moduleId, '已記錄今日小任務，接下來可以進入下一步。');
+    const task = document.getElementById(`today-task-name-${moduleId}`)?.value.trim();
+    const action = document.getElementById(`today-task-action-${moduleId}`)?.value.trim();
+    const time = document.getElementById(`today-task-time-${moduleId}`)?.value;
+    const obstacle = document.getElementById(`today-task-obstacle-${moduleId}`)?.value;
+    const details = {
+      任務: task,
+      最小行動: action,
+      預計時間: time,
+      可能卡住原因: obstacle
+    };
+    setPracticeModuleResult(moduleId, `今日最小行動已設定：${time} 先做「${action}」。這會作為現實任務設定保留，真正完成狀況可到現實挑戰或回報中追蹤。`);
+    recordPracticeActionPlan('今日最小行動設定', details);
+    syncToBackend('今日最小行動設定', details);
   }
 }
 
@@ -3787,11 +4171,9 @@ function completeStressSource(moduleId) {
 }
 
 function completeTodayTask(moduleId) {
-  const module = currentPracticeModuleById[moduleId];
-  if (module) module.todayTaskCompleted = true;
-  setPracticeModuleResult(moduleId, '已記錄今日小任務，接下來可以進入下一步。');
-  markPracticeModuleReady(moduleId);
-  completePracticeModule(moduleId, false);
+  if (completePracticeModule(moduleId, false)) {
+    markPracticeModuleReady(moduleId);
+  }
 }
 
 function completePracticeModule(moduleId, shouldNavigate = false, options = {}) {
@@ -3808,7 +4190,10 @@ function completePracticeModule(moduleId, shouldNavigate = false, options = {}) 
   finalizePracticeModule(moduleId);
   if (!module.completed) {
     module.completed = true;
+    rememberCompletedPracticeModule(moduleId);
     addCompleteTask(`系統內練習：${module.title}`);
+  } else {
+    rememberCompletedPracticeModule(moduleId);
   }
   const panel = document.getElementById(`practice-panel-${moduleId}`);
   panel?.classList.add('module-completed');
@@ -3822,6 +4207,7 @@ function goNextPracticeStep(moduleId) {
   const idx = currentPracticeModules.findIndex(module => module.id === moduleId);
   const next = currentPracticeModules[idx + 1];
   if (next) {
+    if (!moduleSupportsPracticeAudio(next)) stopPracticeAudio();
     activatePracticeModule(next.id);
     return true;
   }
@@ -3859,20 +4245,36 @@ function pickPracticeChoice(moduleId, idx) {
 // ==========================================
 let breathInterval = null;
 let fiveStartTimers = {};
+let calmTimers = {};
 let activeBreathModuleId = '';
 let breathPhaseIdx = 0;
 let breathCycleCount = 0;
+let breathIsRunning = false;
 const breathPhases = [
   { name: '吸氣', dur: 4, expand: true, tip: '用鼻子緩慢吸氣...' },
   { name: '屏氣', dur: 7, expand: true, tip: '屏住呼吸，安頓身心...' },
   { name: '吐氣', dur: 8, expand: false, tip: '用嘴緩慢吐氣，釋放焦慮...' }
 ];
 
-function startBreath() {
-  stopBreath();
-  activeBreathModuleId = getActivePracticeModuleId();
+function setBreathButtons(moduleId, isRunning) {
+  const startBtn = document.getElementById(`breath-start-${moduleId}`);
+  const stopBtn = document.getElementById(`breath-stop-${moduleId}`);
+  if (startBtn) {
+    startBtn.disabled = isRunning;
+    startBtn.innerHTML = isRunning
+      ? '<i class="ti ti-clock-play"></i> 練習中'
+      : '<i class="ti ti-player-play"></i> 開始練習';
+  }
+  if (stopBtn) stopBtn.disabled = !isRunning;
+}
+
+function startBreath(moduleId = getActivePracticeModuleId()) {
+  if (breathIsRunning || breathInterval) return;
+  activeBreathModuleId = moduleId || getActivePracticeModuleId();
   breathPhaseIdx = 0;
   breathCycleCount = 0;
+  breathIsRunning = true;
+  setBreathButtons(activeBreathModuleId, true);
   runBreathPhase();
 }
 
@@ -3883,14 +4285,16 @@ function runBreathPhase() {
   const circle = document.getElementById('breathCircle');
   if (!text || !phase || !count || !circle) return;
   if (breathCycleCount >= 1) {
+    breathIsRunning = false;
+    breathInterval = null;
     text.textContent = '完成！';
-    phase.textContent = '身體已成功放鬆，可以切換到下一個練習模組。';
+    phase.textContent = '已完成一輪。你可以再做一次，或按下方進入下一個練習。';
     const moduleId = activeBreathModuleId || getActivePracticeModuleId();
     if (moduleId) {
+      setBreathButtons(moduleId, false);
       markPracticeModuleReady(moduleId);
       completePracticeModule(moduleId, false, { skipValidation: true });
     }
-    setTimeout(activateNextPracticeModule, 1400);
     return;
   }
   const ph = breathPhases[breathPhaseIdx];
@@ -3905,6 +4309,7 @@ function runBreathPhase() {
     if (count) count.textContent = sec;
     if (sec <= 0) {
       clearInterval(breathInterval);
+      breathInterval = null;
       if (breathPhaseIdx === 2) breathCycleCount++;
       breathPhaseIdx = (breathPhaseIdx + 1) % 3;
       runBreathPhase();
@@ -3914,6 +4319,9 @@ function runBreathPhase() {
 
 function stopBreath() {
   if (breathInterval) clearInterval(breathInterval);
+  breathInterval = null;
+  breathIsRunning = false;
+  if (activeBreathModuleId) setBreathButtons(activeBreathModuleId, false);
   const text = document.getElementById('breathText');
   const count = document.getElementById('breathCount');
   const phase = document.getElementById('breathPhase');
@@ -3922,15 +4330,6 @@ function stopBreath() {
   if (count) count.textContent = '—';
   if (phase) phase.textContent = '點下方開始練習';
   if (circle) circle.classList.remove('expand');
-}
-
-function activateNextPracticeModule() {
-  const active = document.querySelector('.practice-panel.active');
-  if (!active || !currentPracticeModules.length) return;
-  const activeId = active.id.replace('practice-panel-', '');
-  const idx = currentPracticeModules.findIndex(module => module.id === activeId);
-  const next = currentPracticeModules[idx + 1];
-  if (next) activatePracticeModule(next.id);
 }
 
 function formatMinuteCountdown(seconds) {
@@ -4005,13 +4404,24 @@ function startFiveMinuteCountdown(moduleId) {
 function startCalmCountdown(moduleId) {
   const el = document.getElementById(`calm-count-${moduleId}`);
   if (!el) return;
+  if (calmTimers[moduleId]) return;
+  const btn = document.getElementById(`calm-start-${moduleId}`);
   let seconds = 30;
   el.textContent = seconds;
-  const timer = setInterval(() => {
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-clock-play"></i> 冷靜倒數中';
+  }
+  calmTimers[moduleId] = setInterval(() => {
     seconds -= 1;
     el.textContent = seconds;
     if (seconds <= 0) {
-      clearInterval(timer);
+      clearInterval(calmTimers[moduleId]);
+      delete calmTimers[moduleId];
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ti ti-hourglass-low"></i> 再做一次 30 秒冷靜';
+      }
       setPracticeModuleResult(moduleId, '冷靜倒數完成。現在可以選擇一個最小行動，不必一次解決全部。');
       markPracticeModuleReady(moduleId);
       completePracticeModule(moduleId, false, { skipValidation: true });
@@ -4166,7 +4576,8 @@ function getChallengeTemplateForCourse(course = '') {
       tone: 'info',
       baseTasks: ['情緒高漲時，做 3 次 4-7-8 深呼吸', '在手機備忘錄記錄當下情緒一句話'],
       midTasks: ['感到想逃避時，先暫停 10 秒並說出現在的情緒', '把情緒強度用 1 到 5 分記錄下來'],
-      advancedTasks: ['回頭比較觸發前後的身體變化', '整理一個下次可重複使用的情緒調節流程']
+      advancedTasks: ['回頭比較觸發前後的身體變化', '整理一個下次可重複使用的情緒調節流程'],
+      extraTasks: ['在壓力升高前先記下觸發情境', '練習用一句話說出現在最需要的支持']
     },
     study: {
       title: '學業壓力微計畫挑戰',
@@ -4174,7 +4585,8 @@ function getChallengeTemplateForCourse(course = '') {
       tone: 'warning',
       baseTasks: ['選一個今天只做 10 分鐘的讀書範圍', '完成第一個不需要完美的小步驟'],
       midTasks: ['把大任務拆成 3 個小步驟並完成第一步', '睡前記錄今天完成的一個小進展'],
-      advancedTasks: ['安排兩段專注時間與休息時間', '檢查哪個壓力來源可以明天繼續處理']
+      advancedTasks: ['安排兩段專注時間與休息時間', '檢查哪個壓力來源可以明天繼續處理'],
+      extraTasks: ['把今天不處理的任務寫到稍後清單', '用一句話確認今天最小完成標準']
     },
     procrastination: {
       title: '拖延行為重塑挑戰',
@@ -4182,7 +4594,8 @@ function getChallengeTemplateForCourse(course = '') {
       tone: 'warning',
       baseTasks: ['只承諾開始 5 分鐘', '想滑手機時先暫停 10 秒再決定'],
       midTasks: ['設定一個 25 分鐘番茄鐘並開始第一小段', '完成後給自己 5 分鐘休息獎勵'],
-      advancedTasks: ['連續完成兩輪短番茄鐘', '記錄今天最容易拖延的觸發點']
+      advancedTasks: ['連續完成兩輪短番茄鐘', '記錄今天最容易拖延的觸發點'],
+      extraTasks: ['開始前把手機放到伸手拿不到的位置', '把任務縮成現在能做的一句指令', '完成後記錄這次成功啟動的原因']
     },
     social: {
       title: '安全表達實作挑戰',
@@ -4190,21 +4603,24 @@ function getChallengeTemplateForCourse(course = '') {
       tone: 'info',
       baseTasks: ['為一個社交情境寫下第一句安全開場', '練習把一句話慢慢說清楚，不追求完美'],
       midTasks: ['回覆一則訊息時先說事實再說感受', '找一個低風險對象練習提出小問題'],
-      advancedTasks: ['在小組討論中主動補充一次想法', '回顧互動後實際結果是否比想像中可怕']
+      advancedTasks: ['在小組討論中主動補充一次想法', '回顧互動後實際結果是否比想像中可怕'],
+      extraTasks: ['先用文字草稿練習一句安全表達', '互動後記錄實際結果和想像差異']
     }
   };
   const template = templates[kind] || templates.emotion;
+  const tasks = buildTasksByDifficulty(template, difficulty);
   return {
     title: template.title,
     icon: template.icon,
     tone: template.tone,
     difficulty,
-    tasks: buildTasksByDifficulty(template, difficulty)
+    tasks,
+    taskPool: buildChallengeTaskPool(template)
   };
 }
 
 function getChallengeDifficulty(course = '') {
-  const kind = course?.kind || getCourseKind(course);
+  const kind = getCourseKind(course);
   const baseDifficulty = normalizeDifficultyLabel([
     course?.difficulty,
     course?.sub,
@@ -4217,12 +4633,31 @@ function getChallengeDifficulty(course = '') {
 
 function buildTasksByDifficulty(template, difficulty) {
   if (difficulty === '進階') {
-    return [...template.baseTasks, ...template.midTasks, ...template.advancedTasks].slice(0, 5);
+    return uniqueTaskList([...template.baseTasks, ...template.midTasks, ...template.advancedTasks]).slice(0, 5);
   }
   if (difficulty === '中階') {
-    return [...template.baseTasks, ...template.midTasks].slice(0, 4);
+    return uniqueTaskList([...template.baseTasks, ...template.midTasks]).slice(0, 4);
   }
-  return template.baseTasks.slice(0, 3);
+  return uniqueTaskList(template.baseTasks).slice(0, 3);
+}
+
+function uniqueTaskList(tasks = []) {
+  const seen = new Set();
+  return tasks.filter(task => {
+    const key = String(task || '').trim();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function buildChallengeTaskPool(template) {
+  return uniqueTaskList([
+    ...(template.baseTasks || []),
+    ...(template.midTasks || []),
+    ...(template.advancedTasks || []),
+    ...(template.extraTasks || [])
+  ]);
 }
 
 function getChallengeDeadlineForCourse(course = '') {
@@ -4244,11 +4679,73 @@ function getChallengeProgressKey(course, index = 0) {
 
 function getChallengeDoneTasks(challenge) {
   const progress = currentUser?.challengeProgress || {};
-  return progress[challenge.progressKey] || [];
+  return uniqueTaskList(progress[challenge.progressKey] || []);
 }
 
 function isChallengeCompleted(challenge) {
   return challenge?.tasks?.length > 0 && getChallengeDoneTasks(challenge).length >= challenge.tasks.length;
+}
+
+function isSleepOnlyCourseRecord(course = {}) {
+  const rawTags = course.tags || course.emotional_tags || course.emotion_tags || [];
+  const tags = Array.isArray(rawTags) ? rawTags.join(' ') : String(rawTags || '');
+  const text = `${course.kind || ''} ${course.title || course.courseTitle || ''} ${course.reason || course.desc || ''} ${tags}`;
+  return String(course.kind || '') === 'sleep'
+    || hasAnyKeyword(text, ['睡眠壓力修復', '睡眠壓力', '睡前降速', '睡眠', '睡前', '失眠']);
+}
+
+function getChallengeDedupKey(challenge = {}) {
+  const kind = getCourseKind(challenge);
+  const difficulty = normalizeDifficultyLabel(challenge.difficulty) || challenge.difficulty || '初階';
+  return `${kind}:${difficulty}`;
+}
+
+function getChallengeTaskSignature(challenge = {}) {
+  return uniqueTaskList(challenge.tasks || [])
+    .map(task => String(task).replace(/\s+/g, ' ').trim())
+    .join('|');
+}
+
+function getChallengeInstanceProgressKey(challenge = {}) {
+  const key = getChallengeDedupKey(challenge);
+  const sourceKeys = uniqueTaskList(challenge.progressKeys || [challenge.progressKey])
+    .sort()
+    .join('|');
+  const taskKey = getChallengeTaskSignature(challenge);
+  return `challenge:${key}:${sourceKeys}:${taskKey}`;
+}
+
+function mergeChallenge(existing, candidate) {
+  const progressKeys = uniqueTaskList([
+    ...(existing.progressKeys || []),
+    ...(candidate.progressKeys || [])
+  ]);
+  const taskPool = uniqueTaskList([
+    ...(existing.tasks || []),
+    ...(candidate.tasks || []),
+    ...(existing.taskPool || []),
+    ...(candidate.taskPool || [])
+  ]);
+  const targetCount = Math.min(8, Math.max(existing.tasks.length, candidate.tasks.length) + 2);
+  const mergedTasks = uniqueTaskList([
+    ...(existing.tasks || []),
+    ...(candidate.tasks || []),
+    ...taskPool
+  ]).slice(0, targetCount);
+
+  const merged = {
+    ...existing,
+    courseTitle: uniqueTaskList([existing.courseTitle, candidate.courseTitle]).join('、'),
+    deadlineDays: Math.min(existing.deadlineDays || 99, candidate.deadlineDays || 99),
+    deadlineLabel: (candidate.deadlineDays || 99) < (existing.deadlineDays || 99) ? candidate.deadlineLabel : existing.deadlineLabel,
+    progressKeys,
+    tasks: mergedTasks,
+    taskPool
+  };
+  return {
+    ...merged,
+    progressKey: getChallengeInstanceProgressKey(merged)
+  };
 }
 
 function buildDynamicChallenges() {
@@ -4258,20 +4755,46 @@ function buildDynamicChallenges() {
       ? [{ title: currentUser.inProgressCourse.title }]
       : [];
 
-  return learned.map((course, index) => {
-    const kind = course.kind || getCourseKind(course);
+  const uniqueChallenges = [];
+  const challengeByKey = new Map();
+
+  learned
+    .filter(course => !isSleepOnlyCourseRecord(course))
+    .forEach((course, index) => {
+    const kind = getCourseKind(course);
     const courseRecord = { ...course, kind };
     const template = getChallengeTemplateForCourse(course);
     const deadline = getChallengeDeadlineForCourse(course);
-    return {
+    const challenge = {
       id: index + 1,
       courseTitle: course.title,
       kind,
-      progressKey: getChallengeProgressKey(courseRecord, index),
+      progressKey: '',
+      progressKeys: [getChallengeProgressKey(courseRecord, index)],
       deadlineLabel: deadline.label,
       deadlineDays: deadline.days,
       ...template
     };
+    const key = getChallengeDedupKey(challenge);
+    const taskKey = getChallengeTaskSignature(challenge);
+    challenge.progressKey = getChallengeInstanceProgressKey(challenge);
+    const existing = challengeByKey.get(key) || (taskKey ? challengeByKey.get(`tasks:${taskKey}`) : null);
+    if (!existing) {
+      challengeByKey.set(key, challenge);
+      if (taskKey) challengeByKey.set(`tasks:${taskKey}`, challenge);
+      uniqueChallenges.push(challenge);
+      return;
+    }
+    const merged = mergeChallenge(existing, challenge);
+    const replaceIndex = uniqueChallenges.findIndex(item => item === existing);
+    if (replaceIndex >= 0) uniqueChallenges[replaceIndex] = merged;
+    challengeByKey.set(key, merged);
+    if (taskKey) challengeByKey.set(`tasks:${taskKey}`, merged);
+  });
+
+  return uniqueChallenges.map((challenge, index) => {
+    const { taskPool, ...visibleChallenge } = challenge;
+    return { ...visibleChallenge, id: index + 1 };
   });
 }
 
@@ -4289,19 +4812,30 @@ function renderDynamicChallenges() {
     `;
     return;
   }
-  wrap.innerHTML = challenges.map(challenge => {
+  const activeChallenges = challenges.filter(challenge => !isChallengeCompleted(challenge));
+  if (!activeChallenges.length) {
+    wrap.innerHTML = `
+      <div class="card mb-10">
+        <div class="section-label"><i class="ti ti-circle-check"></i> 目前沒有未完成挑戰</div>
+        <div class="ai-insight">你已經完成目前累積的現實挑戰。完成新的課程後，這裡會再出現新的未完成挑戰。</div>
+        <button class="btn-primary mt-10" onclick="goPage(1)"><i class="ti ti-book"></i> 回到課程學習</button>
+      </div>
+    `;
+    return;
+  }
+
+  wrap.innerHTML = activeChallenges.map(challenge => {
     const doneTasks = getChallengeDoneTasks(challenge);
     const doneSet = new Set(doneTasks);
     const pct = challenge.tasks.length ? Math.round(doneTasks.length / challenge.tasks.length * 100) : 0;
-    const completed = isChallengeCompleted(challenge);
     return `
-      <div class="challenge-card mb-10 ${completed ? 'challenge-completed' : ''}">
+      <div class="challenge-card mb-10">
         <div class="challenge-header">
           <div class="challenge-icon" style="background:var(--${challenge.tone}-bg);color:var(--${challenge.tone})"><i class="${escapeHtml(challenge.icon)}"></i></div>
           <div>
             <div class="challenge-title">${escapeHtml(challenge.title)}</div>
             <div class="challenge-sub">根據「${escapeHtml(challenge.courseTitle)}」生成</div>
-            <div class="chip-row mt-4"><span class="chip ${completed ? 'chip-success' : difficultyToneToChip(challenge.tone)}">${completed ? '已完成' : '進行中'}</span><span class="chip ${difficultyToneToChip(challenge.tone)}">${escapeHtml(challenge.difficulty)}</span><span class="chip ${difficultyToneToChip(challenge.tone)}">${escapeHtml(challenge.deadlineLabel)}</span><span class="chip">${challenge.tasks.length} 項任務</span></div>
+            <div class="chip-row mt-4"><span class="chip ${difficultyToneToChip(challenge.tone)}">進行中</span><span class="chip ${difficultyToneToChip(challenge.tone)}">${escapeHtml(challenge.difficulty)}</span><span class="chip ${difficultyToneToChip(challenge.tone)}">${escapeHtml(challenge.deadlineLabel)}</span><span class="chip">${challenge.tasks.length} 項任務</span></div>
           </div>
         </div>
         <div class="task-list" id="realList${challenge.id}">
@@ -4343,6 +4877,7 @@ function toggleRealTask(el, listNum, taskName, progressKey = '') {
   addCompleteTask(taskName);
   persistCurrentUser();
   updateDashboardChallengesPreview();
+  renderDynamicChallenges();
 }
 
 async function submitReport() {
@@ -4537,10 +5072,20 @@ async function fetchInsight() {
 // 21. 個人化分析
 async function loadFinalNaviAnalysis() {
   const res = await syncToBackend('/api/ai/insights', { 
-    type: "final_summary", tasks: currentUser.tasksCompleted, streak: currentUser.streak 
+    type: "final_summary",
+    tasks: currentUser.tasksCompleted,
+    streak: currentUser.streak,
+    badges: currentUser.badges || 0,
+    completed_courses: currentUser.completedCourses || [],
+    practice_history: currentUser.practiceHistory || [],
+    recent_actions: currentUser.recentActions || [],
+    challenge_progress: currentUser.challengeProgress || {},
+    reports: currentUser.completedLearningReports || []
   });
   if(res && res.navi_msgs && res.navi_msgs.length > 0) {
-    document.getElementById('final-navi-analysis').innerHTML = res.navi_msgs.join('<br><br>');
+    document.getElementById('final-navi-analysis').innerHTML = res.navi_msgs.map(msg => escapeHtml(msg)).join('<br><br>');
+  } else if (res && res.insight) {
+    document.getElementById('final-navi-analysis').innerHTML = escapeHtml(res.insight).replace(/\n/g, '<br>');
   } else {
     document.getElementById('final-navi-analysis').innerHTML = `今天你真的很棒！成功拆解任務並實踐了步驟。記住，每 5 個任務就是一枚勳章，這不僅是獎勵，更是你戰勝拖延的證明！`;
   }
