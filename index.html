@@ -2914,7 +2914,7 @@ function markCurrentLessonCompleted(correct) {
     const nextTip = getPracticeConfigForLesson(currentActiveLesson).sub;
     const progressText = `${getCompletedPathCount()}/${getCurrentPathLessons().length}`;
     report.innerHTML = allPathDone
-      ? `<strong>課程小成果：</strong>你已完成${isSelfSelectedLesson() ? '這堂自選課程' : `本次 ${progressText} 堂推薦課程`}。AI 判斷可以進入系統內練習：${escapeHtml(nextTip)}`
+      ? `<strong>課程小成果：</strong>你已完成${isSelfSelectedLesson() ? '這堂自選課程' : `本次 ${progressText} 堂推薦課程`}。系統判斷可以進入系統內練習：${escapeHtml(nextTip)}`
       : `<strong>課程小成果：</strong>你已完成「${escapeHtml(title)}」。目前進度 ${progressText}，請先回推薦課程清單完成剩下課程，全部完成後再進入系統內練習。`;
   }
   updateCourseNextAction();
