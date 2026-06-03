@@ -414,7 +414,7 @@
               </div>
             </div>
             <button class="btn-primary mt-10" onclick="openRecommendedCourseOverview()"><i class="ti ti-book"></i> 前往本次推薦課程</button>
-            <button class="btn-ghost mt-10" onclick="goPage(0)"><i class="ti ti-home"></i> 回首頁</button>
+            <button class="btn-ghost mt-10 mobile-home-btn" onclick="goPage(0)"><i class="ti ti-home"></i> 回首頁</button>
           </div>
         </div>
       </div>
@@ -668,7 +668,7 @@
             <i class="ti ti-home"></i> 回首頁看成果
           </button>
         </div>
-        <button class="btn-ghost mt-10" onclick="goPage(0)"><i class="ti ti-home"></i> 回首頁</button>
+        <button class="btn-ghost mt-10 mobile-home-btn" onclick="goPage(0)"><i class="ti ti-home"></i> 回首頁</button>
       </div>
 
     </div>
@@ -707,6 +707,14 @@
 const CLOUD_BASE_URL = "https://overnight-circular-pony.ngrok-free.dev";
 // 目前後端 lms_finalproject (3).py 的 Gemini route 使用 /api/gemini/*
 const AI_VIA_TRACK_ONLY = false;
+const JSON_API_HEADERS = {
+  'Content-Type': 'application/json',
+  'ngrok-skip-browser-warning': 'true'
+};
+
+function isNgrokBackend() {
+  return /\.ngrok(?:-free)?\.(?:app|dev)$/i.test(new URL(CLOUD_BASE_URL).hostname);
+}
 
 let usersDB = JSON.parse(localStorage.getItem('soulnav_users')) || {};
 let currentUser = null;
@@ -775,14 +783,14 @@ function persistCurrentUser() {
 function syncCurrentUserToBackend(options = {}) {
   if (!currentUser?.id || !CLOUD_BASE_URL) return;
   const payload = JSON.stringify(currentUser);
-  if (options.beacon && navigator.sendBeacon) {
+  if (options.beacon && navigator.sendBeacon && !isNgrokBackend()) {
     const blob = new Blob([payload], { type: 'application/json' });
     navigator.sendBeacon(`${CLOUD_BASE_URL}/api/user/register`, blob);
     return;
   }
   fetch(`${CLOUD_BASE_URL}/api/user/register`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: JSON_API_HEADERS,
     body: payload,
     keepalive: !!options.keepalive
   }).catch(e => console.log('使用者進度同步失敗:', e));
@@ -907,7 +915,7 @@ async function trackAction(actionType, detailsObj) {
   try {
     const response = await fetchWithTimeout(`${CLOUD_BASE_URL}/api/track`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: JSON_API_HEADERS,
       body: JSON.stringify({
         user_id: currentUser.id,
         action_type: actionType,
@@ -1039,7 +1047,7 @@ async function syncToBackend(actionType, detailsObj) {
       const backendRoute = getGeminiRoute(actionType);
       const response = await fetchWithTimeout(`${CLOUD_BASE_URL}${backendRoute}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: JSON_API_HEADERS,
         body: JSON.stringify({ user_id: currentUser.id, ...details })
       }, getBackendTimeoutMs(actionType));
       if (response.ok) {
@@ -1343,7 +1351,7 @@ async function registerUser() {
   try {
     const res = await fetchWithTimeout(`${CLOUD_BASE_URL}/api/user/register`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: JSON_API_HEADERS,
       body: JSON.stringify({ name, account, password })
     }, 15000);
     const data = await res.json().catch(() => ({}));
@@ -1369,7 +1377,7 @@ async function loginUser() {
   try {
     const res = await fetchWithTimeout(`${CLOUD_BASE_URL}/api/user/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: JSON_API_HEADERS,
       body: JSON.stringify({ account, password })
     }, 15000);
     const data = await res.json().catch(() => ({}));
@@ -1448,7 +1456,7 @@ async function updateStreakAndLogin() {
   // 把使用者資料同步到後端資料庫
   await fetch(`${CLOUD_BASE_URL}/api/user/register`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: JSON_API_HEADERS,
     body: JSON.stringify(currentUser)
   }).catch(e => console.log('使用者同步失敗:', e));
   syncToBackend("使用者登入", { 名字: currentUser.name, 連續打卡: currentUser.streak });
@@ -5222,7 +5230,7 @@ async function submitFinalReflection() {
   try {
     await fetch(`${CLOUD_BASE_URL}/api/user/register`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: JSON_API_HEADERS,
       body: JSON.stringify({
         user_id: currentUser.id,
         name: currentUser.name,
@@ -5237,7 +5245,7 @@ async function submitFinalReflection() {
   try {
     await fetch(`${CLOUD_BASE_URL}/api/reflection/submit`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: JSON_API_HEADERS,
       body: JSON.stringify({
         user_id: currentUser.id,
         reflection_type: 'daily',
