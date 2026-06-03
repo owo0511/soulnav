@@ -294,7 +294,7 @@
             <div class="three-col mb-12" style="gap:10px;">
               <div class="stat-card"><div class="stat-num" style="color:var(--warning)" id="dash-stat-streak">1</div><div class="stat-lbl">連續打卡</div></div>
               <div class="stat-card"><div class="stat-num" style="color:var(--success)" id="dash-stat-tasks">0</div><div class="stat-lbl">總完成任務</div></div>
-              <div class="stat-card"><div class="stat-num" style="color:var(--info)" id="dash-stat-badges">0</div><div class="stat-lbl">累計勳章</div></div>
+              <div class="stat-card"><div class="stat-num" style="color:var(--info)" id="dash-stat-badges">0</div><div class="stat-lbl">累計勳章</div><div class="stat-sub" id="dash-stat-level">準備啟動</div></div>
             </div>
 
             <div class="section-label" style="margin-top:14px;"><i class="ti ti-chart-bar"></i> 情緒趨勢（一週）</div>
@@ -318,7 +318,7 @@
             <button class="btn-primary mt-10" style="background:var(--info)" onclick="fetchInsight()"><i class="ti ti-refresh"></i> 更新洞察</button>
           </div>
 
-          <div class="card mb-10">
+          <div class="card mb-10 dash-quick-card">
             <div class="section-label"><i class="ti ti-compass"></i> 快速入口</div>
             <div class="dash-quick-grid">
               <button class="btn-ghost" onclick="openEmotionAssessment()"><i class="ti ti-robot"></i> 情緒評估</button>
@@ -700,52 +700,6 @@
 </div>
 
 <script>
-// 這個函數綁定在您的「確認送出」按鈕上
-async function submitFinalReflection() {
-    // 1. 取得按鈕元素並改變狀態為「同步中」
-    const btn = document.getElementById('finalSubmitBtn');
-    btn.innerHTML = "<div class='spinner' style='width:16px;height:16px;border-width:2px;margin-right:8px;'></div> 同步中...";
-    btn.disabled = true;
-
-    try {
-        // 2. 準備要傳送的資料 (ID 與 當下時間)
-        // 取得台灣時間
-        const currentTime = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }); 
-        
-        const payload = {
-            user_id: currentUser.id,   // 取得當前使用者的 ID
-            submit_time: currentTime   // 剛剛抓取的送出時間
-        };
-
-        // 3. 發送 POST 請求給 Colab (注意路徑要跟 Colab 寫的一致)
-        const response = await fetch(`${CLOUD_BASE_URL}/api/reflection/submit`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json' // 告訴後端我們傳的是 JSON 格式
-            },
-            body: JSON.stringify(payload) // 將物件轉成文字格式傳送
-        });
-
-        // 4. 解析 Colab 回傳的結果
-        const result = await response.json();
-
-        // 5. 如果 Colab 回傳成功，改變按鈕外觀
-        if (result.status === "success") {
-            btn.innerHTML = "<i class='ti ti-check'></i> 已同步至雲端資料庫";
-            btn.style.background = "var(--success)"; // 變成綠色
-        } else {
-            alert("同步發生未知的錯誤！");
-            btn.innerHTML = "重新送出";
-            btn.disabled = false;
-        }
-
-    } catch (error) {
-        console.error('傳送資料失敗:', error);
-        btn.innerHTML = "網路錯誤，請重試";
-        btn.disabled = false;
-        btn.style.background = "var(--danger)"; // 變成紅色
-    }
-}
 // ==========================================
 // 核心變數與資料庫
 // ==========================================
@@ -1521,6 +1475,7 @@ function updateUI() {
     const stuNameEls = document.querySelectorAll('#stu-name-chat');
     if(stuNameEls.length) stuNameEls.forEach(el => el.textContent = currentUser.name);
   }
+  updateDailyReflectionButton();
 
   // Dashboard landing UI（卡片式彙整）
   updateDashboardLanding();
@@ -2534,9 +2489,11 @@ function updateDashboardProgressOverview() {
   const st = document.getElementById('dash-stat-streak');
   const tk = document.getElementById('dash-stat-tasks');
   const bd = document.getElementById('dash-stat-badges');
+  const lv = document.getElementById('dash-stat-level');
   if (st) st.textContent = currentUser.streak ?? 0;
   if (tk) tk.textContent = currentUser.tasksCompleted ?? 0;
   if (bd) bd.textContent = currentUser.badges ?? 0;
+  if (lv) lv.textContent = getBadgeLevelLabel(currentUser.badges ?? 0);
 
   const dashRecent = document.getElementById('dash-recent-actions-container');
   if (!dashRecent) return;
@@ -2572,8 +2529,15 @@ function openBadgeCollection() {
   const tasks = currentUser?.tasksCompleted || 0;
   const remainder = tasks % 5;
   const next = remainder === 0 ? 5 : 5 - remainder;
-  const level = badges >= 6 ? '進階自我調節者' : badges >= 3 ? '穩定練習者' : badges >= 1 ? '行動啟動者' : '準備啟動';
+  const level = getBadgeLevelLabel(badges);
   alert(`勳章收藏\n\n目前等級：${level}\n累計勳章：${badges}\n累計完成任務：${tasks}\n\n用途：\n1. 記錄你完成的真實行動\n2. 解鎖更高階的挑戰難度\n3. 放進成果報告，作為能力成長證明\n\n再完成 ${next} 個任務可獲得下一枚勳章。`);
+}
+
+function getBadgeLevelLabel(badges = currentUser?.badges || 0) {
+  if (badges >= 6) return '進階自我調節者';
+  if (badges >= 3) return '穩定練習者';
+  if (badges >= 1) return '行動啟動者';
+  return '準備啟動';
 }
 
 // 13. 任務計算邏輯：5個任務 = 1勳章
@@ -2627,7 +2591,10 @@ function goPage(idx) {
     }
     renderDynamicChallenges();
   }
-  if (idx === 5) loadFinalNaviAnalysis();
+  if (idx === 5) {
+    updateDailyReflectionButton();
+    loadFinalNaviAnalysis();
+  }
 }
 
 document.querySelectorAll('.flow-step[data-page]').forEach(s =>
@@ -5157,15 +5124,59 @@ function selReflect(btn) {
   btn.classList.add('selected');
 }
 
+function getDailyReflectionKey(dateKey = getTaipeiDateKey()) {
+  return `${currentUser?.id || 'guest'}::${dateKey}`;
+}
+
+function getTodayReflectionDateKeys() {
+  return [
+    getTaipeiDateKey(),
+    new Date().toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' })
+  ];
+}
+
+function getTodayReflection() {
+  if (!currentUser?.dailyReflections) return null;
+  const todayKeys = getTodayReflectionDateKeys();
+  return currentUser.dailyReflections.find(item => todayKeys.includes(item.date) || todayKeys.some(key => item.reflectionId === getDailyReflectionKey(key))) || null;
+}
+
+function updateDailyReflectionButton() {
+  const btn = document.getElementById('finalSubmitBtn');
+  if (!btn || !currentUser) return;
+  const existing = getTodayReflection();
+  btn.disabled = false;
+  btn.style.background = existing ? "var(--info)" : "var(--brand)";
+  btn.style.color = "white";
+  btn.style.border = "none";
+  btn.innerHTML = existing
+    ? "<i class='ti ti-refresh'></i> 更新今日反思"
+    : "<i class='ti ti-send'></i> 送出今日反思";
+}
+
+function upsertDailyReflection(record) {
+  if (!currentUser.dailyReflections) currentUser.dailyReflections = [];
+  const todayKeys = getTodayReflectionDateKeys();
+  const idx = currentUser.dailyReflections.findIndex(item => todayKeys.includes(item.date) || item.reflectionId === record.reflectionId);
+  if (idx >= 0) {
+    currentUser.dailyReflections[idx] = { ...currentUser.dailyReflections[idx], ...record, updatedAt: new Date().toISOString() };
+  } else {
+    currentUser.dailyReflections.push(record);
+  }
+  currentUser.dailyReflections = currentUser.dailyReflections.slice(-30);
+}
+
 // 22 & 23. 送出反思至 Colab 後開啟新循環
 async function submitFinalReflection() {
   const selectedBtn = document.querySelector('.reflect-opt.selected');
   if (!selectedBtn) { alert("請先選擇一個反思感受！"); return; }
 
   const btn = document.getElementById('finalSubmitBtn');
+  const todayKey = getTaipeiDateKey();
+  const reflectionId = getDailyReflectionKey(todayKey);
+  const hadReflectionToday = !!getTodayReflection();
   btn.textContent = "⏳ 同步中...";
   btn.disabled = true;
-  const todayKey = new Date().toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
 
   // Step 1：確保使用者存在於後端
   try {
@@ -5190,6 +5201,8 @@ async function submitFinalReflection() {
       body: JSON.stringify({
         user_id: currentUser.id,
         reflection_type: 'daily',
+        reflection_mode: 'upsert',
+        reflection_id: reflectionId,
         reflection_date: todayKey,
         reflect_choice: selectedBtn.textContent,
         final_badges: currentUser.badges,
@@ -5204,7 +5217,7 @@ async function submitFinalReflection() {
   // Step 3：寫入 action_logs（萬用備份）
   try {
     if (typeof syncToBackend === 'function') {
-      await syncToBackend("送出今日反思", {
+      await syncToBackend(hadReflectionToday ? "更新今日反思" : "送出今日反思", {
         日期: todayKey,
         反思感受: selectedBtn.textContent,
         任務數: currentUser.tasksCompleted || 0
@@ -5212,23 +5225,24 @@ async function submitFinalReflection() {
     }
   } catch(e) { console.log('Log 同步失敗:', e); }
 
-  if (!currentUser.dailyReflections) currentUser.dailyReflections = [];
-  currentUser.dailyReflections.push({
+  upsertDailyReflection({
+    reflectionId,
     date: todayKey,
     choice: selectedBtn.textContent,
     tasksCompleted: currentUser.tasksCompleted || 0,
     submittedAt: new Date().toISOString()
   });
-  currentUser.dailyReflections = currentUser.dailyReflections.slice(-30);
   persistCurrentUser();
 
-  btn.textContent = "✅ 今日反思已同步";
+  btn.textContent = hadReflectionToday ? "✅ 今日反思已更新" : "✅ 今日反思已同步";
   btn.style.background = "#28a745";
   btn.style.color = "white";
   btn.style.border = "none";
+  btn.disabled = false;
   
   setTimeout(() => {
-    alert("今日反思已同步至資料庫。");
+    alert(hadReflectionToday ? "今日反思已更新至資料庫。" : "今日反思已同步至資料庫。");
+    updateDailyReflectionButton();
   }, 300);
 }
 function startNewCycle() {
@@ -5238,9 +5252,7 @@ function startNewCycle() {
   document.getElementById('moodText').value = '';
   document.getElementById('next-cycle-block').style.display = 'none';
   document.getElementById('next-cycle-block').style.opacity = '0';
-  document.getElementById('finalSubmitBtn').innerHTML = "<i class='ti ti-send'></i> 送出今日反思";
-  document.getElementById('finalSubmitBtn').disabled = false;
-  document.getElementById('finalSubmitBtn').style.background = "var(--brand)";
+  updateDailyReflectionButton();
   document.querySelectorAll('.reflect-opt').forEach(b => b.classList.remove('selected'));
 
   goPage(0);
