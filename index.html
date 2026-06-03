@@ -299,7 +299,7 @@
 
             <div class="section-label" style="margin-top:14px;"><i class="ti ti-chart-bar"></i> 情緒趨勢（一週）</div>
             <div class="chart-wrap dashboard-chart" id="dash-cloudChartWrapper"></div>
-            <div class="chart-helper">有打卡紀錄才會顯示</div>
+            <div class="chart-helper" id="dash-mood-chart-detail">點選長條可查看當天情緒次數。</div>
 
             <div class="section-label" style="margin-top:14px;"><i class="ti ti-history"></i> 最近行為</div>
             <div class="behavior-list" id="dash-recent-actions-container">
@@ -613,7 +613,7 @@
           <div class="section-label"><i class="ti ti-chart-bar"></i> 每日情緒值（一週）</div>
           <div class="chart-wrap" id="cloudChartWrapper">
             </div>
-          <div style="text-align:center;font-size:12px;color:var(--muted);margin-top:8px;">同一天多次評估會合併為一日平均，滑鼠靠近可查看情緒次數</div>
+          <div class="chart-helper" id="mood-chart-detail">同一天多次評估會合併為一日平均，點選長條可查看情緒次數。</div>
         </div>
         
         <div class="card mb-10">
@@ -5029,6 +5029,22 @@ function buildWeeklyMoodSummary() {
   return weekKeys.map(key => summary[key]);
 }
 
+function getMoodChartDetailText(day) {
+  const moodText = Object.entries(day?.moodCounts || {})
+    .map(([mood, count]) => `${mood}：${count} 次`)
+    .join('、') || '尚無情緒評估';
+  return `${day?.label || ''}：評估 ${day?.count || 0} 次。${moodText}`;
+}
+
+function showMoodChartDetail(chartId, dayIndex) {
+  const weeklySummary = buildWeeklyMoodSummary();
+  const day = weeklySummary[Number(dayIndex)];
+  if (!day) return;
+  const detailId = chartId === 'dash-cloudChartWrapper' ? 'dash-mood-chart-detail' : 'mood-chart-detail';
+  const detail = document.getElementById(detailId);
+  if (detail) detail.textContent = getMoodChartDetailText(day);
+}
+
 function updateMoodChart() {
   const wrappers = ['cloudChartWrapper', 'dash-cloudChartWrapper']
     .map(id => document.getElementById(id))
@@ -5037,19 +5053,17 @@ function updateMoodChart() {
 
   const weeklySummary = buildWeeklyMoodSummary();
   wrappers.forEach(chart => {
-    chart.innerHTML = weeklySummary.map(day => {
+    chart.innerHTML = weeklySummary.map((day, index) => {
       const average = day.count ? day.totalScore / day.count : 0;
       const height = day.count ? Math.max(8, (average / 5) * 100) : 0;
       const color = average > 3 ? 'var(--success)' : (average > 2 ? 'var(--info)' : 'var(--danger)');
-      const moodText = Object.entries(day.moodCounts)
-        .map(([mood, count]) => `${mood}：${count} 次`)
-        .join('、') || '尚無情緒評估';
+      const moodText = getMoodChartDetailText(day);
       const title = `${day.label}\n評估 ${day.count} 次\n${moodText}`;
       return `
-        <div class="chart-col" title="${escapeHtml(title)}">
+        <button class="chart-col" type="button" title="${escapeHtml(title)}" aria-label="${escapeHtml(moodText)}" onclick="showMoodChartDetail('${chart.id}', ${index})">
           <div class="chart-bar-outer"><div class="chart-bar-inner" style="height:${height}%;background:${day.count ? color : 'transparent'}"></div></div>
           <div class="chart-day">${escapeHtml(day.label)}</div>
-        </div>
+        </button>
       `;
     }).join('');
   });

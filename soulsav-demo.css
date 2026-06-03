@@ -1208,6 +1208,11 @@ button { cursor: pointer; }
   align-items: end;
 }
 .chart-col {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
   display: grid;
   grid-template-rows: 1fr auto;
   gap: 7px;
@@ -1215,10 +1220,17 @@ button { cursor: pointer; }
   text-align: center;
   color: var(--muted);
   font-size: 12px;
+  cursor: pointer;
 }
-.chart-col:hover .chart-bar-outer {
+.chart-col:hover .chart-bar-outer,
+.chart-col:focus-visible .chart-bar-outer {
   border-color: rgba(31,156,141,.42);
   box-shadow: 0 8px 18px rgba(43,55,59,.08);
+}
+.chart-col:focus-visible {
+  outline: 2px solid rgba(31,156,141,.35);
+  outline-offset: 3px;
+  border-radius: 12px;
 }
 .chart-bar-outer {
   height: 150px;
