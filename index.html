@@ -5241,7 +5241,7 @@ async function submitFinalReflection() {
   btn.disabled = false;
   
   setTimeout(() => {
-    alert(hadReflectionToday ? "今日反思已更新至資料庫。" : "今日反思已儲存。");
+    alert(hadReflectionToday ? "今日反思已更新!" : "今日反思已儲存!");
     updateDailyReflectionButton();
   }, 300);
 }
