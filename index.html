@@ -4176,6 +4176,66 @@ function completeTodayTask(moduleId) {
   }
 }
 
+function collectPracticeModuleInputs(moduleId) {
+  const panel = document.getElementById(`practice-panel-${moduleId}`);
+  if (!panel) return {};
+
+  const inputs = {};
+  panel.querySelectorAll('input, textarea, select').forEach(el => {
+    const label = el.getAttribute('aria-label')
+      || el.placeholder
+      || el.name
+      || el.id
+      || '未命名欄位';
+    inputs[label] = el.type === 'checkbox' || el.type === 'radio'
+      ? el.checked
+      : el.value || '';
+  });
+  return inputs;
+}
+
+function collectPracticeModuleState(moduleId) {
+  const module = currentPracticeModuleById[moduleId];
+  if (!module) return {};
+  const stateKeys = [
+    'selectedLevel',
+    'choiceCompleted',
+    'focusDistraction',
+    'focusActionConfirmed',
+    'triggerReason',
+    'replacementAction',
+    'sleepAction',
+    'readyToComplete',
+    'completed'
+  ];
+  const state = {};
+  stateKeys.forEach(key => {
+    if (module[key] !== undefined) state[key] = module[key];
+  });
+  return state;
+}
+
+function recordPracticeModuleInputs(moduleId) {
+  const module = currentPracticeModuleById[moduleId];
+  if (!module) return;
+
+  const inputs = collectPracticeModuleInputs(moduleId);
+  const state = collectPracticeModuleState(moduleId);
+  const hasInput = Object.values(inputs).some(value => String(value).trim() !== '');
+  const hasState = Object.keys(state).length > 0;
+  if (!hasInput && !hasState) return;
+
+  syncToBackend('系統內練習輸入紀錄', {
+    模組ID: moduleId,
+    模組名稱: module.title,
+    模組類型: module.type,
+    模組角色: module.role,
+    使用者輸入: inputs,
+    模組狀態: state,
+    完成時間: new Date().toISOString()
+  });
+}
+
 function completePracticeModule(moduleId, shouldNavigate = false, options = {}) {
   const module = currentPracticeModuleById[moduleId];
   if (!module) return false;
@@ -4187,6 +4247,7 @@ function completePracticeModule(moduleId, shouldNavigate = false, options = {}) 
       return false;
     }
   }
+  if (!module.completed) recordPracticeModuleInputs(moduleId);
   finalizePracticeModule(moduleId);
   if (!module.completed) {
     module.completed = true;
