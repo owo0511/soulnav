@@ -1733,7 +1733,7 @@ function computeAiRecommendedTopicsFallback(payload = buildAiContextPayload()) {
     {
       score: (p.moodScore >= 4 ? 45 : 0) + (p.exam ? 35 : 0) + Math.round(p.study * 0.25) + Math.round(p.sleep * 0.1),
       topic: localTopic(
-        '情緒調節技能：考前 4-7-8 呼吸',
+        '情緒調節技能：4-7-8 呼吸',
         '你的焦慮或考前壓力偏高，先把身體警報降下來，再開始讀書會更穩。',
         difficultyFor('emotion', p.moodScore >= 4 ? '入門' : '中階'),
         'success',
@@ -2879,18 +2879,18 @@ function markCurrentLessonCompleted(correct) {
   if (!currentUser || !currentActiveLesson) return;
   if (!currentUser.completedCourses) currentUser.completedCourses = [];
   const title = currentActiveLesson.title;
-  const existing = currentUser.completedCourses.find(course => course.title === title);
+  const attempt = currentUser.completedCourses.filter(course => course.title === title).length + 1;
   const record = {
     title,
     completed_at: new Date().toISOString(),
     correct,
+    attempt,
     kind: currentActiveLesson.kind || getCourseKind(currentActiveLesson),
     difficulty: currentActiveLesson.difficulty || currentActiveLesson.sourceTopic?.difficulty || '入門',
     tags: currentActiveLesson.tags || [],
     reason: currentActiveLesson.reason || ''
   };
-  if (existing) Object.assign(existing, record);
-  else currentUser.completedCourses.push(record);
+  currentUser.completedCourses.push(record);
   if (!isSelfSelectedLesson(currentActiveLesson) && currentUser.recommendationSnapshot) {
     if (!currentUser.recommendationSnapshot.completedLessons) currentUser.recommendationSnapshot.completedLessons = {};
     currentUser.recommendationSnapshot.completedLessons[title] = {
