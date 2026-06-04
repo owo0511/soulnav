@@ -2737,7 +2737,7 @@ async function runGeminiAI() {
     assessedAt: assessedAt.toISOString(),
     mood: currentMoodText,
     moodScore: currentMoodScore,
-    score: 6 - currentMoodScore
+    score: currentMoodScore
   });
   currentUser.moodHistory = currentUser.moodHistory.slice(-80);
   persistCurrentUser();
@@ -5034,7 +5034,7 @@ function buildWeeklyMoodSummary() {
   (currentUser?.moodHistory || []).forEach(record => {
     const key = getMoodRecordDateKey(record);
     if (!summary[key]) return;
-    const score = Number(record.score ?? (record.moodScore ? 6 - Number(record.moodScore) : 0));
+    const score = Number(record.moodScore ?? record.score ?? 0);
     if (!Number.isFinite(score) || score <= 0) return;
     const mood = record.mood || '未標記';
     summary[key].totalScore += score;
@@ -5072,7 +5072,7 @@ function updateMoodChart() {
     chart.innerHTML = weeklySummary.map((day, index) => {
       const average = day.count ? day.totalScore / day.count : 0;
       const height = day.count ? Math.max(8, (average / 5) * 100) : 0;
-      const color = average > 3 ? 'var(--mood-chart-good)' : (average > 2 ? 'var(--mood-chart-mid)' : 'var(--mood-chart-low)');
+      const color = average > 3 ? 'var(--mood-chart-low)' : (average > 2 ? 'var(--mood-chart-mid)' : 'var(--mood-chart-good)');
       const moodText = getMoodChartDetailText(day);
       const title = `${day.label}\n評估 ${day.count} 次\n${moodText}`;
       return `
