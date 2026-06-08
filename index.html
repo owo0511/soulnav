@@ -147,9 +147,11 @@
 
 <div id="login-overlay">
   <div class="login-card">
-    <div style="font-size: 42px; margin-bottom: 10px;">🌌</div>
-    <h2>心靈導航登入</h2>
-    <p>紀錄你的專屬情緒旅程與連續打卡天數</p>
+    <div class="login-pet-stage" aria-hidden="true">
+      <img class="mascot-img login-mascot" src="assets/navi-mascot-cutout.png" alt="">
+    </div>
+    <h2>SoulNav</h2>
+    <p>Navi 會陪你記錄心情、完成小練習，不用一次做到完美。</p>
     <div class="login-tabs">
       <button class="login-tab active" id="tab-new" onclick="switchLoginMode('new')">註冊</button>
       <button class="login-tab" id="tab-old" onclick="switchLoginMode('old')">登入</button>
@@ -204,13 +206,13 @@
 
   <div class="body-wrap">
     <div class="sidebar">
-      <div class="nav-section">主要功能</div>
-      <div class="nav-item active" data-page="0" onclick="goPage(0)"><i class="ti ti-mood-smile"></i>儀表板</div>
-      <div class="nav-item" data-page="1" onclick="goPage(1)"><i class="ti ti-book"></i>課程學習</div>
+      <div class="nav-section">今天的陪伴</div>
+      <div class="nav-item active" data-page="0" onclick="goPage(0)"><i class="ti ti-mood-smile"></i>首頁</div>
+      <div class="nav-item" data-page="1" onclick="goPage(1)"><i class="ti ti-book"></i>小練習</div>
       <div class="nav-item" data-page="2" onclick="goPage(2)"><i class="ti ti-player-play"></i>情境練習<span class="nav-badge">核心</span></div>
-      <div class="nav-item" data-page="3" onclick="goPage(3)"><i class="ti ti-sword"></i>現實挑戰</div>
-      <div class="nav-item" data-page="4" onclick="goPage(4)"><i class="ti ti-chart-line"></i>情緒追蹤</div>
-      <div class="nav-item" data-page="5" onclick="goPage(5)"><i class="ti ti-robot"></i>AI回饋</div>
+      <div class="nav-item" data-page="3" onclick="goPage(3)"><i class="ti ti-sword"></i>生活任務</div>
+      <div class="nav-item" data-page="4" onclick="goPage(4)"><i class="ti ti-chart-line"></i>成長紀錄</div>
+      <div class="nav-item" data-page="5" onclick="goPage(5)"><i class="ti ti-robot"></i>下一步</div>
       <div class="nav-divider"></div>
       <div class="nav-item" onclick="openBadgeCollection()"><i class="ti ti-trophy"></i>勳章收藏</div>
       <div class="nav-user">
@@ -230,23 +232,36 @@
       <div class="page active" id="page0">
         <!-- 儀表板入口 -->
         <div id="dashboard-view">
-          <span class="chip chip-info"><i class="ti ti-mood-smile"></i> 儀表板</span>
-          <div class="page-title" id="dash-title">你的今天儀表板</div>
-          <div class="page-sub" id="dash-sub">用最輕鬆的方式，看看你今天的情緒狀態與下一步。</div>
-
-          <div class="card mb-10">
-            <div class="section-label"><i class="ti ti-mood-smile"></i> 情緒摘要</div>
-            <div class="ai-insight" style="font-weight:900; margin-bottom:10px;">
-              今日狀態：<span id="dash-mood-text">普普</span>
+          <section class="companion-hero" aria-labelledby="dash-title">
+            <div class="pet-stage" aria-hidden="true">
+              <span class="pet-float one">♡</span>
+              <span class="pet-float two">✦</span>
+              <img class="mascot-img hero-mascot" id="navi-pet" src="assets/navi-mascot-cutout.png" alt="">
+              <div class="pet-shadow"></div>
             </div>
-            <div class="ai-insight" id="dash-mood-standard">等待你的情緒評估更新…</div>
-            <div class="chip-row mt-10" style="margin-top:12px;">
-              <span class="chip chip-info">學業 <b id="dash-val-study">40%</b></span>
-              <span class="chip chip-info">社交 <b id="dash-val-social">20%</b></span>
-              <span class="chip chip-info">睡眠 <b id="dash-val-sleep">60%</b></span>
+            <div class="companion-copy">
+              <span class="chip chip-success"><i class="ti ti-leaf"></i> Navi 陪你一下</span>
+              <div class="page-title" id="dash-title">今天先喘一口氣</div>
+              <div class="page-sub" id="dash-sub">不用一次解決全部，先讓 Navi 陪你完成一個小步驟。</div>
+              <div class="pet-status-card">
+                <div>
+                  <div class="pet-status-label">現在狀態</div>
+                  <div class="pet-status-value" id="pet-mood-text">普普</div>
+                </div>
+                <div>
+                  <div class="pet-status-label">Navi 能量</div>
+                  <div class="pet-status-value" id="pet-energy-text">準備啟動</div>
+                </div>
+              </div>
+              <div class="gentle-choice-row" aria-label="快速情緒入口">
+                <button type="button" onclick="openEmotionAssessment()">有點焦慮</button>
+                <button type="button" onclick="openEmotionAssessment()">很累</button>
+                <button type="button" onclick="openEmotionAssessment()">想拖延</button>
+                <button type="button" onclick="openEmotionAssessment()">還可以</button>
+              </div>
+              <button class="btn-primary companion-start" onclick="openEmotionAssessment()"><i class="ti ti-heart-handshake"></i> 開始今天的小整理</button>
             </div>
-            <button class="btn-ghost mood-assessment-cta mt-10" onclick="openEmotionAssessment()"><i class="ti ti-robot"></i> 情緒評估</button>
-          </div>
+          </section>
 
           <div class="card mb-10" id="continue-course-card" style="display:none">
             <div class="section-label"><i class="ti ti-player-play"></i> 繼續課程</div>
@@ -322,11 +337,11 @@
             <div class="section-label"><i class="ti ti-compass"></i> 快速入口</div>
             <div class="dash-quick-grid">
               <button class="btn-ghost" onclick="openEmotionAssessment()"><i class="ti ti-robot"></i> 情緒評估</button>
-              <button class="btn-ghost" onclick="goPage(1)"><i class="ti ti-book"></i> 課程學習</button>
+              <button class="btn-ghost" onclick="goPage(1)"><i class="ti ti-book"></i> 小練習</button>
               <button class="btn-ghost" onclick="goPage(2)"><i class="ti ti-player-play"></i> 情境練習</button>
-              <button class="btn-ghost" onclick="goPage(3)"><i class="ti ti-sword"></i> 現實挑戰</button>
-              <button class="btn-ghost" onclick="goPage(4)"><i class="ti ti-chart-line"></i> 情緒追蹤</button>
-              <button class="btn-ghost" onclick="goPage(5)"><i class="ti ti-robot"></i> AI回饋</button>
+              <button class="btn-ghost" onclick="goPage(3)"><i class="ti ti-sword"></i> 生活任務</button>
+              <button class="btn-ghost" onclick="goPage(4)"><i class="ti ti-chart-line"></i> 成長紀錄</button>
+              <button class="btn-ghost" onclick="goPage(5)"><i class="ti ti-robot"></i> 下一步</button>
             </div>
           </div>
         </div>
@@ -337,11 +352,11 @@
             <span class="chip chip-info"><i class="ti ti-sun"></i> 今日情緒評估</span>
             <button class="ghost-sm page-home-btn" onclick="goPage(0)"><i class="ti ti-home"></i> 回首頁</button>
             <div class="page-title" id="greeting-title">今天感覺怎樣，阿明？</div>
-            <div class="page-sub">每日打卡，AI即時分析你的情緒狀態，推薦最適合今天的練習。</div>
+            <div class="page-sub">先告訴 Navi 今天發生了什麼，我們只整理下一個做得到的小步驟。</div>
 
             <div class="navi-intro-row mb-10">
-              <div class="navi-ava-sm"><i class="ti ti-robot"></i></div>
-              <div class="navi-speech">嗨！先告訴我你現在的心情，我幫你分析今天最適合的練習路徑。誠實填，沒有標準答案！</div>
+              <div class="navi-ava-sm"><i class="ti ti-heart"></i></div>
+              <div class="navi-speech">嗨，我在。先不用講得很完整，寫一點點也可以，沒有標準答案。</div>
             </div>
 
             <div class="card mb-10">
@@ -379,7 +394,7 @@
               </div>
             </div>
 
-            <button class="btn-primary" onclick="runGeminiAI()"><i class="ti ti-robot"></i> 送出，開始AI分析</button>
+            <button class="btn-primary" onclick="runGeminiAI()"><i class="ti ti-sparkles"></i> 送出，整理我的狀態</button>
             <div class="streak-row">
               <div class="streak-card"><div class="streak-num" id="ui-streak">1</div><div class="streak-lbl">連續打卡天數</div></div>
               <div class="streak-card"><div class="streak-num" id="badgeNum" style="color:var(--warning)">0</div><div class="streak-lbl">目前勳章數</div></div>
@@ -387,28 +402,52 @@
           </div>
 
           <div id="p0-loading" style="display:none">
-            <div class="card"><div class="ai-loading"><div class="spinner"></div><span>正在呼叫AI模型進行綜合分析...</span></div></div>
+            <div class="card"><div class="ai-loading"><div class="spinner"></div><span>Navi 正在幫你整理成下一個小步驟...</span></div></div>
           </div>
 
           <div id="p0-result" style="display:none" class="fade-in">
             <div class="ai-result-header">
-              <div class="ai-ava"><i class="ti ti-robot"></i></div>
-              <div><div class="result-title">AI情緒分析完成</div><div class="result-sub" id="p0-result-sub">資料已存入雲端資料庫</div></div>
+              <div class="ai-ava"><i class="ti ti-heart-handshake"></i></div>
+              <div><div class="result-title">狀態整理完成</div><div class="result-sub" id="p0-result-sub">Navi 已幫你留下今天的紀錄</div></div>
               <button class="link-btn" onclick="resetAI()">重新填寫</button>
             </div>
-            <div class="card mb-10">
-              <div class="gemini-box">
-                <div class="gemini-title"><i class="ti ti-sparkles"></i> AI深度分析</div>
-                <div class="gemini-content" id="gemini-result-text">載入中...</div>
+            <div class="card mb-10 mood-result-card">
+              <div class="navi-result-note">
+                <div class="navi-ava-sm"><i class="ti ti-leaf"></i></div>
+                <div id="mood-result-note">先不用一次處理全部，今天只要完成下面這一步就很好。</div>
               </div>
-              <div style="margin-top:20px; padding:15px; background:#f0fdf4; border-radius:12px; border-left:4px solid var(--success)">
-                <strong style="color:#166534; display:block; margin-bottom:5px;"><i class="ti ti-target"></i> 核心評估與推薦：</strong>
-                <span style="color:#15803d; font-size:14px;" id="core-recommendation-text">偵測到您的壓力與逃避模式，目前最適合您的練習路徑是：<strong>情緒調節 + 拖延症重塑</strong>。</span>
+              <div class="mood-summary-grid">
+                <div class="mood-summary-item">
+                  <span class="summary-icon"><i class="ti ti-heart-rate-monitor"></i></span>
+                  <div class="summary-label">目前狀態</div>
+                  <div class="summary-value" id="summary-state">整理中</div>
+                </div>
+                <div class="mood-summary-item">
+                  <span class="summary-icon"><i class="ti ti-cloud"></i></span>
+                  <div class="summary-label">主要壓力</div>
+                  <div class="summary-value" id="summary-stress">整理中</div>
+                </div>
+                <div class="mood-summary-item">
+                  <span class="summary-icon"><i class="ti ti-player-play"></i></span>
+                  <div class="summary-label">下一步</div>
+                  <div class="summary-value" id="summary-next-action">整理中</div>
+                </div>
               </div>
+              <div class="core-route-card">
+                <strong><i class="ti ti-target"></i> 今天適合的路徑</strong>
+                <span id="core-recommendation-text">偵測到您的壓力與逃避模式，目前最適合您的練習路徑是：<strong>情緒調節 + 拖延症重塑</strong>。</span>
+              </div>
+              <details class="full-analysis">
+                <summary><i class="ti ti-chevron-down"></i> 查看完整分析</summary>
+                <div class="gemini-box compact">
+                  <div class="gemini-title"><i class="ti ti-sparkles"></i> 完整狀態說明</div>
+                  <div class="gemini-content" id="gemini-result-text">載入中...</div>
+                </div>
+              </details>
             </div>
             <div class="card mb-10">
-              <div class="section-label"><i class="ti ti-sparkles"></i> 本次AI推薦課程</div>
-              <div class="ai-insight mb-10">以下是依照本次情緒評估產生的推薦課程。完成這組課程後，系統內練習會依照這些主題動態調整。</div>
+              <div class="section-label"><i class="ti ti-sparkles"></i> 今天適合的小練習</div>
+              <div class="ai-insight mb-10">先挑一個最貼近今天狀態的練習，不需要一次全部完成。</div>
               <div id="emotion-reco-list" class="dash-reco-list">
                 <div class="ai-loading" style="min-height:90px"><div class="spinner"></div><span>正在產生推薦課程...</span></div>
               </div>
@@ -679,23 +718,23 @@
 <div class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="行動版導覽">
   <button class="bottom-nav-item active" data-page="0" onclick="goPage(0)">
     <i class="ti ti-mood-smile"></i>
-    <span>儀表板</span>
+    <span>首頁</span>
   </button>
   <button class="bottom-nav-item" data-page="1" onclick="goPage(1)">
     <i class="ti ti-book"></i>
-    <span>學習</span>
+    <span>練習</span>
   </button>
   <button class="bottom-nav-item" data-page="3" onclick="goPage(3)">
     <i class="ti ti-sword"></i>
-    <span>挑戰</span>
+    <span>任務</span>
   </button>
   <button class="bottom-nav-item" data-page="4" onclick="goPage(4)">
     <i class="ti ti-chart-line"></i>
-    <span>進度</span>
+    <span>紀錄</span>
   </button>
   <button class="bottom-nav-item" data-page="5" onclick="goPage(5)">
     <i class="ti ti-robot"></i>
-    <span>個人</span>
+    <span>Navi</span>
   </button>
 </div>
 
@@ -1313,7 +1352,44 @@ function updateCoreRecommendationText(topics = currentUser?.recommendedTopics ||
   if (!target) return;
   const names = (topics || []).slice(0, 2).map(t => t.title.split('：')[0]).filter(Boolean);
   const summary = names.length ? names.join(' + ') : '情緒調節 + 行為重塑';
-  target.innerHTML = `偵測到你的壓力與情緒狀態，目前最適合的練習路徑是：<strong>${escapeHtml(summary)}</strong>。`;
+  target.innerHTML = `今天先從 <strong>${escapeHtml(summary)}</strong> 開始，做一個小步驟就好。`;
+}
+
+function getPrimaryStress(payload = buildAiContextPayload()) {
+  const stressItems = [
+    { key: 'study', label: '學業壓力', value: parseInt(payload.study_stress ?? 0, 10) || 0 },
+    { key: 'social', label: '社交壓力', value: parseInt(payload.social_stress ?? 0, 10) || 0 },
+    { key: 'sleep', label: '睡眠狀態', value: parseInt(payload.sleep_stress ?? 0, 10) || 0 }
+  ].sort((a, b) => b.value - a.value);
+  return stressItems[0] || { label: '尚未明確', value: 0 };
+}
+
+function getNextGentleAction(payload = buildAiContextPayload()) {
+  const p = getAssessmentProfile(payload);
+  if (p.moodScore >= 4) return '先做 30 秒呼吸';
+  if (p.procrastination) return '啟動五分鐘開始法';
+  if (p.study >= 50) return '拆一個 10 分鐘小任務';
+  if (p.social >= 50 || p.socialFear) return '寫一句安全開場';
+  if (p.sleep >= 50) return '做睡前降速清單';
+  return '選一個輕量小練習';
+}
+
+function renderMoodResultSummary(payload, res, textDesc) {
+  const stateEl = document.getElementById('summary-state');
+  const stressEl = document.getElementById('summary-stress');
+  const nextEl = document.getElementById('summary-next-action');
+  const noteEl = document.getElementById('mood-result-note');
+  const primaryStress = getPrimaryStress(payload);
+  const state = res?.emotional_state || res?.mood_state || currentMoodText || '普普';
+  const nextAction = getNextGentleAction(payload);
+
+  if (stateEl) stateEl.textContent = state;
+  if (stressEl) stressEl.textContent = `${primaryStress.label} ${primaryStress.value}%`;
+  if (nextEl) nextEl.textContent = nextAction;
+  if (noteEl) {
+    const desc = textDesc ? `你提到「${textDesc.slice(0, 18)}${textDesc.length > 18 ? '...' : ''}」` : '今天的狀態已經記下來';
+    noteEl.textContent = `${desc}。先不用一次處理全部，Navi 陪你做下一個小步驟。`;
+  }
 }
 
 function applyEmotionAnalysisFromApi(res) {
@@ -1580,10 +1656,13 @@ function updateDashboardContinueCourse() {
 function updateDashboardEmotionalSummary() {
   const dashMoodText = document.getElementById('dash-mood-text');
   const dashStandard = document.getElementById('dash-mood-standard');
+  const petMoodText = document.getElementById('pet-mood-text');
+  const petEnergyText = document.getElementById('pet-energy-text');
+  const label = currentUser?.emotionalState || currentMoodText || '普普';
   if (dashMoodText) {
-    const label = currentUser?.emotionalState || currentMoodText || '普普';
     dashMoodText.textContent = label;
   }
+  if (petMoodText) petMoodText.textContent = label;
 
   if (dashStandard) {
     if (currentUser?.emotionSummary) {
@@ -1592,6 +1671,8 @@ function updateDashboardEmotionalSummary() {
       dashStandard.textContent = moodStandardMap[currentMoodScore] || '等待你的情緒評估更新…';
     }
   }
+
+  if (petEnergyText) petEnergyText.textContent = getBadgeLevelLabel(currentUser?.badges || 0);
 
   const vStudy = document.getElementById('val-study');
   const vSocial = document.getElementById('val-social');
@@ -2756,6 +2837,7 @@ async function runGeminiAI() {
   } else {
     document.getElementById('gemini-result-text').innerHTML = ` 根據您的描述「${textDesc}」，看來現在感到${currentMoodText}。<br>您的壓力源明確，建議別急著自責，接受現在的狀態，跟著系統進行調節即可。`;
   }
+  renderMoodResultSummary(payload, res, textDesc);
 
   applyEmotionAnalysisFromApi(res);
   const moodTopics = parseTopicsFromResponse(res);
