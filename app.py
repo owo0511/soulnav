@@ -850,14 +850,29 @@ def parse_json_field(raw, fallback=None):
 def redirect_to_user(user_id, tab="overview"):
     return flask.redirect(f"/admin/users/{user_id}#{tab}")
 
+def count_completed_practice_modules(logs):
+    count = 0
+    for log in logs or []:
+        if log.get("action_type") != "完成任務":
+            continue
+        details = log.get("action_details") or {}
+        if isinstance(details, str):
+            try:
+                details = json.loads(details)
+            except json.JSONDecodeError:
+                details = {}
+        item = str(details.get("項目", ""))
+        if item.startswith("系統內練習："):
+            count += 1
+    return count
+
 def summarize_user_stats(user, logs, reflections):
     courses = user.get("completedCourses", []) or []
-    practice = user.get("practiceHistory", []) or []
     recent_actions = user.get("recentActions", []) or []
     mood_history = user.get("moodHistory", []) or []
     return {
         "completed_courses": len(courses),
-        "practice_modules": len(practice),
+        "practice_modules": count_completed_practice_modules(logs),
         "tasks_completed": user.get("tasksCompleted", 0),
         "badges": user.get("badges", 0),
         "logs_count": len(logs),
@@ -1205,6 +1220,7 @@ def admin_users_table():
     for user_id, user in users.items():
         user_logs = [log for log in logs if log.get("user_id") == user_id]
         user_refs = [ref for ref in reflections if ref.get("user_id") == user_id]
+        practice_done_count = count_completed_practice_modules(user_logs)
 
         rows.append({
             "user_id": user_id,
@@ -1212,7 +1228,7 @@ def admin_users_table():
             "account": user.get("account", ""),
             "last_login": user.get("lastLogin") or user.get("last_login", ""),
             "completed_courses": len(user.get("completedCourses", [])),
-            "practice_modules": len(user.get("practiceHistory", [])),
+            "practice_modules": practice_done_count,
             "tasks_completed": user.get("tasksCompleted", 0),
             "badges": user.get("badges", 0),
             "logs_count": len(user_logs),

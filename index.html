@@ -145,6 +145,12 @@
 </head>
 <body>
 
+<div class="breathing-bg" aria-hidden="true">
+  <div class="breathing-blob blob-lilac"></div>
+  <div class="breathing-blob blob-mint"></div>
+  <div class="breathing-blob blob-peach"></div>
+</div>
+
 <div id="login-overlay">
   <div class="login-card">
     <div class="login-pet-stage" aria-hidden="true">
@@ -202,6 +208,12 @@
 
   <div class="top-bar">
     <div class="logo"><i class="ti ti-brain"></i> Soul<em>Nav</em></div>
+    <div class="top-actions">
+      <button class="ambient-toggle is-on" id="ambient-toggle" type="button" onclick="toggleAmbientAudio()">
+        <i class="ti ti-volume"></i>
+        <span>背景音</span>
+      </button>
+    </div>
   </div>
 
   <div class="body-wrap">
@@ -752,10 +764,15 @@ const DEFAULT_LESSON_FEEDBACK = {
   danger: '再想一下：今天最適合的是先降低壓力，再用小步驟開始。'
 };
 let currentLessonFeedback = { ...DEFAULT_LESSON_FEEDBACK };
+let ambientAudio = null;
+let ambientUnlockBound = false;
+let ambientPausedForPractice = false;
+let ambientEnabled = localStorage.getItem('soulnav_ambient_enabled') !== 'off';
+const AMBIENT_AUDIO_TRACK = { label: '背景音', src: 'audio/background.mp3', startAt: 5 };
 let practiceAudio = null;
 let activePracticeAudioTrack = '';
 const PRACTICE_AUDIO_TRACKS = {
-  relax: { label: '放鬆音樂', src: 'audio/background.mp3', startAt: 5 }
+  relax: { label: '放鬆音樂', src: 'audio/practice.mp3', startAt: 5 }
 };
 
 const COURSE_CATALOG = [
@@ -900,8 +917,7 @@ function mergeUserRecords(serverUser = {}, cachedUser = {}) {
       .filter(Boolean)
       .slice(-12),
     practiceHistory: [...(server.practiceHistory || []), ...(cached.practiceHistory || [])]
-      .filter(Boolean)
-      .slice(-30),
+      .filter(Boolean),
     dailyReflections: [...(server.dailyReflections || []), ...(cached.dailyReflections || [])]
       .filter(Boolean)
       .slice(-30),
@@ -991,6 +1007,96 @@ function getGeminiRoute(actionType) {
   return routeMap[actionType] || actionType;
 }
 
+function ensureAmbientAudio() {
+  if (!ambientAudio) {
+    ambientAudio = new Audio(AMBIENT_AUDIO_TRACK.src);
+    ambientAudio.loop = true;
+    ambientAudio.preload = 'auto';
+    ambientAudio.volume = 0.28;
+    ambientAudio.currentTime = AMBIENT_AUDIO_TRACK.startAt || 0;
+  }
+  return ambientAudio;
+}
+
+function updateAmbientButton(stateText = '') {
+  const btn = document.getElementById('ambient-toggle');
+  if (!btn) return;
+  const isPlaying = ambientAudio && !ambientAudio.paused;
+  btn.classList.toggle('is-on', ambientEnabled && isPlaying);
+  btn.classList.toggle('is-off', !ambientEnabled || !isPlaying);
+  btn.innerHTML = ambientEnabled
+    ? `<i class="ti ${isPlaying ? 'ti-volume' : 'ti-volume-off'}"></i><span>${stateText || (isPlaying ? '背景音' : '點擊播放')}</span>`
+    : '<i class="ti ti-volume-off"></i><span>背景音關閉</span>';
+}
+
+function bindAmbientUnlockOnce() {
+  if (ambientUnlockBound) return;
+  ambientUnlockBound = true;
+  const unlock = () => {
+    document.removeEventListener('pointerdown', unlock);
+    document.removeEventListener('keydown', unlock);
+    if (ambientEnabled && !activePracticeAudioTrack) playAmbientAudio();
+  };
+  document.addEventListener('pointerdown', unlock, { once: true });
+  document.addEventListener('keydown', unlock, { once: true });
+}
+
+async function playAmbientAudio() {
+  if (!ambientEnabled || activePracticeAudioTrack) {
+    updateAmbientButton();
+    return;
+  }
+  const audio = ensureAmbientAudio();
+  if (!audio.currentTime || audio.currentTime < (AMBIENT_AUDIO_TRACK.startAt || 0)) {
+    audio.currentTime = AMBIENT_AUDIO_TRACK.startAt || 0;
+  }
+  try {
+    await audio.play();
+    updateAmbientButton();
+  } catch (error) {
+    updateAmbientButton('點擊播放');
+    bindAmbientUnlockOnce();
+  }
+}
+
+function pauseAmbientAudio() {
+  if (ambientAudio) ambientAudio.pause();
+  updateAmbientButton();
+}
+
+function pauseAmbientForPractice() {
+  ambientPausedForPractice = !!(ambientAudio && !ambientAudio.paused);
+  pauseAmbientAudio();
+}
+
+function resumeAmbientAfterPractice() {
+  if (ambientEnabled && (ambientPausedForPractice || !ambientAudio || ambientAudio.paused)) {
+    ambientPausedForPractice = false;
+    playAmbientAudio();
+  } else {
+    updateAmbientButton();
+  }
+}
+
+function toggleAmbientAudio() {
+  const isPlaying = ambientAudio && !ambientAudio.paused;
+  if (ambientEnabled && isPlaying) {
+    ambientEnabled = false;
+    localStorage.setItem('soulnav_ambient_enabled', 'off');
+    pauseAmbientAudio();
+    return;
+  }
+  ambientEnabled = true;
+  localStorage.setItem('soulnav_ambient_enabled', 'on');
+  if (activePracticeAudioTrack) stopPracticeAudio({ resumeAmbient: false });
+  playAmbientAudio();
+}
+
+function initAmbientAudio() {
+  updateAmbientButton();
+  if (ambientEnabled) playAmbientAudio();
+}
+
 function renderPracticeAudioControls(moduleId) {
   return `
     <div class="practice-audio-box">
@@ -1015,13 +1121,15 @@ function updatePracticeAudioButtons() {
   });
 }
 
-function stopPracticeAudio() {
+function stopPracticeAudio(options = {}) {
+  const { resumeAmbient = true } = options;
   if (practiceAudio) {
     practiceAudio.pause();
     practiceAudio.currentTime = 0;
   }
   activePracticeAudioTrack = '';
   updatePracticeAudioButtons();
+  if (resumeAmbient) resumeAmbientAfterPractice();
 }
 
 function moduleSupportsPracticeAudio(module) {
@@ -1038,6 +1146,7 @@ async function togglePracticeAudio(trackKey, btn = null) {
     stopPracticeAudio();
     return;
   }
+  pauseAmbientForPractice();
   if (practiceAudio) {
     practiceAudio.pause();
     practiceAudio.currentTime = 0;
@@ -1054,6 +1163,7 @@ async function togglePracticeAudio(trackKey, btn = null) {
   } catch (error) {
     activePracticeAudioTrack = '';
     updatePracticeAudioButtons();
+    resumeAmbientAfterPractice();
     alert(`音樂檔無法播放：${error?.message || '請確認檔案路徑與格式'}`);
   }
 }
@@ -3257,7 +3367,6 @@ function rememberPracticeSelection(selectionKey, modules) {
     moduleTitles: modules.map(module => module.title),
     selectedAt: new Date().toISOString()
   });
-  currentUser.practiceHistory = currentUser.practiceHistory.slice(-30);
   persistCurrentUser();
 }
 
@@ -5387,6 +5496,7 @@ document.getElementById('pwa-install-btn').addEventListener('click', async () =>
     document.getElementById('pwa-banner').classList.remove('show');
   }
 });
+initAmbientAudio();
 </script>
 </body>
 </html>
