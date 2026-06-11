@@ -1,0 +1,4 @@
+__pycache__/
+.venv/
+soulnav_db.json
+*.pyc
