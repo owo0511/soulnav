@@ -233,34 +233,18 @@
         <!-- 儀表板入口 -->
         <div id="dashboard-view">
           <section class="companion-hero" aria-labelledby="dash-title">
+            <div class="companion-copy">
+              <div class="page-title" id="dash-title">今天先喘一口氣</div>
+              <div class="page-sub" id="dash-sub">你值得被溫柔對待</div>
+            </div>
             <div class="pet-stage" aria-hidden="true">
               <span class="pet-float one">♡</span>
               <span class="pet-float two">✦</span>
               <img class="mascot-img hero-mascot" id="navi-pet" src="assets/navi-mascot-cutout.png" alt="">
               <div class="pet-shadow"></div>
             </div>
-            <div class="companion-copy">
-              <span class="chip chip-success"><i class="ti ti-leaf"></i> Navi 陪你一下</span>
-              <div class="page-title" id="dash-title">今天先喘一口氣</div>
-              <div class="page-sub" id="dash-sub">不用一次解決全部，先讓 Navi 陪你完成一個小步驟。</div>
-              <div class="pet-status-card">
-                <div>
-                  <div class="pet-status-label">現在狀態</div>
-                  <div class="pet-status-value" id="pet-mood-text">普普</div>
-                </div>
-                <div>
-                  <div class="pet-status-label">Navi 能量</div>
-                  <div class="pet-status-value" id="pet-energy-text">準備啟動</div>
-                </div>
-              </div>
-              <div class="gentle-choice-row" aria-label="快速情緒入口">
-                <button type="button" onclick="openEmotionAssessment()">有點焦慮</button>
-                <button type="button" onclick="openEmotionAssessment()">很累</button>
-                <button type="button" onclick="openEmotionAssessment()">想拖延</button>
-                <button type="button" onclick="openEmotionAssessment()">還可以</button>
-              </div>
-              <button class="btn-primary companion-start" onclick="openEmotionAssessment()"><i class="ti ti-heart-handshake"></i> 開始今天的小整理</button>
-            </div>
+            <div class="mood-prompt">你現在的感受是...</div>
+            <button class="btn-primary companion-start" onclick="openEmotionAssessment()"><i class="ti ti-leaf"></i> 開始你的旅程</button>
           </section>
 
           <div class="card mb-10" id="continue-course-card" style="display:none">
@@ -300,7 +284,7 @@
               </div>
             </div>
 
-            <button class="btn-primary mt-10" style="background:var(--warning)" onclick="goPage(3)"><i class="ti ti-sword"></i> 查看現實挑戰</button>
+            <button class="btn-primary mt-10" onclick="goPage(3)"><i class="ti ti-sword"></i> 查看現實挑戰</button>
           </div>
 
           <div class="card mb-10">
@@ -330,7 +314,7 @@
                 <div class="insight-text">點一下「更新洞察」，我會用你的最新狀態整理出一句可行建議。</div>
               </div>
             </div>
-            <button class="btn-primary mt-10" style="background:var(--info)" data-insight-action="refresh" onclick="fetchInsight()"><i class="ti ti-refresh"></i> 更新洞察</button>
+            <button class="btn-primary mt-10" data-insight-action="refresh" onclick="fetchInsight()"><i class="ti ti-refresh"></i> 更新洞察</button>
           </div>
 
           <div class="card mb-10 dash-quick-card">
@@ -667,7 +651,7 @@
         <div id="dynamic-insight-container">
           <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--info)"></div><div class="insight-text">點擊下方按鈕獲取深度洞察。</div></div>
         </div>
-        <button class="btn-primary" style="margin-bottom:15px; background:var(--info)" data-insight-action="refresh" onclick="fetchInsight()"><i class="ti ti-refresh"></i> 產生最新洞察</button>
+        <button class="btn-primary insight-refresh-btn" data-insight-action="refresh" onclick="fetchInsight()"><i class="ti ti-refresh"></i> 產生最新洞察</button>
         
         <button class="btn-primary" onclick="goPage(5)"><i class="ti ti-robot"></i> 看AI個人化回饋</button>
       </div>
