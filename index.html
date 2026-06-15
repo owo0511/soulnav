@@ -752,6 +752,45 @@ function isNgrokBackend() {
 }
 
 let usersDB = JSON.parse(localStorage.getItem('soulnav_users')) || {};
+const DEMO_LOGIN = {
+  account: 'demo',
+  password: 'demo123',
+  user: {
+    id: 'DEMO0001',
+    user_id: 'DEMO0001',
+    account: 'demo',
+    name: '測試使用者',
+    streak: 1,
+    lastLogin: null,
+    badges: 2,
+    tasksCompleted: 8,
+    moodHistory: [
+      { date: '測試日 1', score: 3, mood: '普普' },
+      { date: '測試日 2', score: 4, mood: '有點怕' },
+      { date: '測試日 3', score: 2, mood: '還不錯' }
+    ],
+    recentActions: [
+      '系統內練習：情緒覺察練習',
+      '系統內練習：呼吸引導互動',
+      '完成第一個不需要完美的小步驟'
+    ],
+    recommendedTopics: [],
+    recommendationSnapshot: null,
+    inProgressCourse: null,
+    completedCourses: [
+      { title: '情緒調節技能： 4-7-8 呼吸', completed_at: new Date().toISOString(), score: 100 }
+    ],
+    completedLearningReports: [],
+    recommendationContextKey: null,
+    practiceHistory: [
+      { courseTitle: '情緒調節技能： 4-7-8 呼吸', moduleTitles: ['情緒覺察練習', '呼吸引導互動'], selectedAt: new Date().toISOString() }
+    ],
+    dailyReflections: [
+      { date: '測試日', choice: '有成就感，但還想再穩一點', tasksCompleted: 8 }
+    ],
+    challengeProgress: {}
+  }
+};
 let currentUser = null;
 let userSyncTimer = null;
 let currentMoodScore = 3;
@@ -1561,6 +1600,14 @@ async function loginUser() {
     persistCurrentUser();
     updateStreakAndLogin();
   } catch (e) {
+    if (account.toLowerCase() === DEMO_LOGIN.account && password === DEMO_LOGIN.password) {
+      const cachedDemo = getCachedUserForLogin(DEMO_LOGIN.user);
+      currentUser = mergeUserRecords(DEMO_LOGIN.user, cachedDemo);
+      persistCurrentUser();
+      alert('已進入 GitHub Pages 測試模式。此模式使用前端暫存資料，資料庫與即時 AI 需啟動後端才會完整運作。');
+      updateStreakAndLogin();
+      return;
+    }
     alert(`登入失敗：${e.message || '請確認帳號密碼或後端連線'}`);
   }
 }
