@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="preload" as="image" href="assets/navi-mascot-512.png" imagesrcset="assets/navi-mascot-256.png 256w, assets/navi-mascot-512.png 512w" imagesizes="(max-width: 560px) 116px, 330px" fetchpriority="high">
 <link rel="stylesheet" href="soulsav-demo.css">
 <style>
 /* ── 登入介面 ── */
@@ -154,7 +155,7 @@
 <div id="login-overlay">
   <div class="login-card">
     <div class="login-pet-stage" aria-hidden="true">
-      <img class="mascot-img login-mascot" src="assets/navi-mascot-cutout.png" alt="">
+      <img class="mascot-img login-mascot" src="assets/navi-mascot-256.png" srcset="assets/navi-mascot-256.png 256w, assets/navi-mascot-512.png 512w" sizes="132px" width="256" height="256" alt="" loading="eager" decoding="async" fetchpriority="high">
     </div>
     <h2>SoulNav</h2>
     <p>Navi 會陪你記錄心情、完成小練習，不用一次做到完美。</p>
@@ -252,7 +253,7 @@
             <div class="pet-stage" aria-hidden="true">
               <span class="pet-float one">♡</span>
               <span class="pet-float two">✦</span>
-              <img class="mascot-img hero-mascot" id="navi-pet" src="assets/navi-mascot-cutout.png" alt="">
+              <img class="mascot-img hero-mascot" id="navi-pet" src="assets/navi-mascot-512.png" srcset="assets/navi-mascot-256.png 256w, assets/navi-mascot-512.png 512w" sizes="(max-width: 560px) 252px, 330px" width="512" height="512" alt="" loading="eager" decoding="async" fetchpriority="high">
               <div class="pet-shadow"></div>
             </div>
             <div class="mood-prompt">你現在的感受是...</div>
@@ -1582,6 +1583,15 @@ async function loginUser() {
   const password = document.getElementById('login-password-input').value;
   if (!account) { alert("請輸入帳號！"); return; }
   if (!password) { alert("請輸入密碼！"); return; }
+
+  if (account.toLowerCase() === DEMO_LOGIN.account && password === DEMO_LOGIN.password) {
+    const cachedDemo = getCachedUserForLogin(DEMO_LOGIN.user);
+    currentUser = mergeUserRecords(DEMO_LOGIN.user, cachedDemo);
+    persistCurrentUser();
+    alert('已進入 GitHub Pages 測試模式。此模式使用前端暫存資料，資料庫與即時 AI 需啟動後端才會完整運作。');
+    updateStreakAndLogin();
+    return;
+  }
 
   try {
     const res = await fetchWithTimeout(`${CLOUD_BASE_URL}/api/user/login`, {
