@@ -192,17 +192,74 @@ def safe_generate_text(prompt, fallback_text, timeout=35):
 app = Flask(__name__)
 CORS(app)
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+@app.route('/')
+def serve_soulnav_app():
+    return flask.send_from_directory(BASE_DIR, 'index.html')
+
+
+@app.route('/soulsav-demo.css')
+def serve_soulnav_styles():
+    return flask.send_from_directory(BASE_DIR, 'soulsav-demo.css')
+
+
+@app.route('/manifest.webmanifest')
+def serve_web_manifest():
+    return flask.send_from_directory(
+        BASE_DIR,
+        'manifest.webmanifest',
+        mimetype='application/manifest+json',
+    )
+
+
+@app.route('/service-worker.js')
+def serve_service_worker():
+    response = flask.send_from_directory(
+        BASE_DIR,
+        'service-worker.js',
+        mimetype='application/javascript',
+    )
+    response.headers['Cache-Control'] = 'no-cache'
+    response.headers['Service-Worker-Allowed'] = '/'
+    return response
+
+
+@app.route('/assets/<path:filename>')
+def serve_soulnav_asset(filename):
+    return flask.send_from_directory(os.path.join(BASE_DIR, 'assets'), filename)
+
+
+@app.route('/audio/<path:filename>')
+def serve_soulnav_audio(filename):
+    return flask.send_from_directory(os.path.join(BASE_DIR, 'audio'), filename)
+
+
+@app.route('/health')
+def health_check():
+    return jsonify({"status": "ok", "service": "soulnav"})
+
 # ==========================================
 # 2. PostgreSQL 資料庫初始化與存取
 # ==========================================
-PG_HOST = os.getenv("PG_HOST", "localhost")
-PG_PORT = int(os.getenv("PG_PORT", "5432"))
-PG_DATABASE = os.getenv("PG_DATABASE", "soulnav_db")
-PG_USER = os.getenv("PG_USER", "postgres")
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgres://"):]
+
+PG_HOST = os.getenv("PG_HOST") or os.getenv("PGHOST", "localhost")
+PG_PORT = int(os.getenv("PG_PORT") or os.getenv("PGPORT", "5432"))
+PG_DATABASE = os.getenv("PG_DATABASE") or os.getenv("PGDATABASE", "soulnav_db")
+PG_USER = os.getenv("PG_USER") or os.getenv("PGUSER", "postgres")
 # 建議在 PowerShell 設定：$env:PG_PASSWORD="你的PostgreSQL密碼"
-PG_PASSWORD = os.getenv("PG_PASSWORD", "")
+PG_PASSWORD = os.getenv("PG_PASSWORD") or os.getenv("PGPASSWORD", "")
 
 def get_pg_conn():
+    if DATABASE_URL:
+        return psycopg2.connect(
+            DATABASE_URL,
+            cursor_factory=RealDictCursor,
+        )
     return psycopg2.connect(
         host=PG_HOST,
         port=PG_PORT,
@@ -398,6 +455,12 @@ def initialize_database():
     global database
     init_pg_db()
     database = load_db()
+
+
+def create_app():
+    """Create the production app and initialize its cloud database."""
+    initialize_database()
+    return app
 
 def public_user(user):
     safe = dict(user)
@@ -1624,12 +1687,15 @@ if __name__ == '__main__':
     print("反思紀錄數：", len(db.get("reflections", [])))
     print(f"====================================================")
     print(f"SoulNav 後端已啟動！")
-    print(f"請將前端 CLOUD_BASE_URL 設為: http://127.0.0.1:5000")
-    print(f"即時資料庫 JSON: http://127.0.0.1:5000/api/admin/db")
-    print(f"使用者資料表: http://127.0.0.1:5000/admin/users")
+    port = int(os.getenv("PORT", "5000"))
+    debug_mode = os.getenv("FLASK_DEBUG", "").lower() in {"1", "true", "yes"}
+    print(f"電腦開啟: http://127.0.0.1:{port}")
+    print(f"手機請開啟電腦的區域網路 IP，連接埠為 {port}")
+    print(f"即時資料庫 JSON: http://127.0.0.1:{port}/api/admin/db")
+    print(f"使用者資料表: http://127.0.0.1:{port}/admin/users")
     print(f"====================================================")
 
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)
 
 '''
 

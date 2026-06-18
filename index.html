@@ -3,7 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#A7DCD5">
+<meta name="application-name" content="SoulNav">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SoulNav">
 <title>心靈導航 — 人工智慧情緒與心理健康學習系統</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="./assets/app-icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
@@ -738,8 +745,8 @@
 // ==========================================
 // 核心變數與資料庫
 // ==========================================
-// ★ 請在此填入後端網址（本機 Flask 例：http://127.0.0.1:5000）★
-const CLOUD_BASE_URL = "http://127.0.0.1:5000";
+// 由 Flask 提供前端與 API，手機透過同一個網址即可使用完整功能。
+const CLOUD_BASE_URL = window.SOULNAV_API_BASE_URL || window.location.origin;
 // 目前後端 lms_finalproject (3).py 的 Gemini route 使用 /api/gemini/*
 const AI_VIA_TRACK_ONLY = false;
 const JSON_API_HEADERS = {
@@ -5600,15 +5607,38 @@ function startNewCycle() {
 // ==========================================
 // PWA 機制
 // ==========================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch((error) => {
+      console.warn('Service Worker 註冊失敗:', error);
+    });
+  });
+}
+
 let deferredPrompt;
+const isIosDevice = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isStandaloneApp = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault(); deferredPrompt = e;
   document.getElementById('pwa-banner').classList.add('show');
 });
+
+window.addEventListener('load', () => {
+  if (isIosDevice && !isStandaloneApp) {
+    const banner = document.getElementById('pwa-banner');
+    banner.querySelector('span').textContent = '點分享，再選「加入主畫面」，即可像 App 一樣開啟。';
+    document.getElementById('pwa-install-btn').textContent = '查看方法';
+    banner.classList.add('show');
+  }
+});
+
 document.getElementById('pwa-install-btn').addEventListener('click', async () => {
   if (deferredPrompt) {
     deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null;
     document.getElementById('pwa-banner').classList.remove('show');
+  } else if (isIosDevice) {
+    alert('請點 Safari 下方的分享按鈕，再選擇「加入主畫面」。');
   }
 });
 initAmbientAudio();

@@ -1,0 +1,28 @@
+{
+  "id": "./",
+  "name": "SoulNav AI 輔助情緒與行為調適學習系統",
+  "short_name": "SoulNav",
+  "description": "陪伴使用者覺察情緒、練習調適技巧，並將技巧落實到日常行動。",
+  "lang": "zh-TW",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F8FAFF",
+  "theme_color": "#A7DCD5",
+  "categories": ["education", "health", "lifestyle"],
+  "icons": [
+    {
+      "src": "./assets/app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
