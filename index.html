@@ -852,10 +852,69 @@ const COURSE_CATALOG = [
 // ==========================================
 // API：行為追蹤 + AI 端點（直連失敗時 fallback 至 /api/track）
 // ==========================================
+function compactRecommendedTopic(topic = {}) {
+  return {
+    icon: topic.icon || '',
+    title: topic.title || '',
+    reason: topic.reason || '',
+    difficulty: topic.difficulty || '',
+    tone: topic.tone || '',
+    tags: Array.isArray(topic.tags) ? topic.tags.slice(0, 6) : [],
+    kind: topic.kind || ''
+  };
+}
+
+function keepRecentObjectEntries(value, limit = 30) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  return Object.fromEntries(Object.entries(value).slice(-limit));
+}
+
+function buildCompactUserCache(user = {}) {
+  const snapshot = user.recommendationSnapshot;
+  return {
+    ...user,
+    moodHistory: (user.moodHistory || []).slice(-60),
+    recentActions: (user.recentActions || []).slice(-100),
+    recommendedTopics: (user.recommendedTopics || []).slice(0, 4).map(compactRecommendedTopic),
+    recommendationSnapshot: snapshot ? {
+      contextKey: snapshot.contextKey || '',
+      createdAt: snapshot.createdAt || '',
+      completedLessons: snapshot.completedLessons || {},
+      topics: (snapshot.topics || []).slice(0, 4).map(compactRecommendedTopic)
+    } : null,
+    inProgressCourse: user.inProgressCourse ? {
+      title: user.inProgressCourse.title || user.inProgressCourse.lesson?.title || '',
+      index: user.inProgressCourse.index || 0,
+      source: user.inProgressCourse.source || '',
+      updatedAt: user.inProgressCourse.updatedAt || ''
+    } : null,
+    completedCourses: (user.completedCourses || []).slice(-40),
+    completedLearningReports: (user.completedLearningReports || []).slice(-12),
+    practiceHistory: (user.practiceHistory || []).slice(-40),
+    dailyReflections: (user.dailyReflections || []).slice(-40),
+    practiceActionPlans: (user.practiceActionPlans || []).slice(-30),
+    challengeProgress: keepRecentObjectEntries(user.challengeProgress, 30),
+    practiceProgressByKey: keepRecentObjectEntries(user.practiceProgressByKey, 20)
+  };
+}
+
 function persistCurrentUser() {
   if (!currentUser?.id) return;
   usersDB[currentUser.id] = currentUser;
-  localStorage.setItem('soulnav_users', JSON.stringify(usersDB));
+  try {
+    localStorage.setItem('soulnav_users', JSON.stringify(usersDB));
+  } catch (error) {
+    if (error?.name !== 'QuotaExceededError') throw error;
+    const compactUser = buildCompactUserCache(currentUser);
+    usersDB = { [currentUser.id]: compactUser };
+    try {
+      localStorage.setItem('soulnav_users', JSON.stringify(usersDB));
+    } catch (retryError) {
+      console.warn('瀏覽器暫存空間不足，略過本機快取；正式資料仍會同步至後端。', retryError);
+      localStorage.removeItem('soulnav_users');
+      usersDB = {};
+    }
+  }
   scheduleUserSync();
 }
 
