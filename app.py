@@ -190,7 +190,7 @@ def safe_generate_text(prompt, fallback_text, timeout=35):
     return fallback_text
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, allow_private_network=True)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
