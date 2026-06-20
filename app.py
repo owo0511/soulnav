@@ -13,6 +13,7 @@ import time
 import requests
 import hashlib
 import threading
+from collections import OrderedDict
 from flask import Flask, jsonify
 import flask
 from flask_cors import CORS
@@ -42,9 +43,24 @@ def safe_generate_text(prompt, fallback_text, timeout=35):
 
 
 GEMINI_MODEL = "gemini-2.5-flash"
-GEMINI_CACHE = {}
-MOOD_RECOMMENDATION_CACHE = {}
+AI_CACHE_LIMIT = 100
+GEMINI_CACHE = OrderedDict()
+MOOD_RECOMMENDATION_CACHE = OrderedDict()
 gemini_lock = threading.Lock()
+
+
+def cache_get(cache, key):
+    value = cache.get(key)
+    if value is not None:
+        cache.move_to_end(key)
+    return value
+
+
+def cache_set(cache, key, value):
+    cache[key] = value
+    cache.move_to_end(key)
+    while len(cache) > AI_CACHE_LIMIT:
+        cache.popitem(last=False)
 
 COURSE_OPTIONS = [
     {
@@ -147,9 +163,10 @@ def safe_generate_text(prompt, fallback_text, timeout=35):
         return fallback_text
 
     cache_key = hashlib.sha256(f"{GEMINI_MODEL}|{prompt}".encode("utf-8")).hexdigest()
-    if cache_key in GEMINI_CACHE:
+    cached_text = cache_get(GEMINI_CACHE, cache_key)
+    if cached_text is not None:
         print("Gemini cache hit，使用快取結果")
-        return GEMINI_CACHE[cache_key]
+        return cached_text
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
     headers = {
@@ -201,7 +218,7 @@ def safe_generate_text(prompt, fallback_text, timeout=35):
             text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
 
             if text:
-                GEMINI_CACHE[cache_key] = text
+                cache_set(GEMINI_CACHE, cache_key, text)
                 return text
 
             return fallback_text
@@ -415,9 +432,68 @@ def load_db():
                 })
     return db
 
+
+def load_recent_user_context(user_id, action_type=None, log_limit=30, reflection_limit=10):
+    logs = []
+    reflections = []
+    if not user_id:
+        return logs, reflections
+
+    with get_pg_conn() as conn:
+        with conn.cursor() as cur:
+            if action_type:
+                cur.execute("""
+                    SELECT id, user_id, action_type, action_details, created_at
+                    FROM behavior_logs
+                    WHERE user_id = %s AND action_type = %s
+                    ORDER BY created_at DESC
+                    LIMIT %s;
+                """, (user_id, action_type, log_limit))
+            else:
+                cur.execute("""
+                    SELECT id, user_id, action_type, action_details, created_at
+                    FROM behavior_logs
+                    WHERE user_id = %s
+                    ORDER BY created_at DESC
+                    LIMIT %s;
+                """, (user_id, log_limit))
+
+            for row in reversed(cur.fetchall()):
+                logs.append({
+                    "id": row.get("id"),
+                    "user_id": row.get("user_id"),
+                    "action_type": row.get("action_type"),
+                    "action_details": row.get("action_details") or {},
+                    "timestamp": row.get("created_at").strftime("%Y-%m-%d %H:%M:%S") if row.get("created_at") else None,
+                })
+
+            cur.execute("""
+                SELECT id, user_id, reflection_id, reflection_date, reflection_data,
+                       created_at, updated_at
+                FROM reflections
+                WHERE user_id = %s
+                ORDER BY created_at DESC
+                LIMIT %s;
+            """, (user_id, reflection_limit))
+
+            for row in reversed(cur.fetchall()):
+                data = row.get("reflection_data") or {}
+                reflections.append({
+                    **data,
+                    "id": row.get("id"),
+                    "user_id": row.get("user_id"),
+                    "reflection_id": row.get("reflection_id"),
+                    "reflection_date": row.get("reflection_date").strftime("%Y-%m-%d") if row.get("reflection_date") else None,
+                    "created_at": row.get("created_at").strftime("%Y-%m-%d %H:%M:%S") if row.get("created_at") else None,
+                    "updated_at": row.get("updated_at").strftime("%Y-%m-%d %H:%M:%S") if row.get("updated_at") else None,
+                })
+
+    return logs, reflections
+
 def save_db():
-    global database
-    database = load_db()
+    # PostgreSQL is the source of truth; retaining a full in-memory copy can exhaust
+    # small Render instances as behavior logs grow.
+    return None
 
 def upsert_user(user):
     profile = {
@@ -475,12 +551,8 @@ def find_user_by_account(account):
             cur.execute("SELECT * FROM users WHERE LOWER(account) = %s;", (account,))
             return row_to_user(cur.fetchone())
 
-database = {"users": {}, "logs": [], "reflections": []}
-
 def initialize_database():
-    global database
     init_pg_db()
-    database = load_db()
 
 
 def create_app():
@@ -531,7 +603,6 @@ def create_empty_user(name, account, password):
 # (A) 註冊/更新使用者資訊
 @app.route('/api/user/register', methods=['POST'])
 def register_user():
-    global database
     data = flask.request.json or {}
 
     # 情況 1：真正註冊新帳號
@@ -703,8 +774,9 @@ def submit_reflection():
 def analyze_mood():
     data = flask.request.json or {}
     context_key = build_context_key(data)
-    if context_key in MOOD_RECOMMENDATION_CACHE:
-        cached = dict(MOOD_RECOMMENDATION_CACHE[context_key])
+    cached_result = cache_get(MOOD_RECOMMENDATION_CACHE, context_key)
+    if cached_result is not None:
+        cached = dict(cached_result)
         cached["status"] = "cache"
         cached["source"] = "cache"
         return jsonify(cached)
@@ -762,7 +834,7 @@ JSON 格式：
             "recommended_topics": fallback_topics
         }
 
-    MOOD_RECOMMENDATION_CACHE[context_key] = result
+    cache_set(MOOD_RECOMMENDATION_CACHE, context_key, result)
     return jsonify(result)
 
 @app.route('/api/gemini/topics', methods=['POST'])
@@ -770,8 +842,8 @@ def gemini_topics():
     data = flask.request.json or {}
     context_key = build_context_key(data)
 
-    if context_key in MOOD_RECOMMENDATION_CACHE:
-        cached = MOOD_RECOMMENDATION_CACHE[context_key]
+    cached = cache_get(MOOD_RECOMMENDATION_CACHE, context_key)
+    if cached is not None:
         return jsonify({
             "status": "cache",
             "source": "mood_cache",
@@ -780,13 +852,13 @@ def gemini_topics():
         })
 
     fallback_topics = build_fallback_topics(data)
-    MOOD_RECOMMENDATION_CACHE[context_key] = {
+    cache_set(MOOD_RECOMMENDATION_CACHE, context_key, {
         "status": "fallback",
         "source": "local_fallback",
         "analysis": "目前先依照壓力量表與描述產生推薦課程，避免短時間重複呼叫 Gemini。",
         "topics": fallback_topics,
         "recommended_topics": fallback_topics
-    }
+    })
     return jsonify({
         "status": "fallback",
         "source": "local_fallback",
@@ -815,27 +887,17 @@ def get_insight():
     data = flask.request.json or {}
     user_id = data.get("user_id")
 
-    db = load_db()
-    user = db.get("users", {}).get(user_id, {}) if user_id else {}
-
-    user_logs = [
-        log for log in db.get("logs", [])
-        if log.get("user_id") == user_id
-    ]
-
-    recent_inputs = [
-        log for log in user_logs
-        if log.get("action_type") == "系統內練習輸入紀錄"
-    ][-30:]
+    user = get_user_by_id(user_id) or {} if user_id else {}
+    recent_inputs, recent_reflections = load_recent_user_context(
+        user_id,
+        action_type="系統內練習輸入紀錄",
+        log_limit=30,
+        reflection_limit=10,
+    )
 
     recent_actions = user.get("recentActions", [])[-30:]
     recent_courses = user.get("completedCourses", [])[-10:]
     recent_reports = user.get("completedLearningReports", [])[-5:]
-
-    recent_reflections = [
-        ref for ref in db.get("reflections", [])
-        if ref.get("user_id") == user_id
-    ][-10:]
 
     if data.get("type") == "report":
         prompt = f"""
