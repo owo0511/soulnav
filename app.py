@@ -128,12 +128,21 @@ def safe_generate_text(prompt, fallback_text, timeout=35):
     if not GEMINI_API_KEY:
         return fallback_text
 
+    api_key = GEMINI_API_KEY.strip()
+    if api_key.startswith("$env:") or '"' in api_key or "'" in api_key:
+        print("Gemini API Key 格式錯誤，請只設定金鑰本身，不要填入環境變數指令")
+        return fallback_text
+
     cache_key = hashlib.sha256(f"{GEMINI_MODEL}|{prompt}".encode("utf-8")).hexdigest()
     if cache_key in GEMINI_CACHE:
         print("Gemini cache hit，使用快取結果")
         return GEMINI_CACHE[cache_key]
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
+    headers = {
+        "Content-Type": "application/json",
+        "x-goog-api-key": api_key,
+    }
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
     session = requests.Session()
     session.trust_env = False
@@ -144,7 +153,7 @@ def safe_generate_text(prompt, fallback_text, timeout=35):
     for attempt in range(max_attempts):
         try:
             with gemini_lock:
-                r = session.post(url, json=payload, timeout=timeout)
+                r = session.post(url, headers=headers, json=payload, timeout=timeout)
 
             is_last_attempt = attempt == max_attempts - 1
 
@@ -170,6 +179,10 @@ def safe_generate_text(prompt, fallback_text, timeout=35):
                 time.sleep(delay)
                 continue
 
+            if 400 <= r.status_code < 500:
+                print(f"Gemini REST 設定或請求錯誤: HTTP {r.status_code}")
+                break
+
             r.raise_for_status()
             data = r.json()
             text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
@@ -181,7 +194,7 @@ def safe_generate_text(prompt, fallback_text, timeout=35):
             return fallback_text
 
         except Exception as e:
-            print(f"Gemini REST 第 {attempt + 1} 次失敗: {e}")
+            print(f"Gemini REST 第 {attempt + 1} 次失敗: {type(e).__name__}")
 
             if attempt < max_attempts - 1:
                 time.sleep(3)
