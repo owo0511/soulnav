@@ -1690,6 +1690,20 @@ async function loginUser() {
   }
 }
 
+function compactAiText(text, maxLength = 80) {
+  const normalized = String(text || '').replace(/\s+/g, ' ').trim();
+  if (normalized.length <= maxLength) return normalized;
+
+  const preview = normalized.slice(0, maxLength);
+  const sentenceEnd = Math.max(
+    preview.lastIndexOf('。'),
+    preview.lastIndexOf('！'),
+    preview.lastIndexOf('？')
+  );
+  if (sentenceEnd >= Math.floor(maxLength / 2)) return preview.slice(0, sentenceEnd + 1);
+  return `${preview.replace(/[，、；：,.\s]+$/g, '')}…`;
+}
+
 async function updateStreakAndLogin() {
   const today = new Date().toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
   
@@ -1787,7 +1801,10 @@ function updateUI() {
 function renderOutcomeSummary(report, options = {}) {
   const compact = !!options.compact;
   const course = report?.course || currentActiveLesson?.title || currentUser?.inProgressCourse?.title || '本次課程';
-  const analysis = report?.analysis || 'AI 已整理你的回饋，後續會依照這次結果調整練習與挑戰。';
+  const analysis = compactAiText(
+    report?.analysis || 'AI 已整理你的回饋，下一步先保留一個容易完成的小行動。',
+    compact ? 56 : 72
+  );
   const completedCount = currentUser?.completedCourses?.length || 0;
   const modulesCount = report?.practiceModules?.length || currentPracticeModules.length || 0;
   const tasks = currentUser?.tasksCompleted || 0;
@@ -5243,7 +5260,10 @@ async function submitReport() {
     recent_actions: currentUser?.recentActions || [],
     challenge_progress: currentUser?.challengeProgress || {}
   });
-  const analysis = res?.insight || res?.summary || res?.analysis || `AI 分析：你已經把學習內容帶到現實行動中。接下來可以先保留最容易完成的一個任務，明天再逐步增加難度。你提到的「${reportText.slice(0, 36)}${reportText.length > 36 ? '...' : ''}」會被納入下一輪任務調整。`;
+  const analysis = compactAiText(
+    res?.insight || res?.summary || res?.analysis || '你已經把練習帶進真實生活。下一次先保留最容易完成的一步。',
+    72
+  );
   let reportRecord = null;
   if (currentUser) {
     if (!currentUser.completedLearningReports) currentUser.completedLearningReports = [];
@@ -5427,7 +5447,7 @@ async function fetchInsight() {
     });
 
     const insightHtml = (res && res.insight) ? `
-      <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--success)"></div><div class="insight-text">${res.insight}</div></div>
+      <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--success)"></div><div class="insight-text">${escapeHtml(compactAiText(res.insight, 60))}</div></div>
     ` : `
       <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--success)"></div><div class="insight-text">觀察到你完成了多項微步驟！這是克服拖延最棒的開始。</div></div>
     `;
@@ -5459,11 +5479,14 @@ async function loadFinalNaviAnalysis() {
     reports: currentUser.completedLearningReports || []
   });
   if(res && res.navi_msgs && res.navi_msgs.length > 0) {
-    document.getElementById('final-navi-analysis').innerHTML = res.navi_msgs.map(msg => escapeHtml(msg)).join('<br><br>');
+    document.getElementById('final-navi-analysis').innerHTML = res.navi_msgs
+      .slice(0, 2)
+      .map(msg => escapeHtml(compactAiText(msg, 50)))
+      .join('<br><br>');
   } else if (res && res.insight) {
-    document.getElementById('final-navi-analysis').innerHTML = escapeHtml(res.insight).replace(/\n/g, '<br>');
+    document.getElementById('final-navi-analysis').textContent = compactAiText(res.insight, 100);
   } else {
-    document.getElementById('final-navi-analysis').innerHTML = `今天你真的很棒！成功拆解任務並實踐了步驟。記住，每 5 個任務就是一枚勳章，這不僅是獎勵，更是你戰勝拖延的證明！`;
+    document.getElementById('final-navi-analysis').textContent = '你已經把任務拆成可行步驟。下一次先延續最容易完成的一步。';
   }
 }
 

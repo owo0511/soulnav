@@ -124,6 +124,19 @@ def build_fallback_topics(data):
 def clean_json_text(text):
     return str(text or "").replace("```json", "").replace("```", "").strip()
 
+
+def compact_ai_text(text, max_chars):
+    """Keep AI feedback readable on mobile even when the model exceeds the prompt limit."""
+    normalized = " ".join(str(text or "").split()).strip()
+    if len(normalized) <= max_chars:
+        return normalized
+
+    preview = normalized[:max_chars]
+    sentence_end = max(preview.rfind("。"), preview.rfind("！"), preview.rfind("？"))
+    if sentence_end >= max_chars // 2:
+        return preview[:sentence_end + 1]
+    return preview.rstrip("，、；：,. ") + "…"
+
 def safe_generate_text(prompt, fallback_text, timeout=35):
     if not GEMINI_API_KEY:
         return fallback_text
@@ -843,14 +856,11 @@ def get_insight():
 最近反思：
 {json.dumps(recent_reflections, ensure_ascii=False)}
 
-請用繁體中文給一段 80 到 120 字的成果分析。
-內容要包含：
-1. 他做得好的地方
-2. 目前可能卡住的地方
-3. 下一次可以怎麼調整
+請用繁體中文回覆 45 到 60 字，限兩個短句。
+第一句指出做得好的地方或卡點，第二句只給一個下一步。
 不要 markdown。
 """
-        fallback = "你已經把課程內容帶到現實行動中，這是很重要的進展。接下來可以先保留最容易完成的一個小任務，再慢慢增加難度。"
+        fallback = "你已經把練習帶進真實生活。下一次先保留最容易完成的一步。"
 
     elif data.get("type") == "final_summary":
         prompt = f"""
@@ -876,15 +886,12 @@ def get_insight():
 最近每日反思：
 {json.dumps(recent_reflections, ensure_ascii=False)}
 
-請回傳 2 到 3 段繁體中文，每段 40 到 70 字。
+請回傳兩個短句、總長 70 到 90 字的繁體中文。
+第一句合併最明顯的進展與反覆卡點，第二句只提出一個可執行調整。
 內容要具體，不要只說「你很棒」。
-請包含：
-1. 使用者目前最明顯的進展
-2. 使用者可能反覆卡住的模式
-3. 下一步最適合的調整建議
 不要 markdown。
 """
-        fallback = "你已經累積了不少行動紀錄，代表你不是只停留在想法，而是有實際嘗試。接下來可以觀察自己最常卡住的時段或情境，先保留一個最容易完成的小任務，讓進步維持穩定。"
+        fallback = "你已經能把想法轉成行動，但壓力升高時仍容易停住。下一步先固定一個最容易完成的小任務。"
 
     else:
         prompt = f"""
@@ -902,12 +909,14 @@ def get_insight():
 最近完成課程：
 {json.dumps(recent_courses, ensure_ascii=False)}
 
-請用 Navi AI 心理導航員的口吻，給 80 字內繁體中文鼓勵與建議。
+請用 Navi AI 心理導航員的口吻，給 45 到 55 字繁體中文，限兩個短句。
 不要 markdown。
 """
-        fallback = "你已經有在累積行動紀錄了。接下來先維持一個小而穩定的步驟，比一次要求自己做到完美更重要。"
+        fallback = "你正在累積穩定行動。今天先維持一個容易完成的小步驟。"
 
     insight = safe_generate_text(prompt, fallback, timeout=40)
+    insight_limit = 65 if data.get("type") == "report" else 100 if data.get("type") == "final_summary" else 60
+    insight = compact_ai_text(insight, insight_limit)
     return jsonify({"insight": insight})
 
 # (D) 讓您可以直接在網頁看資料庫的隱藏端點
