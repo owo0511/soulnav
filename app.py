@@ -839,25 +839,33 @@ def get_insight():
 
     if data.get("type") == "report":
         prompt = f"""
-使用者完成了現實生活挑戰，請根據他的課程、任務與回饋做成果分析。
+使用者完成了現實生活挑戰，請根據「本次回饋」做成果分析；其他紀錄只能作為輔助背景。
 
 本次回饋：
 {data.get('text')}
 
+目前課程：
+{data.get('active_course')}
+
+本次挑戰進度：
+{json.dumps(data.get('challenge_progress', {}), ensure_ascii=False)}
+
 最近完成課程：
-{json.dumps(recent_courses, ensure_ascii=False)}
+{json.dumps(recent_courses or data.get('completed_courses', []), ensure_ascii=False)}
 
 最近系統內練習輸入：
 {json.dumps(recent_inputs, ensure_ascii=False)}
 
 最近行動紀錄：
-{json.dumps(recent_actions, ensure_ascii=False)}
+{json.dumps(recent_actions or data.get('recent_actions', []), ensure_ascii=False)}
 
 最近反思：
 {json.dumps(recent_reflections, ensure_ascii=False)}
 
-請用繁體中文回覆 45 到 60 字，限兩個短句。
-第一句指出做得好的地方或卡點，第二句只給一個下一步。
+請用繁體中文回覆 30 到 40 字，限兩個短句，每句只保留一個重點。
+第一句必須具體呼應「本次回饋」提到的行為、感受或困難，指出做得好的地方或卡點。
+第二句只給一個與該回饋直接相關、可以立即執行的下一步。
+不可只給通用鼓勵，不可加入使用者沒有提到的經歷；輸入不明確時，請指出需要再觀察的具體面向。
 不要 markdown。
 """
         fallback = "你已經把練習帶進真實生活。下一次先保留最容易完成的一步。"
@@ -886,7 +894,7 @@ def get_insight():
 最近每日反思：
 {json.dumps(recent_reflections, ensure_ascii=False)}
 
-請回傳兩個短句、總長 70 到 90 字的繁體中文。
+請回傳兩個短句、總長 50 到 65 字的繁體中文，每句只保留一個重點。
 第一句合併最明顯的進展與反覆卡點，第二句只提出一個可執行調整。
 內容要具體，不要只說「你很棒」。
 不要 markdown。
@@ -909,13 +917,13 @@ def get_insight():
 最近完成課程：
 {json.dumps(recent_courses, ensure_ascii=False)}
 
-請用 Navi AI 心理導航員的口吻，給 45 到 55 字繁體中文，限兩個短句。
+請用 Navi AI 心理導航員的口吻，給 30 到 40 字繁體中文，限兩個短句。
 不要 markdown。
 """
         fallback = "你正在累積穩定行動。今天先維持一個容易完成的小步驟。"
 
     insight = safe_generate_text(prompt, fallback, timeout=40)
-    insight_limit = 65 if data.get("type") == "report" else 100 if data.get("type") == "final_summary" else 60
+    insight_limit = 42 if data.get("type") == "report" else 68 if data.get("type") == "final_summary" else 42
     insight = compact_ai_text(insight, insight_limit)
     return jsonify({"insight": insight})
 

@@ -1803,7 +1803,7 @@ function renderOutcomeSummary(report, options = {}) {
   const course = report?.course || currentActiveLesson?.title || currentUser?.inProgressCourse?.title || '本次課程';
   const analysis = compactAiText(
     report?.analysis || 'AI 已整理你的回饋，下一步先保留一個容易完成的小行動。',
-    compact ? 56 : 72
+    compact ? 38 : 42
   );
   const completedCount = currentUser?.completedCourses?.length || 0;
   const modulesCount = report?.practiceModules?.length || currentPracticeModules.length || 0;
@@ -5262,7 +5262,7 @@ async function submitReport() {
   });
   const analysis = compactAiText(
     res?.insight || res?.summary || res?.analysis || '你已經把練習帶進真實生活。下一次先保留最容易完成的一步。',
-    72
+    42
   );
   let reportRecord = null;
   if (currentUser) {
@@ -5447,7 +5447,7 @@ async function fetchInsight() {
     });
 
     const insightHtml = (res && res.insight) ? `
-      <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--success)"></div><div class="insight-text">${escapeHtml(compactAiText(res.insight, 60))}</div></div>
+      <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--success)"></div><div class="insight-text">${escapeHtml(compactAiText(res.insight, 42))}</div></div>
     ` : `
       <div class="insight-item mb-7"><div class="insight-dot" style="background:var(--success)"></div><div class="insight-text">觀察到你完成了多項微步驟！這是克服拖延最棒的開始。</div></div>
     `;
@@ -5481,10 +5481,10 @@ async function loadFinalNaviAnalysis() {
   if(res && res.navi_msgs && res.navi_msgs.length > 0) {
     document.getElementById('final-navi-analysis').innerHTML = res.navi_msgs
       .slice(0, 2)
-      .map(msg => escapeHtml(compactAiText(msg, 50)))
+      .map(msg => escapeHtml(compactAiText(msg, 34)))
       .join('<br><br>');
   } else if (res && res.insight) {
-    document.getElementById('final-navi-analysis').textContent = compactAiText(res.insight, 100);
+    document.getElementById('final-navi-analysis').textContent = compactAiText(res.insight, 68);
   } else {
     document.getElementById('final-navi-analysis').textContent = '你已經把任務拆成可行步驟。下一次先延續最容易完成的一步。';
   }
