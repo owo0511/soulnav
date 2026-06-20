@@ -298,19 +298,38 @@ PG_USER = os.getenv("PG_USER") or os.getenv("PGUSER", "postgres")
 PG_PASSWORD = os.getenv("PG_PASSWORD") or os.getenv("PGPASSWORD", "")
 
 def get_pg_conn():
-    if DATABASE_URL:
-        return psycopg2.connect(
-            DATABASE_URL,
-            cursor_factory=RealDictCursor,
-        )
-    return psycopg2.connect(
-        host=PG_HOST,
-        port=PG_PORT,
-        database=PG_DATABASE,
-        user=PG_USER,
-        password=PG_PASSWORD,
-        cursor_factory=RealDictCursor
-    )
+    last_error = None
+    for attempt in range(3):
+        try:
+            if DATABASE_URL:
+                return psycopg2.connect(
+                    DATABASE_URL,
+                    cursor_factory=RealDictCursor,
+                    connect_timeout=8,
+                    keepalives=1,
+                    keepalives_idle=30,
+                    keepalives_interval=10,
+                    keepalives_count=3,
+                )
+            return psycopg2.connect(
+                host=PG_HOST,
+                port=PG_PORT,
+                database=PG_DATABASE,
+                user=PG_USER,
+                password=PG_PASSWORD,
+                cursor_factory=RealDictCursor,
+                connect_timeout=8,
+                keepalives=1,
+                keepalives_idle=30,
+                keepalives_interval=10,
+                keepalives_count=3,
+            )
+        except psycopg2.OperationalError as exc:
+            last_error = exc
+            if attempt < 2:
+                time.sleep(attempt + 1)
+
+    raise last_error
 
 def init_pg_db():
     with get_pg_conn() as conn:
@@ -557,7 +576,12 @@ def initialize_database():
 
 def create_app():
     """Create the production app and initialize its cloud database."""
-    initialize_database()
+    try:
+        initialize_database()
+    except psycopg2.OperationalError as exc:
+        # A sleeping or restarting free PostgreSQL instance should not prevent
+        # Gunicorn from booting. API requests will retry when the DB recovers.
+        print(f"PostgreSQL 啟動連線暫時失敗，服務先啟動並等待資料庫恢復: {exc}")
     return app
 
 def public_user(user):
