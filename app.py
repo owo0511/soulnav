@@ -894,7 +894,7 @@ def get_insight():
 最近每日反思：
 {json.dumps(recent_reflections, ensure_ascii=False)}
 
-請回傳兩個短句、總長 50 到 65 字的繁體中文，每句只保留一個重點。
+請回傳兩個短句、總長 80 到 100 字的繁體中文，每句只保留一個重點。
 第一句合併最明顯的進展與反覆卡點，第二句只提出一個可執行調整。
 內容要具體，不要只說「你很棒」。
 不要 markdown。
@@ -923,7 +923,7 @@ def get_insight():
         fallback = "你正在累積穩定行動。今天先維持一個容易完成的小步驟。"
 
     insight = safe_generate_text(prompt, fallback, timeout=40)
-    insight_limit = 42 if data.get("type") == "report" else 68 if data.get("type") == "final_summary" else 42
+    insight_limit = 42 if data.get("type") == "report" else 100 if data.get("type") == "final_summary" else 42
     insight = compact_ai_text(insight, insight_limit)
     return jsonify({"insight": insight})
 

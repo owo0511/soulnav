@@ -5481,10 +5481,10 @@ async function loadFinalNaviAnalysis() {
   if(res && res.navi_msgs && res.navi_msgs.length > 0) {
     document.getElementById('final-navi-analysis').innerHTML = res.navi_msgs
       .slice(0, 2)
-      .map(msg => escapeHtml(compactAiText(msg, 34)))
+      .map(msg => escapeHtml(compactAiText(msg, 50)))
       .join('<br><br>');
   } else if (res && res.insight) {
-    document.getElementById('final-navi-analysis').textContent = compactAiText(res.insight, 68);
+    document.getElementById('final-navi-analysis').textContent = compactAiText(res.insight, 100);
   } else {
     document.getElementById('final-navi-analysis').textContent = '你已經把任務拆成可行步驟。下一次先延續最容易完成的一步。';
   }
